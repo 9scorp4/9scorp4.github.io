@@ -1,9 +1,11 @@
 main:
   - title: "About"
     url: /about/
+  - title: "Research Ecosystem"
+    url: /ecosystem/
   - title: "Projects"
     url: /projects/
-  - title: "Blog"
+  - title: "Knowledge Hub"
     url: /blog/
-  - title: "CV"
+  - title: "Professional"
     url: /cv/

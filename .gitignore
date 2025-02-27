@@ -1,0 +1,37 @@
+# Jekyll generated files
+_site/
+.sass-cache/
+.jekyll-cache/
+.jekyll-metadata
+
+# Local development settings
+.bundle/
+vendor/
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Editor directories and files
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+
+# Sensitive information
+*.pdf
+Diana*.pdf
+Business*.pdf
+Font*.pdf
+assets/images/business
+
+# Log files
+*.log
+
+# Unpublished articles
+_posts/unpublished

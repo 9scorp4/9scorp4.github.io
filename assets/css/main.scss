@@ -1,0 +1,29 @@
+@charset "utf-8";
+
+// Typography variables
+$serif: "Source Sans Pro", Georgia, Times, serif !default;
+$sans-serif: "Source Sans Pro", -apple-system, BlinkMacSystemFont, sans-serif !default;
+$monospace: "Fira Mono", Monaco, Consolas, monospace !default;
+
+$global-font-family: $sans-serif !default;
+$header-font-family: "Montserrat", sans-serif !default;
+$caption-font-family: $sans-serif !default;
+
+// Import theme styles
+@import "minimal-mistakes/skins/{{ site.minimal_mistakes_skin | default: 'default' }}"; // skin
+@import "minimal-mistakes"; // main partials
+
+// Custom overrides
+h1, h2, h3, h4, h5, h6 {
+  font-family: $header-font-family;
+  font-weight: 600;
+}
+
+.page__title, 
+.archive__item-title {
+  font-weight: 700;
+}
+
+code, pre {
+  font-family: $monospace;
+}
