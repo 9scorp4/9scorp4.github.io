@@ -1,54 +1,34 @@
-@charset "utf-8";
+@import "minimal-mistakes/skins/{{ site.minimal_mistakes_skin | default: 'default' }}";
+@import "minimal-mistakes";
 
-// Typography variables
-$serif: "Source Sans Pro", Georgia, Times, serif !default;
-$sans-serif: "Source Sans Pro", -apple-system, BlinkMacSystemFont, sans-serif !default;
-$monospace: "Fira Mono", Monaco, Consolas, monospace !default;
+/* Add custom styles below */
 
-$global-font-family: $sans-serif !default;
-$header-font-family: "Montserrat", sans-serif !default;
-$caption-font-family: $sans-serif !default;
-
-// Import theme styles
-@import "minimal-mistakes/skins/{{ site.minimal_mistakes_skin | default: 'default' }}"; // skin
-@import "minimal-mistakes"; // main partials
-
-// Custom overrides
-h1, h2, h3, h4, h5, h6 {
-  font-family: $header-font-family;
-  font-weight: 600;
-}
-
-.page__title, 
-.archive__item-title {
-  font-weight: 700;
-}
-
-code, pre {
-  font-family: $monospace;
-}
-
-.page__hero--video {
+.page__hero--overlay {
   position: relative;
-  width: 100%;
-  min-height: 350px;
-  overflow: hidden;
+  margin-bottom: 2em;
+  padding: 3em 0;
+  clear: both;
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center;
+  -webkit-animation: intro 0.3s both;
+  animation: intro 0.3s both;
+  -webkit-animation-delay: 0.25s;
+  animation-delay: 0.25s;
   
   video {
     position: absolute;
-    top: 50%;
-    left: 50%;
-    min-width: 100%;
-    min-height: 100%;
-    width: auto;
-    height: auto;
-    z-index: 0;
-    transform: translateX(-50%) translateY(-50%);
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: 1;
   }
   
   .wrapper {
     position: relative;
-    z-index: 1;
+    z-index: 2;
     padding: 3em 1em;
     text-align: center;
     
@@ -56,16 +36,28 @@ code, pre {
       padding: 5em 2em;
     }
     
-    .page__title {
+    .page__title,
+    .page__lead {
       color: #fff;
-      text-shadow: 1px 1px 4px rgba(0,0,0,0.5);
+      text-shadow: 1px 1px 4px rgba(0,0,0,0.7);
+    }
+    
+    .page__title {
+      font-size: 2.5em;
+      margin-bottom: 0.5em;
     }
     
     .page__lead {
-      color: #fff;
-      text-shadow: 1px 1px 4px rgba(0,0,0,0.5);
       max-width: 768px;
       margin: 0 auto;
     }
+  }
+}
+
+/* Additional styling for the home page layout */
+.archive__content {
+  @media (min-width: 80em) {
+    width: calc(100% - 200px);
+    padding-right: 1em;
   }
 }
