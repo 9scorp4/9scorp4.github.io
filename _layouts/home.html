@@ -1,40 +1,37 @@
-<!-- _layouts/home.html -->
 ---
 layout: default
 ---
 
-<div class="page__hero--overlay" style="background-color: #000;">
-  {% raw %}{% if page.header.video.provider == "custom" %}
-    <video autoplay loop muted playsinline poster="{{ site.baseurl }}/assets/images/hero-fallback.jpg">
-      <source src="{{ site.baseurl }}{{ page.header.video.id }}.mp4" type="video/mp4">
-      <source src="{{ site.baseurl }}{{ page.header.video.id }}.webm" type="video/webm">
-    </video>
-    <div class="wrapper">
-      <h1 class="page__title">{{ page.title | default: site.title | markdownify | remove: "<p>" | remove: "</p>" }}</h1>
-      {% if page.excerpt %}
-        <p class="page__lead">{{ page.excerpt | markdownify | remove: "<p>" | remove: "</p>" }}</p>
-      {% endif %}
-    </div>
-  {% endif %}{% endraw %}
+{% if page.header.video.provider == "custom" %}
+  {% include hero.html %}
+{% else %}
+<div class="page__hero--overlay" style="background-color: {{ page.header.overlay_color | default: '#000' }}; {% if page.header.overlay_image %}background-image: linear-gradient({{ page.header.overlay_filter }}, {{ page.header.overlay_filter }}), url('{{ page.header.overlay_image | relative_url }}');{% endif %}">
+  <div class="wrapper">
+    <h1 class="page__title">{{ page.title }}</h1>
+    {% if page.excerpt %}
+      <p class="page__lead">{{ page.excerpt }}</p>
+    {% endif %}
+  </div>
 </div>
+{% endif %}
 
 <div id="main" role="main">
   <div class="archive">
-    {% raw %}{% if page.author_profile or layout.author_profile %}
+    {% if page.author_profile or layout.author_profile %}
       <div class="sidebar sticky">
         {% include author-profile.html %}
       </div>
-    {% endif %}{% endraw %}
+    {% endif %}
     
     <div class="archive__content">
-      {% raw %}{{ content }}{% endraw %}
+      {{ content }}
       
-      <h3 class="archive__subtitle">{% raw %}{{ site.data.ui-text[site.locale].recent_posts | default: "Recent Posts" }}{% endraw %}</h3>
+      <h3 class="archive__subtitle">Recent Posts</h3>
 
       <div class="entries-list">
-        {% raw %}{% for post in site.posts limit:5 %}
+        {% for post in site.posts limit:5 %}
           {% include archive-single.html %}
-        {% endfor %}{% endraw %}
+        {% endfor %}
       </div>
     </div>
   </div>

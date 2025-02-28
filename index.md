@@ -1,10 +1,8 @@
-# index.md (replace your index.html)
 ---
-layout: video-home
-author_profile: true
+layout: home
+title: Nicolas Arias Garcia
 header:
   video:
-    id: /assets/videos/network-animation
     provider: custom
 excerpt: "Researcher integrating anthropology, systems thinking, and technology to address complex social challenges."
 ---

@@ -34,3 +34,7 @@ Font*.pdf
 
 # Unpublished articles
 _posts/unpublished
+
+# Directory structure generator
+generate-directory structure.py
+current_directory_structure.txt

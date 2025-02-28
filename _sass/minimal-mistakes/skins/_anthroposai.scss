@@ -1,11 +1,23 @@
-// Create a custom skin in /_sass/minimal-mistakes/skins/_anthroposai.scss
+// Custom skin for 9scorp4.github.io
+// Based on Minimal Mistakes theme
+
+// Main colors
 $background-color: #F5F7FA !default; // Background Light
 $text-color: #2D3748 !default; // Text Primary
 $primary-color: #2C3E50 !default; // Deep Navy
 $link-color: #3498DB !default; // Digital Blue
-$masthead-link-color: #F5F7FA !default; // Background Light
-$masthead-link-color-hover: #E67E22 !default; // Accent (Terra Cotta)
-$footer-background-color: #2C3E50 !default; // Primary (Deep Navy)
+$accent-color: #E67E22 !default; // Accent (Terra Cotta)
+
+// Header colors - UPDATED
+$masthead-background-color: $accent-color !default; // Terra Cotta background
+$masthead-link-color: #FFFFFF !default; // White text for better contrast
+$masthead-link-color-hover: darken(#FFFFFF, 15%) !default; // Slightly darker on hover
+
+// Other elements
+$footer-background-color: $primary-color !default; // Primary (Deep Navy)
 $border-color: #718096 !default; // Neutral
 $code-background-color: darken($background-color, 5%) !default;
 $nav-height: 2em !default;
+
+// Additional masthead customizations
+$masthead-text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3) !default; // Text shadow for better readability

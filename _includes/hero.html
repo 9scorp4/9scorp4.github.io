@@ -1,0 +1,12 @@
+<!-- _includes/hero.html -->
+<div class="page__hero--video">
+    <video autoplay loop muted playsinline poster="/assets/images/hero-fallback.jpg">
+      <source src="/assets/videos/network-animation.mp4" type="video/mp4">
+    </video>
+    <div class="wrapper">
+      <h1 class="page__title">{{ page.title }}</h1>
+      {% if page.excerpt %}
+        <p class="page__lead">{{ page.excerpt }}</p>
+      {% endif %}
+    </div>
+  </div>

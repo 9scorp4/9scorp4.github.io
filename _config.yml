@@ -5,6 +5,7 @@ name: Nicolas Arias Garcia
 description: "Portfolio site showcasing research in anthropology with technical applications"
 url: https://9scorp4.github.io
 repository: "9scorp4/9scorp4.github.io"
+baseurl: ""
 
 # Build settings
 markdown: kramdown
@@ -32,6 +33,12 @@ author:
     - label: "LinkedIn"
       icon: "fab fa-fw fa-linkedin"
       url: "https://www.linkedin.com/in/nicag/"
+
+# Site header
+header:
+  video:
+    id: "network-animation"
+    provider: "custom"
 
 # Site Footer
 footer:
