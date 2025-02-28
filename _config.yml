@@ -4,6 +4,11 @@ subtitle: Anthropology | Systems Thinking | Digital Research
 name: Nicolas Arias Garcia
 description: "Portfolio showcasing research in anthropology with technical applications"
 
+# GitHub metadata settings - critical for GitHub Actions builds
+repository: 9scorp4/9scorp4.github.io  # Replace with your actual username/repo
+github: [metadata]
+url: "https://9scorp4.github.io"       # Replace with your actual username
+
 # Build settings
 markdown: kramdown
 kramdown:
@@ -24,6 +29,7 @@ plugins:
   - jekyll-feed
   - jekyll-include-cache
   - jekyll-seo-tag
+  - jekyll-github-metadata  # Make sure this plugin is included
 
 # Conversion settings
 incremental: false
