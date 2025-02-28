@@ -61,3 +61,45 @@
     padding-right: 1em;
   }
 }
+
+/* Video hero styling */
+.page__hero--video {
+  position: relative;
+  width: 100%;
+  height: 60vh;
+  min-height: 25rem;
+  overflow: hidden;
+  
+  video {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    min-width: 100%;
+    min-height: 100%;
+    width: auto;
+    height: auto;
+    z-index: 0;
+    transform: translateX(-50%) translateY(-50%);
+  }
+  
+  .hero__content {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    padding: 2rem;
+    color: white;
+    text-shadow: 1px 1px 5px rgba(0,0,0,0.8);
+    
+    h1 {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+      color: white;
+    }
+    
+    p {
+      font-size: 1.5rem;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+  }
+}

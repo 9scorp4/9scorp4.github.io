@@ -1,5 +1,6 @@
+# index.md (replace your index.html)
 ---
-layout: home
+layout: video-home
 author_profile: true
 header:
   video:
@@ -10,7 +11,7 @@ excerpt: "Researcher integrating anthropology, systems thinking, and technology 
 
 ## Welcome
 
-My work integrates anthropological approaches with systems thinking and technology to create innovative research methodologies for complex social challenges.
+My work bridges anthropological research with technical implementation to create innovative approaches to complex social challenges.
 
-[View My Research Ecosystem](/ecosystem/){: .btn .btn--primary}
+[View Research Ecosystem](/ecosystem/){: .btn .btn--primary}
 [Explore Projects](/projects/){: .btn .btn--info}
