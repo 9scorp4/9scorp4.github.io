@@ -1,0 +1,16 @@
+---
+layout: archive
+---
+
+{% raw %}
+{% if page.header.video.provider == "custom" %}
+  {% include page__hero.html %}
+{% endif %}
+
+{{ content }}
+
+{% assign entries_layout = page.entries_layout | default: 'list' %}
+<div class="entries-{{ entries_layout }}">
+  {% include posts-home.html entries_layout=entries_layout %}
+</div>
+{% endraw %}

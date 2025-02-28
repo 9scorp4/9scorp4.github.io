@@ -1,9 +1,16 @@
 ---
-layout: home
-author_profile: true
+layout: splash
 header:
   video:
     id: /assets/videos/network-animation
     provider: custom
 excerpt: "Researcher integrating anthropology, systems thinking, and technology to address complex social challenges."
 ---
+
+<!-- Add your content here -->
+<div class="home-content">
+  {% raw %}{% include author-profile.html %}{% endraw %}
+  
+  <h2>Recent Posts</h2>
+  {% raw %}{% include posts-home.html %}{% endraw %}
+</div>
