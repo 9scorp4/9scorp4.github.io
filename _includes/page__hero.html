@@ -1,8 +1,12 @@
+<!-- _includes/page__hero.html -->
+{% raw %}
 {% if page.header.video.provider == "custom" %}
   <div class="page__hero--video">
-    <video autoplay loop muted playsinline>
+    <video autoplay loop muted playsinline poster="{{ site.url }}{{ site.baseurl }}/assets/images/fallback-poster.jpg">
       <source src="{{ site.url }}{{ site.baseurl }}{{ page.header.video.id }}.mp4" type="video/mp4">
       <source src="{{ site.url }}{{ site.baseurl }}{{ page.header.video.id }}.webm" type="video/webm">
+      <!-- Fallback text if video doesn't load -->
+      Your browser does not support the video tag.
     </video>
     <div class="wrapper">
       <h1 class="page__title">{{ page.title | default: site.title | markdownify | remove: "<p>" | remove: "</p>" }}</h1>
@@ -12,3 +16,4 @@
     </div>
   </div>
 {% endif %}
+{% endraw %}

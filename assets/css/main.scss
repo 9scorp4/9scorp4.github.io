@@ -27,3 +27,45 @@ h1, h2, h3, h4, h5, h6 {
 code, pre {
   font-family: $monospace;
 }
+
+.page__hero--video {
+  position: relative;
+  width: 100%;
+  min-height: 350px;
+  overflow: hidden;
+  
+  video {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    min-width: 100%;
+    min-height: 100%;
+    width: auto;
+    height: auto;
+    z-index: 0;
+    transform: translateX(-50%) translateY(-50%);
+  }
+  
+  .wrapper {
+    position: relative;
+    z-index: 1;
+    padding: 3em 1em;
+    text-align: center;
+    
+    @media (min-width: 768px) {
+      padding: 5em 2em;
+    }
+    
+    .page__title {
+      color: #fff;
+      text-shadow: 1px 1px 4px rgba(0,0,0,0.5);
+    }
+    
+    .page__lead {
+      color: #fff;
+      text-shadow: 1px 1px 4px rgba(0,0,0,0.5);
+      max-width: 768px;
+      margin: 0 auto;
+    }
+  }
+}
