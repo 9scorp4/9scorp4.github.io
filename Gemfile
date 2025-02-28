@@ -3,10 +3,7 @@ source "https://rubygems.org"
 # Exact GitHub Pages gem version
 gem "github-pages", "= 232", group: :jekyll_plugins
 
-# Essential dependencies
-gem "webrick", "~> 1.7"
-
-# Explicit plugin management
+# Essential Jekyll plugins
 group :jekyll_plugins do
   gem "jekyll-remote-theme", "= 0.4.3"
   gem "jekyll-paginate", "= 1.1.0"
@@ -18,11 +15,7 @@ group :jekyll_plugins do
   gem "jekyll-sass-converter", "= 1.5.2"
 end
 
-# Development and testing
-group :development, :test do
-  gem "html-proofer", "~> 5.0.7"
-  gem "rake", "~> 13.0.6"
-end
-
-# Sass and styling
-gem "sassc", "~> 2.4.0"
+# Additional support gems
+gem "webrick", "~> 1.7"
+gem "kramdown", "= 2.4.0"
+gem "kramdown-parser-gfm", "= 1.1.0"

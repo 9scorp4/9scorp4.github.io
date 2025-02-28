@@ -1,40 +1,50 @@
 ---
-# Require front matter for Jekyll processing
+# Jekyll requires front matter for processing
 ---
 
 @charset "utf-8";
 
-// Import core theme and skin
+// Import core theme variables and mixins first
+@import "minimal-mistakes/variables";
+
+// Explicitly define missing variables
+$masthead-background-color: $primary-color !default;
+$masthead-link-color: $text-color !default;
+$masthead-link-color-hover: darken($primary-color, 10%) !default;
+
+// Import the rest of the theme after variable definition
 @import "minimal-mistakes/skins/{{ site.minimal_mistakes_skin | default: 'default' }}";
 @import "minimal-mistakes";
 
-// Explicit variable definitions to prevent build errors
-$masthead-background-color: $primary-color !default;
-$masthead-link-color: $text-color !default;
-$masthead-link-color-hover: $primary-color !default;
-
-// Custom styling integrating brand identity
+// Professional brand-aligned custom styling
 :root {
+  // Design tokens for consistent branding
   --color-primary: #{$primary-color};
   --color-secondary: #{$link-color};
   --color-text: #{$text-color};
+  --font-body: 'Source Sans Pro', sans-serif;
+  --font-heading: 'Montserrat', sans-serif;
 }
 
-// Responsive typography
+// Global typography and layout
 body {
-  font-family: var(--font-body, $sans-serif);
+  font-family: var(--font-body);
   line-height: 1.6;
   color: var(--color-text);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-// Heading styles
+// Heading styles with professional hierarchy
 h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-heading, $sans-serif);
+  font-family: var(--font-heading);
+  font-weight: 600;
   color: var(--color-primary);
   margin-bottom: 0.5em;
+  line-height: 1.2;
 }
 
-// Custom link styles
+// Enhanced link styling
 a {
   color: var(--color-secondary);
   text-decoration: none;
@@ -42,12 +52,32 @@ a {
 
   &:hover {
     color: darken(var(--color-secondary), 15%);
+    text-decoration: underline;
   }
 }
 
-// Responsive adjustments
+// Responsive typography
 @media (max-width: 768px) {
   body {
     font-size: 16px;
+  }
+
+  h1 { font-size: 2em; }
+  h2 { font-size: 1.75em; }
+  h3 { font-size: 1.5em; }
+}
+
+// Additional professional styling enhancements
+.page__content {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+// Print optimization
+@media print {
+  body {
+    font-size: 12pt;
+    line-height: 1.4;
   }
 }
