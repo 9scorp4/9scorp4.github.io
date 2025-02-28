@@ -1,4 +1,4 @@
-name: GitHub Pages Jekyll Build
+name: Comprehensive Jekyll Build & Deploy
 
 on:
   push:
@@ -17,13 +17,31 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build:
+  validate:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
         with:
-          fetch-depth: 0
+          ruby-version: '3.1'
+          bundler-cache: true
+
+      - name: Validate Dependencies
+        run: |
+          gem list github-pages
+          bundle config set without 'development'
+          bundle install
+          bundle list
+
+  build:
+    needs: validate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
       - name: Setup Ruby
         uses: ruby/setup-ruby@v1
@@ -35,24 +53,31 @@ jobs:
         id: pages
         uses: actions/configure-pages@v4
 
-      - name: Validate Dependencies
+      - name: Build with Jekyll
         run: |
-          bundle config set without 'development'
-          bundle install
-          bundle list
-
-      - name: Build Jekyll Site
-        run: |
-          bundle exec jekyll build --verbose --trace
+          bundle exec jekyll build \
+            --trace \
+            --verbose \
+            --source . \
+            --destination ./_site
         env:
           JEKYLL_ENV: production
 
-      - name: Upload Site Artifact
+      - name: HTML Validation
+        run: |
+          gem install html-proofer
+          bundle exec htmlproofer ./_site \
+            --disable-external \
+            --allow-hash-href \
+            --ignore-urls "/^http/"
+
+      - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: "./_site"
+          path: ./_site
 
   deploy:
+    if: github.ref == 'refs/heads/main'
     needs: build
     environment:
       name: github-pages

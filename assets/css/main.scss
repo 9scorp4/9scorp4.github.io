@@ -1,248 +1,53 @@
 ---
-# Required front matter
+# Require front matter for Jekyll processing
 ---
 
 @charset "utf-8";
 
-// Import Minimal Mistakes theme and custom skin
+// Import core theme and skin
 @import "minimal-mistakes/skins/{{ site.minimal_mistakes_skin | default: 'default' }}";
 @import "minimal-mistakes";
 
-// Ensure masthead-background-color is defined
+// Explicit variable definitions to prevent build errors
 $masthead-background-color: $primary-color !default;
+$masthead-link-color: $text-color !default;
+$masthead-link-color-hover: $primary-color !default;
 
-// Custom styling begins here
+// Custom styling integrating brand identity
+:root {
+  --color-primary: #{$primary-color};
+  --color-secondary: #{$link-color};
+  --color-text: #{$text-color};
+}
+
+// Responsive typography
 body {
   font-family: var(--font-body, $sans-serif);
   line-height: 1.6;
+  color: var(--color-text);
 }
 
-/* ==========================================================================
-   CUSTOM STYLES
-   ========================================================================== */
-
-/* Define masthead-background-color variable to resolve build error */
-$masthead-background-color: $primary-color !default;
-
-/* 
-   Hero Video Component
-   ========================================================================== */
-
-.page__hero--video {
-  position: relative;
-  width: 100%;
-  height: 65vh;
-  min-height: 25rem;
-  max-height: 80vh;
-  overflow: hidden;
-  margin-bottom: 2em;
-  
-  &::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.3);
-    z-index: 1;
-  }
-  
-  video {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    min-width: 100%;
-    min-height: 100%;
-    width: auto;
-    height: auto;
-    z-index: 0;
-    transform: translateX(-50%) translateY(-50%);
-  }
-  
-  .wrapper {
-    position: relative;
-    z-index: 2;
-    text-align: center;
-    padding: 4rem 2rem;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    
-    .page__title {
-      font-size: 2.5rem;
-      margin-bottom: 1rem;
-      color: white;
-      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
-      
-      @media (min-width: 768px) {
-        font-size: 3.5rem;
-      }
-    }
-    
-    .page__lead {
-      font-size: 1.25rem;
-      max-width: 800px;
-      margin: 0 auto;
-      color: white;
-      text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.7);
-      
-      @media (min-width: 768px) {
-        font-size: 1.5rem;
-      }
-    }
-  }
-}
-
-/* 
-   Fallback Hero (Image Overlay)
-   ========================================================================== */
-
-.page__hero--overlay {
-  position: relative;
-  margin-bottom: 2em;
-  padding: 3em 0;
-  clear: both;
-  background-size: cover;
-  background-repeat: no-repeat;
-  background-position: center;
-  -webkit-animation: intro 0.3s both;
-  animation: intro 0.3s both;
-  -webkit-animation-delay: 0.25s;
-  animation-delay: 0.25s;
-  
-  .wrapper {
-    position: relative;
-    z-index: 2;
-    padding: 3em 1em;
-    text-align: center;
-    
-    @media (min-width: 768px) {
-      padding: 5em 2em;
-    }
-    
-    .page__title,
-    .page__lead {
-      color: #fff;
-      text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.7);
-    }
-    
-    .page__title {
-      font-size: 2.5em;
-      margin-bottom: 0.5em;
-    }
-    
-    .page__lead {
-      max-width: 768px;
-      margin: 0 auto;
-    }
-  }
-}
-
-/* 
-   Content Layout Enhancements
-   ========================================================================== */
-
-.archive__content {
-  @media (min-width: 80em) {
-    width: calc(100% - 200px);
-    padding-right: 1em;
-  }
-}
-
-/* 
-   Button Styling
-   ========================================================================== */
-
-.btn {
-  display: inline-block;
-  margin-bottom: 0.25em;
-  padding: 0.5em 1em;
-  font-family: $sans-serif;
-  font-size: $type-size-6;
-  font-weight: bold;
-  text-align: center;
-  text-decoration: none;
-  border-width: 0;
-  border-radius: $border-radius;
-  cursor: pointer;
-  
-  &--primary {
-    background-color: $primary-color;
-    color: #fff;
-    
-    &:hover {
-      background-color: mix(#000, $primary-color, 20%);
-    }
-  }
-  
-  &--info {
-    background-color: $link-color;
-    color: #fff;
-    
-    &:hover {
-      background-color: mix(#000, $link-color, 20%);
-    }
-  }
-  
-  &:visited {
-    color: #fff;
-  }
-}
-
-/* 
-   Footer Customizations
-   ========================================================================== */
-
-.page__footer {
-  margin-top: 3em;
-  color: #fff;
-  background-color: $footer-background-color;
-  
-  .footer-logo {
-    max-width: 120px;
-    margin-bottom: 1em;
-  }
-  
-  .copyright {
-    font-size: $type-size-7;
-  }
-}
-
-/* 
-   Responsive Adjustments
-   ========================================================================== */
-
-@media (max-width: 768px) {
-  .page__hero--video {
-    height: 50vh;
-    
-    .wrapper {
-      padding: 2rem 1rem;
-    }
-  }
-  
-  .archive__content {
-    padding: 0 1em;
-  }
-}
-
-/* 
-   Typography Enhancements
-   ========================================================================== */
-
-body {
-  font-family: var(--font-body, $sans-serif);
-  line-height: 1.65;
-}
-
+// Heading styles
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-heading, $sans-serif);
-  font-weight: bold;
-  line-height: 1.3;
+  color: var(--color-primary);
+  margin-bottom: 0.5em;
 }
 
-code, pre {
-  font-family: var(--font-mono, $monospace);
+// Custom link styles
+a {
+  color: var(--color-secondary);
+  text-decoration: none;
+  transition: color 0.3s ease;
+
+  &:hover {
+    color: darken(var(--color-secondary), 15%);
+  }
+}
+
+// Responsive adjustments
+@media (max-width: 768px) {
+  body {
+    font-size: 16px;
+  }
 }
