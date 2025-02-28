@@ -2,15 +2,15 @@
 # Only the main Sass file needs front matter (the dashes are enough)
 ---
 
-// Define masthead-background-color before importing
-$masthead-background-color: #F5F7FA !default;
-
 @import "minimal-mistakes/skins/{{ site.minimal_mistakes_skin | default: 'default' }}";
 @import "minimal-mistakes";
 
 /* ==========================================================================
    CUSTOM STYLES
    ========================================================================== */
+
+/* Define masthead-background-color variable to resolve build error */
+$masthead-background-color: $primary-color !default;
 
 /* 
    Hero Video Component
@@ -234,61 +234,3 @@ h1, h2, h3, h4, h5, h6 {
 code, pre {
   font-family: var(--font-mono, $monospace);
 }
-
-/* 
-   Masthead Customizations
-   ========================================================================== */
-
-   .masthead {
-    background-color: $masthead-background-color;
-    
-    &__inner-wrap {
-      padding: 0.5em 1em;
-    }
-    
-    .site-title {
-      color: #fff;
-      text-shadow: $masthead-text-shadow;
-    }
-    
-    .greedy-nav {
-      background-color: transparent;
-      
-      a {
-        color: $masthead-link-color;
-        text-shadow: $masthead-text-shadow;
-        
-        &:hover {
-          color: $masthead-link-color-hover;
-        }
-      }
-      
-      .visible-links a {
-        &::before {
-          background: $masthead-link-color;
-        }
-      }
-      
-      .hidden-links {
-        background: darken($masthead-background-color, 5%);
-        
-        a {
-          color: $masthead-link-color;
-          
-          &:hover {
-            color: $masthead-link-color-hover;
-          }
-        }
-      }
-      
-      button {
-        color: $masthead-link-color;
-      }
-    }
-  }
-  
-  @media (min-width: 64em) {
-    .masthead__inner-wrap {
-      max-width: 1280px;
-    }
-  }
