@@ -29,6 +29,9 @@ Diana*.pdf
 Business*.pdf
 Font*.pdf
 
+# Except for specific CV file
+!assets/cv/nicolas-arias-garcia-cv.pdf
+
 # Log files
 *.log
 
