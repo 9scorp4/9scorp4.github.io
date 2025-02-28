@@ -1,23 +1,30 @@
-// Custom skin for 9scorp4.github.io
-// Based on Minimal Mistakes theme
+// _sass/minimal-mistakes/skins/_anthroposai.scss
 
-// Main colors
-$background-color: #F5F7FA !default; // Background Light
-$text-color: #2D3748 !default; // Text Primary
-$primary-color: #2C3E50 !default; // Deep Navy
-$link-color: #3498DB !default; // Digital Blue
-$accent-color: #E67E22 !default; // Accent (Terra Cotta)
+// Define default values for all variables to prevent undefined errors
+$background-color: #F5F7FA !default;
+$text-color: #2D3748 !default;
+$primary-color: #2C3E50 !default;
+$link-color: #3498DB !default;
+$muted-color: #718096 !default;
+$accent-color: #E67E22 !default;
 
-// Header colors - UPDATED
-$masthead-background-color: $accent-color !default; // Terra Cotta background
-$masthead-link-color: #FFFFFF !default; // White text for better contrast
-$masthead-link-color-hover: darken(#FFFFFF, 15%) !default; // Slightly darker on hover
+// Masthead (top navigation) colors
+$masthead-link-color: $primary-color !default;
+$masthead-link-color-hover: $accent-color !default;
 
-// Other elements
-$footer-background-color: $primary-color !default; // Primary (Deep Navy)
-$border-color: #718096 !default; // Neutral
+// Footer colors
+$footer-background-color: $primary-color !default;
+$footer-text-color: #FFFFFF !default;
+
+// Border and divider colors
+$border-color: $muted-color !default;
 $code-background-color: darken($background-color, 5%) !default;
+
+// Navigation height
 $nav-height: 2em !default;
 
-// Additional masthead customizations
-$masthead-text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3) !default; // Text shadow for better readability
+// Ensure masthead-specific background is defined
+$masthead-background-color: $background-color !default;
+
+// Import the base Minimal Mistakes skin to ensure all variables are set
+@import "minimal-mistakes/skins/default";
