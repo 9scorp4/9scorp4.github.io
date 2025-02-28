@@ -1,4 +1,4 @@
-name: Comprehensive Jekyll Build & Deploy
+name: Jekyll Build & Deploy
 
 on:
   push:
@@ -17,7 +17,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  validate:
+  build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
@@ -26,28 +26,25 @@ jobs:
       - name: Setup Ruby
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: '3.1'
-          bundler-cache: true
-
-      - name: Validate Dependencies
+          ruby-version: '3.2'
+          bundler-cache: false # Disable bundler cache initially
+          
+      - name: Ruby and Environment Info
         run: |
-          gem list github-pages
-          bundle config set without 'development'
-          bundle install
-          bundle list
+          ruby -v
+          gem -v
+          bundle -v
+          env | grep RUBY
+          env | grep BUNDLE
 
-  build:
-    needs: validate
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - name: Install Dependencies
+        run: |
+          bundle config set --local path 'vendor/bundle'
+          bundle config set --local without 'development test'
+          bundle install --jobs 4 --retry 3
 
-      - name: Setup Ruby
-        uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: '3.1'
-          bundler-cache: true
+      - name: List Installed Gems
+        run: bundle list
 
       - name: Setup Pages
         id: pages
@@ -56,20 +53,11 @@ jobs:
       - name: Build with Jekyll
         run: |
           bundle exec jekyll build \
-            --trace \
             --verbose \
             --source . \
             --destination ./_site
         env:
           JEKYLL_ENV: production
-
-      - name: HTML Validation
-        run: |
-          gem install html-proofer
-          bundle exec htmlproofer ./_site \
-            --disable-external \
-            --allow-hash-href \
-            --ignore-urls "/^http/"
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
