@@ -29,13 +29,14 @@ jobs:
           ruby-version: '3.2'
           bundler-cache: false # Disable bundler cache initially
           
-      - name: Ruby and Environment Info
+      - name: Display Ruby and Bundler Versions
         run: |
-          ruby -v
-          gem -v
-          bundle -v
-          env | grep RUBY
-          env | grep BUNDLE
+          ruby -v || echo "Ruby version command failed"
+          gem -v || echo "Gem version command failed"
+          bundle -v || echo "Bundle version command failed"
+          # Using || true to prevent grep from failing if no matches are found
+          env | grep -i ruby || true
+          env | grep -i bundle || true
 
       - name: Install Dependencies
         run: |
