@@ -1,30 +1,39 @@
-// _sass/minimal-mistakes/skins/_anthroposai.scss
+/* ==========================================================================
+   AnthroposAI skin
+   ========================================================================== */
 
-// Define default values for all variables to prevent undefined errors
-$background-color: #F5F7FA !default;
-$text-color: #2D3748 !default;
-$primary-color: #2C3E50 !default;
-$link-color: #3498DB !default;
-$muted-color: #718096 !default;
-$accent-color: #E67E22 !default;
-
-// Masthead (top navigation) colors
-$masthead-link-color: $primary-color !default;
-$masthead-link-color-hover: $accent-color !default;
-
-// Footer colors
-$footer-background-color: $primary-color !default;
-$footer-text-color: #FFFFFF !default;
-
-// Border and divider colors
-$border-color: $muted-color !default;
+/* Colors */
+$background-color: #F5F7FA !default; // Background Light
+$text-color: #2D3748 !default; // Text Primary
+$primary-color: #2C3E50 !default; // Deep Navy
+$link-color: #3498DB !default; // Digital Blue
+$masthead-background-color: #2C3E50 !default; // Primary (Deep Navy) - ADDED THIS LINE
+$masthead-link-color: #F5F7FA !default; // Background Light
+$masthead-link-color-hover: #E67E22 !default; // Accent (Terra Cotta)
+$footer-background-color: #2C3E50 !default; // Primary (Deep Navy)
+$border-color: #718096 !default; // Neutral
 $code-background-color: darken($background-color, 5%) !default;
-
-// Navigation height
 $nav-height: 2em !default;
 
-// Ensure masthead-specific background is defined
-$masthead-background-color: $background-color !default;
+/* Typography */
+$global-font-family: "Source Sans Pro", -apple-system, BlinkMacSystemFont, "Roboto", "Segoe UI", "Helvetica Neue", "Lucida Grande", Arial, sans-serif !default;
+$header-font-family: "Montserrat", -apple-system, BlinkMacSystemFont, "Roboto", "Segoe UI", "Helvetica Neue", "Lucida Grande", Arial, sans-serif !default;
+$monospace-font-family: "Fira Mono", Monaco, Consolas, "Lucida Console", monospace !default;
 
-// Import the base Minimal Mistakes skin to ensure all variables are set
-@import "minimal-mistakes/skins/default";
+/* Syntax highlighting (base16) */
+$base00: #1A202C !default; // Background Dark
+$base01: #2C3E50 !default; // Deep Navy
+$base02: #718096 !default; // Neutral
+$base03: #718096 !default; // Neutral
+$base04: #F5F7FA !default; // Background Light
+$base05: #2D3748 !default; // Text Primary
+$base06: #F5F7FA !default; // Background Light
+$base07: #F5F7FA !default; // Background Light
+$base08: #E67E22 !default; // Accent (Terra Cotta)
+$base09: #E67E22 !default; // Accent (Terra Cotta)
+$base0a: #E67E22 !default; // Accent (Terra Cotta)
+$base0b: #3498DB !default; // Digital Blue
+$base0c: #3498DB !default; // Digital Blue
+$base0d: #3498DB !default; // Digital Blue
+$base0e: #2C3E50 !default; // Deep Navy
+$base0f: #2C3E50 !default; // Deep Navy
