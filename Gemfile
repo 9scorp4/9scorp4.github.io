@@ -1,14 +1,21 @@
 source "https://rubygems.org"
-gem "github-pages", group: :jekyll_plugins
+
+# Explicitly match GitHub Pages gem version
+gem "github-pages", "~> 232", group: :jekyll_plugins
+
+# Ensure compatibility with GitHub Pages
 gem "webrick", "~> 1.7"
-gem "dnsruby", "~> 1.72.3"
-gem "csv", "~> 3.3.2"
-gem "i18n", "~> 1.14.7"
-gem "commonmarker", "~> 0.23.11"
-gem "rubyzip", "~> 2.4.1"
-gem "rexml", "~> 3.4.1"
-gem "faraday", "~> 2.12.2"
-gem "faraday-net_http", "~> 3.4.0"
-gem "faraday-retry", "~> 2.2.0"  # Add this for retry middleware
-gem "concurrent-ruby", "~> 1.3.5"
-gem "activesupport", "~> 8.0.1"
+
+# Additional recommended dependencies
+group :jekyll_plugins do
+  gem "jekyll-feed", "~> 0.17.0"
+  gem "jekyll-seo-tag", "~> 2.8.0"
+  gem "jekyll-sitemap", "~> 1.4.0"
+  gem "jekyll-include-cache", "~> 0.2.1"
+  gem "jekyll-remote-theme", "~> 0.4.3"
+end
+
+# Required for proper Jekyll and GitHub Pages functionality
+gem "jekyll-sass-converter", "~> 1.5.2"
+gem "kramdown", "~> 2.4.0"
+gem "kramdown-parser-gfm", "~> 1.1.0"
