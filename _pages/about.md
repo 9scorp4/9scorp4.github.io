@@ -1,7 +1,10 @@
 ---
 permalink: /about/
 title: "About"
-layout: with-sidebar
+layout: single
+author_profile: true
+sidebar:
+  nav: "main"
 ---
 
 I'm a researcher specializing in the integration of computational methods in social science research, with expertise in developing data-driven research tools that combine systems approaches with advanced analysis techniques to explore complex social phenomena.

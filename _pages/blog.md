@@ -3,6 +3,8 @@ permalink: /blog/
 title: "Knowledge Hub"
 layout: archive
 author_profile: true
+sidebar:
+  nav: "main"
 ---
 
 <div class="knowledge-hub">
