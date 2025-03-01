@@ -5,17 +5,26 @@
 <!-- Load Font Awesome -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" integrity="sha512-1ycn6IcaQQ40/MKBW2W4Rhis/DbILU74C1vSrLJxCq57o941Ym01SwNsOMqvEBFlcgUa6xLiPY/NS5R+E6ztJQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 
-<!-- Load layout improvements -->
-<link rel="stylesheet" href="/assets/css/layout-improvements.css">
-
 <!-- Preload key resources -->
 <link rel="preload" href="/assets/images/logo.svg" as="image">
 <link rel="preload" href="/assets/css/main.css" as="style">
+
+<!-- Load layout improvements AFTER main theme CSS has loaded -->
+<link rel="stylesheet" href="/assets/css/layout-improvements.css">
+<link rel="stylesheet" href="/assets/css/mobile-nav-fix.css">
+<link rel="stylesheet" href="/assets/css/layout-padding-fix.css">
+<link rel="stylesheet" href="/assets/css/sidebar-layout-fix.css">
+<link rel="stylesheet" href="/assets/css/layout-final-fix.css">
+<link rel="stylesheet" href="/assets/css/avatar-fix.css">
+<link rel="stylesheet" href="/assets/css/mobile-specific-fix.css"><!-- Mobile-specific fix -->
 
 <!-- Meta information for better SEO -->
 <meta name="author" content="Nicolas Arias Garcia">
 <meta name="description" content="{% if page.excerpt %}{{ page.excerpt | strip_html | strip_newlines | truncate: 160 }}{% else %}{{ site.description }}{% endif %}">
 <meta name="keywords" content="anthropology, systems thinking, digital research, {% if page.tags %}{{ page.tags | join: ', ' }}{% endif %}">
+
+<!-- Ensure proper viewport settings for mobile optimization -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
 
 <!-- Favicon setup -->
 <link rel="apple-touch-icon" sizes="180x180" href="/assets/favicon/apple-touch-icon.png">
@@ -23,7 +32,12 @@
 <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon/favicon-16x16.png">
 <link rel="manifest" href="/assets/favicon/site.webmanifest">
 
-<!-- Load custom JavaScript -->
+<!-- Load custom JavaScript AFTER page loads -->
 <script defer src="/assets/js/custom.js"></script>
+<script defer src="/assets/js/mobile-nav-fix.js"></script>
+<script defer src="/assets/js/layout-fix.js"></script>
+<script defer src="/assets/js/sidebar-nav-fix.js"></script>
+<script defer src="/assets/js/avatar-fix.js"></script>
+<script defer src="/assets/js/mobile-restructure.js"></script><!-- Mobile-specific fix -->
 
 <!-- Custom <head> content -->

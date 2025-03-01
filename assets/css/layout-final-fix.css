@@ -1,0 +1,100 @@
+/* Final Layout Adjustments
+   Path: assets/css/layout-final-fix.css
+   
+   This CSS applies final adjustments to achieve an optimal compact layout
+   with reduced spacing throughout the page.
+*/
+
+/* Tighten overall page layout */
+body {
+    line-height: 1.4 !important; /* Reduced from default */
+  }
+  
+  /* Tighter content container */
+  .page__content {
+    padding: 0.75rem !important; /* Reduced padding */
+  }
+  
+  /* Optimize heading spacing */
+  h1, h2, h3, h4, h5, h6 {
+    margin-top: 1rem !important;
+    margin-bottom: 0.5rem !important;
+  }
+  
+  /* Compact paragraphs */
+  p {
+    margin-bottom: 0.75rem !important;
+  }
+  
+  /* Tightened list spacing */
+  ul, ol {
+    margin-top: 0.25rem !important;
+    margin-bottom: 0.75rem !important;
+  }
+  
+  li {
+    margin-bottom: 0.25rem !important;
+  }
+  
+  /* Optimize breadcrumb spacing */
+  .breadcrumbs {
+    margin-bottom: 0.75rem !important; /* Reduced margin */
+    padding: 0.25rem 0.5rem !important; /* Reduced padding */
+  }
+  
+  /* Grid layout adjustments */
+  @media (min-width: 768px) {
+    #main {
+      gap: 1rem !important; /* Reduced from 2rem */
+    }
+  }
+  
+  /* Compact headings */
+  .page__title {
+    font-size: 1.5rem !important; /* Slightly smaller */
+  }
+  
+  h1 {
+    font-size: 1.4rem !important;
+  }
+  
+  h2 {
+    font-size: 1.2rem !important;
+  }
+  
+  /* Reduce space in masthead */
+  .masthead__inner-wrap {
+    padding: 0.5rem 1rem !important;
+  }
+  
+  /* Tighter top navigation */
+  .greedy-nav a {
+    padding: 0.5rem !important;
+  }
+  
+  /* Optimize sidebar and content alignment */
+  @media (min-width: 768px) {
+    .sidebar {
+      padding-right: 0 !important;
+    }
+    
+    article.page,
+    .page__content {
+      padding-left: 0.5rem !important;
+    }
+  }
+  
+  /* Minimize extra elements */
+  .toggle-menu {
+    margin-bottom: 0.5rem !important;
+  }
+  
+  /* Fix for vertical rhythm */
+  * + h1, * + h2, * + h3, * + h4, * + h5, * + h6 {
+    margin-top: 1.5rem !important;
+  }
+  
+  /* Less space after navigation sections */
+  .nav__list .nav__items {
+    margin-bottom: 0.5rem !important;
+  }

@@ -1,0 +1,106 @@
+/* Mobile Navigation Fix - Targeted Approach
+   Path: assets/css/mobile-nav-fix.css
+   
+   This CSS specifically fixes the mobile navigation menu visibility
+   while preserving the theme's native toggle functionality.
+*/
+
+/* Basic theme enhancements - preserve native functionality */
+.masthead {
+    background-color: #2C3E50;
+  }
+  
+  /* Modify navigation button appearance, but preserve functionality */
+  .greedy-nav__toggle {
+    background-color: #3498DB !important;
+    color: #ffffff !important;
+    border-radius: 4px !important;
+    padding: 0.5em 0.75em !important;
+  }
+  
+  /* Ensure dropdown has proper styling when visible */
+  .greedy-nav .hidden-links {
+    background-color: #2C3E50 !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    border-radius: 4px !important;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.25) !important;
+  }
+  
+  /* Style dropdown items properly */
+  .greedy-nav .hidden-links a {
+    color: #ffffff !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+    padding: 0.75em 1em !important;
+  }
+  
+  /* Style dropdown hover state */
+  .greedy-nav .hidden-links a:hover {
+    background-color: #3498DB !important;
+  }
+  
+  /* Ensure site title is visible */
+  .greedy-nav a.site-title {
+    color: #ffffff !important;
+  }
+  
+  /* Ensure visible links are formatted properly */
+  .greedy-nav .visible-links a {
+    color: #ffffff !important;
+  }
+  
+  /* CRITICAL: Do not permanently show hidden links */
+  .greedy-nav .hidden-links.hidden {
+    display: none !important;
+  }
+  
+  /* CRITICAL: Only show when explicitly toggled */
+  .greedy-nav .hidden-links:not(.hidden) {
+    display: block !important;
+    position: absolute !important;
+    right: 1rem !important;
+    top: 100% !important;
+    z-index: 1000 !important;
+  }
+  
+  /* Do not display navigation as full-page overlay */
+  .greedy-nav {
+    position: relative !important;
+  }
+  
+  /* Specifically target masthead overlay and prevent it from displaying permanently */
+  .overlay {
+    opacity: 0 !important;
+    visibility: hidden !important;
+    transition: opacity 0.3s, visibility 0.3s !important;
+  }
+  
+  .overlay.is--visible {
+    opacity: 1 !important;
+    visibility: visible !important;
+  }
+  
+  /* Ensure search toggle has correct appearance */
+  .search__toggle {
+    color: #ffffff !important;
+  }
+  
+  /* Fix navigation positioning */
+  @media (max-width: 768px) {
+    .masthead__menu {
+      width: auto !important;
+      float: right !important;
+    }
+    
+    .greedy-nav {
+      position: relative !important;
+      display: flex !important;
+      align-items: center !important;
+    }
+    
+    /* Additional fix to prevent CSS conflicts */
+    body.overlay-active,
+    body.overlay--fixed {
+      overflow: visible !important;
+      position: static !important;
+    }
+  }

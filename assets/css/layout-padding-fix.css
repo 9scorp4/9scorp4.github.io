@@ -1,0 +1,162 @@
+/* Comprehensive Layout Fix
+   Path: assets/css/layout-padding-fix.css
+   
+   This is a complete rebuild of the layout CSS using a systematic approach
+   to fix all positioning, padding and margin issues.
+*/
+
+/* ---------- CRITICAL RESET ---------- */
+/* Reset problematic elements that are causing odd layout */
+.author__avatar,
+.toggle-menu {
+  display: none !important; /* Hide problematic elements completely */
+}
+
+/* ---------- CONTAINER STRUCTURE ---------- */
+/* Main page structure - proper padding */
+.page__content {
+  padding: 0 !important; /* Remove default padding */
+}
+
+article.page {
+  padding: 0 !important; /* Clean slate */
+}
+
+.page__inner-wrap {
+  padding: 0 !important;
+}
+
+/* ---------- HEADER & NAVIGATION ---------- */
+/* Masthead and navigation */
+.masthead {
+  background-color: #2C3E50 !important;
+  margin-bottom: 0 !important;
+}
+
+/* Breadcrumbs with minimal spacing */
+.breadcrumbs {
+  margin: 0 !important;
+  padding: 0.5rem 1rem !important;
+  background-color: #f8f9fa !important;
+  border-bottom: 1px solid #e9ecef !important;
+}
+
+.breadcrumb__list {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* ---------- CONTENT SECTIONS ---------- */
+/* Content area with proper padding */
+.main-content {
+  padding: 1rem !important;
+}
+
+/* Author header section - compact */
+.author-header {
+  display: flex !important;
+  align-items: center !important;
+  margin: 0.5rem 0 1rem !important;
+  padding: 0 1rem !important;
+}
+
+/* Page title - proper sizing and spacing */
+.page__title {
+  margin: 0.5rem 0 0.5rem 1rem !important; 
+  font-size: 1.5rem !important;
+}
+
+/* Main heading (Research Ecosystem) */
+h1:not(.page__title) {
+  margin: 1.5rem 0 1rem 1rem !important;
+  font-size: 1.75rem !important;
+  clear: both !important;
+}
+
+/* Content paragraphs with proper spacing */
+p {
+  margin: 0 0 1rem 0 !important;
+  padding: 0 1rem !important;
+  line-height: 1.5 !important;
+}
+
+/* "Connect" button positioning */
+.connect, 
+a.connect,
+.page__content .connect {
+  float: right !important;
+  margin: 0.5rem 1rem 0 0 !important;
+  font-weight: bold !important;
+}
+
+/* ---------- RESPONSIVE TWEAKS ---------- */
+@media (max-width: 767px) {
+  /* Tighter spacing on mobile */
+  .page__title, 
+  h1:not(.page__title) {
+    margin-left: 0.5rem !important;
+  }
+  
+  p {
+    padding: 0 0.5rem !important;
+  }
+  
+  /* Ensure main content has padding */
+  .page__content {
+    padding: 0.5rem !important;
+  }
+  
+  /* Fix breadcrumbs on mobile */
+  .breadcrumbs {
+    padding: 0.25rem 0.5rem !important;
+  }
+}
+
+/* ---------- UTILITIES & FIXES ---------- */
+/* Fix vertical scrollbar on content */
+body, html {
+  overflow-x: hidden !important;
+}
+
+/* Force image aspect ratio correction */
+img {
+  aspect-ratio: auto !important;
+  max-width: 100% !important;
+  height: auto !important;
+}
+
+/* Round any profile images */
+.author__avatar img,
+img[alt*="Nicolas"],
+img[alt*="profile"] {
+  border-radius: 50% !important;
+  width: 80px !important;
+  height: 80px !important;
+  object-fit: cover !important;
+}
+
+/* Hide any additional toggle menu buttons in content */
+.page__content button,
+.page__content .toggle,
+.page__content [data-toggle] {
+  display: none !important;
+}
+
+/* Fix content flow */
+.initial-content {
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+/* Make content width consistent */
+.page {
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+/* Apply proper margins to research section */
+section, 
+.section {
+  margin: 1.5rem 0 !important;
+  padding: 0 1rem !important;
+}
