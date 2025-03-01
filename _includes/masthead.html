@@ -1,0 +1,28 @@
+<div class="masthead">
+    <div class="masthead__inner-wrap">
+        <div class="masthead__menu">
+          <nav id="site-nav" class="greedy-nav">
+            <a class="site-title" href="{{ '/' | relative_url }}">
+                <div class="logo-container">
+                  <img src="/assets/images/logo.svg" alt="Logo" class="site-logo">
+                  <span class="site-name">Nicolas Arias Garcia</span>
+                </div>
+                <span class="site-tagline">
+                  Anthropology | Systems Thinking | Digital Research
+                </span>
+              </a>
+                          
+            <!-- CRITICAL: Restore navigation links -->
+            <ul class="visible-links">
+              {%- for link in site.data.navigation.main -%}
+                <li class="masthead__menu-item">
+                  <a href="{{ link.url | relative_url }}">
+                    {{ link.title }}
+                  </a>
+                </li>
+              {%- endfor -%}
+            </ul>
+          </nav>
+        </div>
+      </div>
+  </div>

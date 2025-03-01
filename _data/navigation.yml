@@ -12,9 +12,9 @@ main:
   - title: "Knowledge Hub"
     url: /blog/
     description: "Essays and technical writing"
-  - title: "Professional"
+  - title: "CV"
     url: /cv/
-    description: "CV and professional information"
+    description: "Professional documents"
 
 # Footer navigation
 footer:

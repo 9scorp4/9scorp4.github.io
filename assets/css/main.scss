@@ -396,3 +396,57 @@ code, pre {
       }
     }
   }
+
+/* Logo and Masthead Customizations */
+.site-logo {
+  // Use max-height for responsive scaling
+  max-height: 50px;
+  width: auto;
+  vertical-align: middle;
+  
+  // Remove any default styling
+  border: none;
+  background: transparent;
+  
+  // Responsive adjustments with media query
+  @media (max-width: 576px) {
+    max-height: 40px;
+  }
+}
+
+.masthead {
+  .site-title {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    
+    // Logo container styling
+    .logo-container {
+      display: flex;
+      align-items: center;
+      margin-bottom: 5px;
+      
+      .site-logo {
+        height: 60px;  // Increased logo size
+        width: auto;
+        margin-right: 15px;
+      }
+      
+      // Name styling
+      .site-name {
+        font-family: 'Montserrat', sans-serif;
+        font-size: 20px;
+        font-weight: 600;
+        color: #ffffff;
+      }
+    }
+    
+    // Tagline styling
+    .site-tagline {
+      font-family: 'Source Sans Pro', sans-serif;
+      font-size: 12px;
+      color: rgba(255,255,255,0.8);
+      margin-left: 75px;  // Align with name
+    }
+  }
+}
