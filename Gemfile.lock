@@ -266,6 +266,8 @@ GEM
       ethon (>= 0.9.0)
     tzinfo (2.0.6)
       concurrent-ruby (~> 1.0)
+    tzinfo-data (1.2025.1)
+      tzinfo (>= 1.0.0)
     unicode-display_width (1.8.0)
     uri (1.0.3)
     webrick (1.9.1)
@@ -274,18 +276,19 @@ PLATFORMS
   x64-mingw-ucrt
 
 DEPENDENCIES
-  github-pages (= 232)
-  jekyll-feed (= 0.17.0)
-  jekyll-gist (= 1.5.0)
-  jekyll-include-cache (= 0.2.1)
-  jekyll-paginate (= 1.1.0)
-  jekyll-remote-theme (= 0.4.3)
-  jekyll-sass-converter (= 1.5.2)
-  jekyll-seo-tag (= 2.8.0)
-  jekyll-sitemap (= 1.4.0)
-  kramdown (= 2.4.0)
-  kramdown-parser-gfm (= 1.1.0)
-  webrick (~> 1.7)
+  github-pages (~> 232)
+  jekyll-feed (~> 0.17.0)
+  jekyll-gist (~> 1.5.0)
+  jekyll-include-cache (~> 0.2.1)
+  jekyll-paginate (~> 1.1.0)
+  jekyll-remote-theme (~> 0.4.3)
+  jekyll-sass-converter (~> 1.5.2)
+  jekyll-seo-tag (~> 2.8.0)
+  jekyll-sitemap (~> 1.4.0)
+  kramdown (~> 2.4.0)
+  kramdown-parser-gfm (~> 1.1.0)
+  tzinfo-data
+  webrick (~> 1.8)
 
 BUNDLED WITH
    2.6.5

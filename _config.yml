@@ -3,11 +3,27 @@ title: Nicolas Arias Garcia
 subtitle: Anthropology | Systems Thinking | Digital Research
 name: Nicolas Arias Garcia
 description: "Portfolio showcasing research in anthropology with technical applications"
+logo: "/assets/images/logo.svg"
+
+# Author Settings
+author:
+  name: "Nicolas Arias Garcia"
+  avatar: "/assets/images/profile-photo.jpg"
+  bio: "Researcher integrating anthropology with technology and systems thinking to address complex social challenges."
+  location: "Montreal, Quebec, Canada"
+  email: "ariasg.nicolas@gmail.com"
+  links:
+    - label: "GitHub"
+      icon: "fab fa-fw fa-github"
+      url: "https://github.com/9scorp4"
+    - label: "LinkedIn"
+      icon: "fab fa-fw fa-linkedin"
+      url: "https://www.linkedin.com/in/nicag/"
 
 # GitHub metadata settings - critical for GitHub Actions builds
-repository: 9scorp4/9scorp4.github.io  # Replace with your actual username/repo
+repository: 9scorp4/9scorp4.github.io
 github: [metadata]
-url: "https://9scorp4.github.io"       # Replace with your actual username
+url: "https://9scorp4.github.io"
 
 # Build settings
 markdown: kramdown
@@ -16,9 +32,18 @@ kramdown:
   hard_wrap: false
   syntax_highlighter: rouge
 
-# Remote theme
+# Theme settings
 remote_theme: mmistakes/minimal-mistakes@4.24.0
 minimal_mistakes_skin: "anthroposai"
+
+# Site-wide settings
+locale: "en-US"
+timezone: America/Toronto
+breadcrumbs: true
+words_per_minute: 200
+search: true
+search_full_content: true
+search_provider: lunr
 
 # Plugins (must be in this order)
 plugins:
@@ -30,6 +55,82 @@ plugins:
   - jekyll-include-cache
   - jekyll-seo-tag
   - jekyll-github-metadata  # Make sure this plugin is included
+
+# Footer and social media settings
+footer:
+  links:
+    - label: "GitHub"
+      icon: "fab fa-fw fa-github"
+      url: "https://github.com/9scorp4"
+    - label: "LinkedIn"
+      icon: "fab fa-fw fa-linkedin"
+      url: "https://www.linkedin.com/in/nicag/"
+
+# Atom feed settings
+atom_feed:
+  path: "/feed.xml"
+  hide: false
+
+# Analytics and tracking settings
+analytics:
+  provider: false  # Set to google-gtag, google-universal or custom when ready
+
+# SEO settings
+twitter:
+  username: ""
+facebook:
+  username: ""
+  app_id:
+  publisher:
+og_image: "/assets/images/profile-photo.jpg"  # Open Graph default image
+
+# Social sharing settings
+social:
+  type: "Person"
+  name: "Nicolas Arias Garcia"
+  links:
+    - "https://github.com/9scorp4"
+    - "https://www.linkedin.com/in/nicag/"
+
+# Site verification settings
+bing_site_verification:
+yandex_site_verification:
+naver_site_verification:
+
+# Collections settings
+collections:
+  projects:
+    output: true
+    permalink: /:collection/:path/
+
+# Defaults for post types
+defaults:
+  # _posts
+  - scope:
+      path: ""
+      type: posts
+    values:
+      layout: single
+      author_profile: true
+      read_time: true
+      comments: false
+      share: true
+      related: true
+  # _pages
+  - scope:
+      path: "_pages"
+      type: pages
+    values:
+      layout: single
+      author_profile: false
+  # _projects
+  - scope:
+      path: ""
+      type: projects
+    values:
+      layout: single
+      author_profile: false
+      share: true
 
 # Conversion settings
 incremental: false
@@ -57,5 +158,8 @@ sass:
     - _sass
     - assets/css
 
+# Include directories and files
 include:
   - _pages
+  - .htaccess
+  - _data

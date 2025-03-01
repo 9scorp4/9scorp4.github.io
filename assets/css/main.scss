@@ -337,3 +337,62 @@ code, pre {
     color: #ffffff;
   }
 }
+
+/* 
+   Responsive Adjustments
+   ========================================================================== */
+
+   @media (max-width: 768px) {
+    .page__hero--video {
+      height: 50vh;
+      
+      .wrapper {
+        padding: 2rem 1rem;
+      }
+    }
+    
+    .archive__content {
+      padding: 0 1em;
+    }
+  }
+  
+  /* 
+     Author Profile Enhancements
+     ========================================================================== */
+  
+  .author__avatar {
+    img {
+      border: 2px solid $color-primary;
+    }
+  }
+  
+  .author__content {
+    h3 {
+      margin-top: 0;
+      margin-bottom: 0.5em;
+    }
+    
+    .author__bio {
+      font-size: 0.9em;
+      line-height: 1.5;
+    }
+  }
+  
+  .author__urls {
+    .author__social-links {
+      margin-top: 1em;
+    }
+  }
+  
+  .sidebar {
+    &.sticky {
+      @media (min-width: 1024px) {
+        opacity: 0.9;
+        transition: opacity 0.2s ease-in-out;
+        
+        &:hover {
+          opacity: 1;
+        }
+      }
+    }
+  }

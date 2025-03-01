@@ -1,0 +1,88 @@
+# Ecosystem Domains for Research Structure
+# Defines the interconnected knowledge areas that form the research methodology
+
+- title: "Anthropological Knowledge"
+  id: "anthropological-knowledge"
+  icon: "fas fa-users"
+  description: "Qualitative methods and cultural analysis frameworks for understanding social dynamics."
+  url: "/ecosystem/#anthropological-knowledge"
+  connections:
+    - "systems-thinking"
+    - "technical-methods"
+  focus_areas:
+    - "Social research methods"
+    - "Cultural analysis"
+    - "Qualitative interviewing"
+    - "Systemic racism research"
+
+- title: "Systems Thinking"
+  id: "systems-thinking"
+  icon: "fas fa-project-diagram"
+  description: "Bateson-inspired approaches for understanding interconnected systems and emergent patterns."
+  url: "/ecosystem/#systems-thinking"
+  connections:
+    - "anthropological-knowledge"
+    - "technical-methods"
+  focus_areas:
+    - "Bateson framework"
+    - "Emergent properties"
+    - "Pattern recognition"
+    - "Feedback loops"
+
+- title: "Technical Methods"
+  id: "technical-methods"
+  icon: "fas fa-code"
+  description: "Computational tools and approaches for enhancing qualitative research capabilities."
+  url: "/ecosystem/#technical-implementation"
+  connections:
+    - "anthropological-knowledge"
+    - "systems-thinking"
+  focus_areas:
+    - "Python-based analysis"
+    - "NLP techniques"
+    - "API development"
+    - "Data visualization"
+
+# Application Areas - Practical implementations of the research ecosystem
+
+- title: "Municipal Knowledge Systems"
+  id: "municipal-knowledge"
+  icon: "fas fa-city"
+  description: "Research on how knowledge flows through municipal institutions."
+  url: "/projects/#ocpm-systemic-racism-analysis-toolkit"
+  connections:
+    - "anthropological-knowledge"
+    - "systems-thinking"
+  focus_areas:
+    - "Public consultation analysis"
+    - "Institutional knowledge mapping"
+    - "Documentation flow analysis"
+    - "Stakeholder engagement patterns"
+
+- title: "Multilingual Research"
+  id: "multilingual-research"
+  icon: "fas fa-language"
+  description: "Techniques for conducting research across linguistic boundaries."
+  url: "/projects/#insightforgemtl---research-api"
+  connections:
+    - "technical-methods"
+    - "anthropological-knowledge"
+  focus_areas:
+    - "Code-switching analysis"
+    - "Cross-linguistic corpus development"
+    - "Translation validation techniques"
+    - "Cultural context preservation"
+
+- title: "Digital Anthropology"
+  id: "digital-anthropology"
+  icon: "fas fa-laptop-code"
+  description: "Innovative methods for conducting anthropological research in digital contexts."
+  url: "/projects/#ai-model-evaluation--data-annotation"
+  connections:
+    - "technical-methods"
+    - "systems-thinking"
+  focus_areas:
+    - "AI-assisted qualitative analysis"
+    - "Digital research ethics"
+    - "Remote research methodologies"
+    - "Computational ethnography"

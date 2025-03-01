@@ -1,4 +1,23 @@
+# Main navigation links
 main:
+  - title: "About"
+    url: /about/
+    description: "Professional background and research focus"
+  - title: "Research Ecosystem"
+    url: /ecosystem/
+    description: "Systems-oriented methodology framework"
+  - title: "Projects"
+    url: /projects/
+    description: "Research and technical implementations"
+  - title: "Knowledge Hub"
+    url: /blog/
+    description: "Essays and technical writing"
+  - title: "Professional"
+    url: /cv/
+    description: "CV and professional information"
+
+# Footer navigation
+footer:
   - title: "About"
     url: /about/
   - title: "Research Ecosystem"
@@ -7,5 +26,43 @@ main:
     url: /projects/
   - title: "Knowledge Hub"
     url: /blog/
-  - title: "Professional"
+  - title: "CV"
     url: /cv/
+  - title: "Privacy Policy"
+    url: /privacy/
+  - title: "Terms of Service"
+    url: /terms/
+
+# Research ecosystem sidebar navigation
+ecosystem:
+  - title: "Knowledge Domains"
+    children:
+      - title: "Anthropological Knowledge"
+        url: /ecosystem/#anthropological-knowledge
+      - title: "Systems Thinking"
+        url: /ecosystem/#systems-thinking
+      - title: "Technical Implementation"
+        url: /ecosystem/#technical-implementation
+  - title: "Application Areas"
+    children:
+      - title: "Municipal Knowledge Systems"
+        url: /ecosystem/#municipal-knowledge-systems
+      - title: "Digital Anthropology"
+        url: /ecosystem/#digital-anthropology
+      - title: "Multilingual Research"
+        url: /ecosystem/#multilingual-research
+
+# Projects sidebar navigation
+projects:
+  - title: "Research Projects"
+    children:
+      - title: "OCPM Analysis Toolkit"
+        url: /projects/#ocpm-systemic-racism-analysis-toolkit
+      - title: "InsightForgeMTL API"
+        url: /projects/#insightforgemtl---research-api
+  - title: "Technical Implementations"
+    children:
+      - title: "AI Model Evaluation"
+        url: /projects/#ai-model-evaluation--data-annotation
+      - title: "Portfolio Infrastructure"
+        url: /projects/#portfolio-infrastructure

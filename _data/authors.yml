@@ -1,0 +1,31 @@
+# Author details for Nicolas Arias Garcia
+
+# Default author information
+nicolas-arias-garcia:
+  name: "Nicolas Arias Garcia"
+  avatar: "/assets/images/profile-photo.jpg"
+  bio: "Researcher integrating anthropology with technology and systems thinking to address complex social challenges."
+  location: "Montreal, Quebec, Canada"
+  email: "ariasg.nicolas@gmail.com"
+  links:
+    - label: "GitHub"
+      icon: "fab fa-fw fa-github"
+      url: "https://github.com/9scorp4"
+    - label: "LinkedIn"
+      icon: "fab fa-fw fa-linkedin"
+      url: "https://www.linkedin.com/in/nicag/"
+  
+# Site owner information
+site:
+  name: "Nicolas Arias Garcia"
+  avatar: "/assets/images/profile-photo.jpg"
+  bio: "Researcher integrating anthropology with technology and systems thinking to address complex social challenges."
+  location: "Montreal, Quebec, Canada"
+  email: "ariasg.nicolas@gmail.com"
+  links:
+    - label: "GitHub"
+      icon: "fab fa-fw fa-github"
+      url: "https://github.com/9scorp4"
+    - label: "LinkedIn"
+      icon: "fab fa-fw fa-linkedin"
+      url: "https://www.linkedin.com/in/nicag/"

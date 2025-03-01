@@ -1,1 +1,26 @@
+<!-- _includes/head/custom.html -->
+<!-- Load custom fonts -->
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Source+Sans+Pro:wght@400;600&family=Fira+Mono&display=swap" rel="stylesheet">
+
+<!-- Load Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" integrity="sha512-1ycn6IcaQQ40/MKBW2W4Rhis/DbILU74C1vSrLJxCq57o941Ym01SwNsOMqvEBFlcgUa6xLiPY/NS5R+E6ztJQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+<!-- Preload key resources -->
+<link rel="preload" href="/assets/images/logo.svg" as="image">
+<link rel="preload" href="/assets/css/main.css" as="style">
+
+<!-- Meta information for better SEO -->
+<meta name="author" content="Nicolas Arias Garcia">
+<meta name="description" content="{% if page.excerpt %}{{ page.excerpt | strip_html | strip_newlines | truncate: 160 }}{% else %}{{ site.description }}{% endif %}">
+<meta name="keywords" content="anthropology, systems thinking, digital research, {% if page.tags %}{{ page.tags | join: ', ' }}{% endif %}">
+
+<!-- Favicon setup -->
+<link rel="apple-touch-icon" sizes="180x180" href="/assets/favicon/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon/favicon-16x16.png">
+<link rel="manifest" href="/assets/favicon/site.webmanifest">
+
+<!-- Load custom JavaScript -->
+<script defer src="/assets/js/custom.js"></script>
+
+<!-- Custom <head> content -->

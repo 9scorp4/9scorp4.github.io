@@ -1,0 +1,54 @@
+# English (default)
+# -----------------
+en: &DEFAULT_EN
+  skip_links                 : "Skip links"
+  skip_primary_nav           : "Skip to primary navigation"
+  skip_content               : "Skip to content"
+  skip_footer                : "Skip to footer"
+  page                       : "Page"
+  pagination_previous        : "Previous"
+  pagination_next            : "Next"
+  breadcrumb_home_label      : "Home"
+  breadcrumb_separator       : "/"
+  menu_label                 : "Toggle menu"
+  search_label               : "Toggle search"
+  toc_label                  : "On this page"
+  ext_link_label             : "Direct link"
+  less_than                  : "less than"
+  minute_read                : "minute read"
+  share_on_label             : "Share on"
+  meta_label                 :
+  tags_label                 : "Tags:"
+  categories_label           : "Categories:"
+  date_label                 : "Updated:"
+  comments_label             : "Leave a comment"
+  comments_title             : "Comments"
+  more_label                 : "Learn more"
+  follow_label               : "Connect"
+  feed_label                 : "Feed"
+  powered_by                 : "Powered by"
+  website_label              : "Website"
+  email_label                : "Email"
+  recent_posts               : "Recent Posts"
+  undefined_label            : "Undefined"
+  powered_by_title           : "Powered by"
+  readonly_label             : "Read Only"
+  comments_placeholder       : "Leave a comment"
+  comments_submit_label      : "Submit"
+  cookies_banner_title       : "This site uses cookies"
+  cookies_banner_text        : "This site uses cookies to improve your experience."
+  cookies_banner_accept      : "Accept"
+  cookies_banner_decline     : "Decline"
+  back_to_top                : "Back to top"
+  
+en-US:
+  <<: *DEFAULT_EN
+  
+en-CA:
+  <<: *DEFAULT_EN
+  
+en-GB:
+  <<: *DEFAULT_EN
+  
+en-AU:
+  <<: *DEFAULT_EN

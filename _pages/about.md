@@ -1,6 +1,7 @@
 ---
 permalink: /about/
 title: "About"
+layout: with-sidebar
 ---
 
 I'm a researcher specializing in the integration of numerical methods in social science research, with a particular focus on developing AI-assisted research tools that combine systems approaches and data analysis to study complex social issues.

@@ -1,8 +1,11 @@
 ---
 permalink: /ecosystem/
 title: "Research Ecosystem"
+layout: single
+author_profile: true
+sidebar:
+  nav: "main"
 ---
-
 
 My work operates as an interconnected system, integrating multiple knowledge domains to create innovative research methodologies. This systemic approach, inspired by Gregory Bateson's work, allows me to address complex social challenges through multiple perspectives.
 

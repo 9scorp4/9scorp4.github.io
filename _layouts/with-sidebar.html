@@ -1,0 +1,71 @@
+---
+layout: default
+---
+
+{% if page.header.overlay_color or page.header.overlay_image or page.header.image %}
+  {% include page__hero.html %}
+{% elsif page.header.video.provider == "custom" %}
+  {% include hero.html %}
+{% endif %}
+
+<div id="main" role="main">
+  <div class="sidebar sticky">
+    {% if page.sidebar_profile %}
+      {% include author-profile.html %}
+    {% endif %}
+    
+    {% if page.sidebar_menu %}
+      <h3>{{ page.sidebar_menu_title | default: "Navigation" }}</h3>
+      <nav class="nav__list">
+        <ul class="nav__items">
+          {% for item in page.sidebar_menu %}
+            <li><a href="{{ item.url }}">{{ item.title }}</a></li>
+          {% endfor %}
+        </ul>
+      </nav>
+    {% endif %}
+    
+    {% if page.sidebar_research_ecosystem %}
+      <h3>Research Ecosystem</h3>
+      <nav class="nav__list">
+        <ul class="nav__items">
+          <li><a href="/ecosystem/#anthropological-knowledge">Anthropological Knowledge</a></li>
+          <li><a href="/ecosystem/#systems-thinking">Systems Thinking</a></li>
+          <li><a href="/ecosystem/#technical-implementation">Technical Implementation</a></li>
+        </ul>
+      </nav>
+    {% endif %}
+    
+    {% if page.sidebar_projects %}
+      <h3>Projects</h3>
+      <nav class="nav__list">
+        <ul class="nav__items">
+          <li><a href="/projects/#ocpm-systemic-racism-analysis-toolkit">OCPM Analysis Toolkit</a></li>
+          <li><a href="/projects/#insightforgemtl---research-api">InsightForgeMTL API</a></li>
+          <li><a href="/projects/#ai-model-evaluation--data-annotation">AI Model Evaluation</a></li>
+        </ul>
+      </nav>
+    {% endif %}
+  </div>
+
+  <div class="archive">
+    <div class="page__inner-wrap">
+      <header>
+        {% if page.title %}<h1 id="page-title" class="page__title">{{ page.title | markdownify | remove: "<p>" | remove: "</p>" }}</h1>{% endif %}
+        {% include page__meta.html %}
+      </header>
+      
+      <section class="page__content">
+        {{ content }}
+      </section>
+      
+      <footer class="page__meta">
+        {% if site.data.ui-text[site.locale].meta_label %}
+          <h4 class="page__meta-title">{{ site.data.ui-text[site.locale].meta_label }}</h4>
+        {% endif %}
+        {% include page__taxonomy.html %}
+        {% include page__date.html %}
+      </footer>
+    </div>
+  </div>
+</div>

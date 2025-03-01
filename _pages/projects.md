@@ -2,6 +2,9 @@
 permalink: /projects/
 title: "Research & Technical Projects"
 layout: single
+author_profile: true
+sidebar:
+  nav: "main"
 ---
 
 My projects represent the practical implementation of my research ecosystem, bridging qualitative insights with computational techniques to transform complex social research.

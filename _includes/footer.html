@@ -1,0 +1,174 @@
+<div class="page__footer-follow">
+    <ul class="social-icons">
+      {% if site.data.ui-text[site.locale].follow_label %}
+        <li><strong>{{ site.data.ui-text[site.locale].follow_label }}</strong></li>
+      {% endif %}
+  
+      {% if site.footer.links %}
+        {% for link in site.footer.links %}
+          {% if link.label and link.url %}
+            <li><a href="{{ link.url }}" rel="nofollow noopener noreferrer"><i class="{{ link.icon | default: 'fas fa-link' }}" aria-hidden="true"></i> {{ link.label }}</a></li>
+          {% endif %}
+        {% endfor %}
+      {% endif %}
+  
+      {% unless site.atom_feed.hide %}
+        <li><a href="{% if site.atom_feed.path %}{{ site.atom_feed.path }}{% else %}{{ '/feed.xml' | relative_url }}{% endif %}"><i class="fas fa-fw fa-rss-square" aria-hidden="true"></i> {{ site.data.ui-text[site.locale].feed_label | default: "Feed" }}</a></li>
+      {% endunless %}
+    </ul>
+  </div>
+  
+  <div class="page__footer-content">
+    <div class="footer-columns">
+      <div class="footer-column">
+        <h3 class="footer-heading">About</h3>
+        <p class="footer-text">Portfolio of Nicolas Arias Garcia, a researcher integrating anthropological methods with systems thinking and technical skills.</p>
+      </div>
+      
+      <div class="footer-column">
+        <h3 class="footer-heading">Navigation</h3>
+        <ul class="footer-links">
+          <li><a href="/about/">About</a></li>
+          <li><a href="/ecosystem/">Research Ecosystem</a></li>
+          <li><a href="/projects/">Projects</a></li>
+          <li><a href="/blog/">Knowledge Hub</a></li>
+          <li><a href="/cv/">CV</a></li>
+        </ul>
+      </div>
+      
+      <div class="footer-column">
+        <h3 class="footer-heading">Connect</h3>
+        <ul class="footer-links">
+          <li><a href="https://github.com/9scorp4"><i class="fab fa-fw fa-github" aria-hidden="true"></i> GitHub</a></li>
+          <li><a href="https://www.linkedin.com/in/nicag/"><i class="fab fa-fw fa-linkedin" aria-hidden="true"></i> LinkedIn</a></li>
+          <li><a href="mailto:ariasg.nicolas@gmail.com"><i class="fas fa-fw fa-envelope" aria-hidden="true"></i> Email</a></li>
+        </ul>
+      </div>
+    </div>
+    
+    <div class="footer-bottom">
+      <div class="page__footer-copyright">
+        <a href="/" class="site-title">
+          <img src="/assets/images/logo.svg" alt="Nicolas Arias Garcia Logo" class="footer-logo" width="120">
+        </a>
+        <div class="copyright">
+          <p>© {{ site.time | date: '%Y' }} {{ site.name | default: site.title }}. Research reimagined.</p>
+          <p><small>Anthropology | Systems Thinking | Digital Research</small></p>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <style>
+    .page__footer {
+      padding: 3rem 0 2rem;
+    }
+    
+    .page__footer-follow {
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      padding-bottom: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+    
+    .footer-columns {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 2rem;
+      margin-bottom: 2rem;
+    }
+    
+    .footer-column {
+      color: #fff;
+    }
+    
+    .footer-heading {
+      font-family: var(--font-heading);
+      font-size: 1.2rem;
+      margin: 0 0 1rem;
+      color: #fff;
+      position: relative;
+      padding-bottom: 0.5rem;
+    }
+    
+    .footer-heading::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      bottom: 0;
+      width: 40px;
+      height: 2px;
+      background-color: var(--color-accent);
+    }
+    
+    .footer-text {
+      font-size: 0.9rem;
+      opacity: 0.8;
+      line-height: 1.6;
+    }
+    
+    .footer-links {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+    
+    .footer-links li {
+      margin-bottom: 0.5rem;
+    }
+    
+    .footer-links a {
+      color: #fff;
+      text-decoration: none;
+      font-size: 0.9rem;
+      opacity: 0.8;
+      transition: opacity 0.2s ease;
+    }
+    
+    .footer-links a:hover {
+      opacity: 1;
+      text-decoration: none;
+    }
+    
+    .footer-links i {
+      margin-right: 0.5rem;
+    }
+    
+    .footer-bottom {
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      padding-top: 1.5rem;
+    }
+    
+    .page__footer-copyright {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+    }
+    
+    .footer-logo {
+      max-width: 120px;
+      filter: brightness(0) invert(1);
+    }
+    
+    .copyright {
+      font-size: 0.8rem;
+      opacity: 0.8;
+    }
+    
+    .copyright p {
+      margin: 0.25rem 0;
+    }
+    
+    @media (max-width: 768px) {
+      .footer-columns {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+      }
+      
+      .page__footer-copyright {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+    }
+  </style>
