@@ -7,7 +7,7 @@ sidebar:
   nav: "main"
 ---
 
-My work operates as an interconnected system, integrating multiple knowledge domains to create innovative research methodologies. This systemic approach, inspired by Gregory Bateson's work, allows me to address complex social challenges through multiple perspectives.
+My research operates as an interconnected system that integrates multiple knowledge domains to create innovative methodologies. This systemic approach, inspired by Gregory Bateson's work, enables comprehensive analysis of complex social phenomena through multiple complementary perspectives.
 
 ## System Diagram
 
@@ -15,27 +15,34 @@ My work operates as an interconnected system, integrating multiple knowledge dom
 
 ## Knowledge Domains
 
-### Anthropological Knowledge
-- Social research methodologies
+### Social Research Methodologies
+- Qualitative data collection techniques
+- Mixed-methods research design
 - Cultural analysis frameworks
-- Qualitative data interpretation
 - Ethnographic approaches
+- Interview and survey methodology
 
 ### Systems Thinking
-- Bateson's levels of learning
-- Pattern recognition
-- Feedback loops in social systems
+- Bateson's levels of learning and cybernetic principles
+- Pattern recognition across complex datasets
+- Feedback loops and dynamic system modeling
 - Emergent properties analysis
+- Cross-domain pattern identification
 
 ### Technical Implementation
-- Python-based analysis pipelines
-- Natural language processing
-- API development
-- Data visualization
+- Python-based data processing pipelines
+- Natural language processing and computational linguistics
+- Machine learning for qualitative data analysis
+- RESTful API development
+- Interactive data visualization techniques
+- Multilingual and cross-cultural data processing
 
 ## Applications
 
-My work bridges these domains to create practical applications in:
-- **Municipal knowledge systems** - Understanding how institutional knowledge flows
-- **Systemic racism research** - Identifying patterns across public consultations
-- **Digital anthropology** - Developing new methods for qualitative research in digital spaces
+This integrated approach creates practical applications in:
+
+- **Municipal Knowledge Systems** - Analyzing institutional information flows and decision-making processes
+- **Public Data Analysis** - Identifying patterns across consultation documents and public records
+- **Digital Research Methods** - Developing new computational approaches for qualitative data analysis
+- **Multilingual Content Analysis** - Processing and analyzing content across linguistic boundaries
+- **Cross-cultural Data Science** - Implementing culturally-aware computational methods

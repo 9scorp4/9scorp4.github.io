@@ -11,100 +11,110 @@ My projects represent the practical implementation of my research ecosystem, bri
 
 ## Flagship Research Project
 
-### OCPM Systemic Racism Analysis Toolkit
+### Public Consultation Analysis Toolkit
 [![GitHub](https://img.shields.io/badge/GitHub-Repository-green?logo=github)](https://github.com/9scorp4/labrri_ocpm_systemic_racism)
 
-A comprehensive research project investigating municipal knowledge about systemic discrimination in Montreal, developed as part of my master's research.
+A comprehensive research project analyzing municipal public consultation data in Montreal, developed as part of my master's research to identify patterns in institutional knowledge.
 
 **Key Features:**
-- Advanced document processing pipeline
-- Multilingual text analysis capabilities
-- Specialized research analysis modules
+- High-performance document processing pipeline
+- Bilingual text analysis engine (French/English)
+- Research-specific analysis modules
+- Interactive visualization components
 
 **Analysis Pipelines:**
-1. **Word Frequency Analysis**
-   - Term frequency calculations
-   - TF-IDF analysis
-   - Category-based comparisons
+1. **Lexical Analysis Module**
+   - Term frequency calculations with adaptive weighting
+   - TF-IDF vectorization for document comparison
+   - Cross-corpus lexical mapping
+   - Category-based comparative analysis
 
-2. **Language Distribution Analysis**
-   - Bilingual content detection
-   - Code-switching analysis
-   - Language pattern recognition
+2. **Language Pattern Analysis**
+   - Bilingual content detection algorithms
+   - Code-switching identification
+   - Linguistic variation mapping
+   - Domain-specific terminology extraction
 
-3. **Knowledge Type Analysis**
-   - Knowledge classification
-   - Cross-categorical mapping
-   - Intersection analysis
+3. **Knowledge Structure Analysis**
+   - Conceptual categorization framework
+   - Cross-reference mapping system
+   - Multi-dimensional classification
+   - Pattern intersection visualization
 
-4. **Topic Modeling**
-   - Multiple modeling approaches (LDA, NMF, LSA)
-   - Topic coherence analysis
-   - Dynamic visualization
+4. **Topic Modeling System**
+   - Multi-algorithm approach (LDA, NMF, LSA)
+   - Topic coherence optimization
+   - Cross-validation methodology
+   - Interactive topic visualization
 
-5. **Sentiment Analysis**
-   - Document sentiment scoring
-   - Aspect-based analysis
-   - Cross-category comparisons
+5. **Sentiment and Discourse Analysis**
+   - Document sentiment calculation
+   - Multi-aspect opinion mining
+   - Contextual sentiment evaluation
+   - Temporal sentiment tracking
 
 **Technologies:**
-- Python
-- PostgreSQL
-- Natural Language Processing
-- Machine Learning
-- Data Visualization
+- Python (pandas, scikit-learn, spaCy)
+- PostgreSQL with specialized indexes
+- FastAPI for data access layer
+- Interactive D3.js visualizations
 
 ## Technical Development Projects
 
-### InsightForgeMTL - Research API
+### Multilingual Research API
 *Private Development*
 
-A sophisticated RESTful API service for processing multilingual social research data.
+A sophisticated RESTful API service designed for processing multilingual social research data with advanced NLP capabilities.
 
 **Project Highlights:**
-- Developed comprehensive API for research data processing
-- Implemented advanced text analysis pipelines
-- Created detailed documentation and testing protocols
+- Developed high-performance API for research data processing
+- Implemented advanced text analysis pipelines for French and English content
+- Created comprehensive documentation and testing infrastructure
+- Built multilingual entity recognition components
 
-**Technologies:**
-- FastAPI
-- PostgreSQL
-- Python
-- NLP Techniques
+**Technical Stack:**
+- FastAPI backend with async processing
+- PostgreSQL with full-text search capabilities
+- Python-based NLP pipelines
+- Docker containerization for deployment
+- Comprehensive test suite with pytest
 
 ### AI Model Evaluation & Data Annotation
 
-Collaborated with leading AI platforms to enhance machine learning technologies:
+Collaborated with leading AI development platforms to enhance machine learning models:
 
-- **Alignerr (2023-)**: Generalist model evaluation
+- **Alignerr (2024-)**: Generalist model evaluation across multiple domains
 - **Appen (2024-)**: 
-  - Data annotation
-  - French model evaluation
-- **Oneforma (2024-)**: Data annotation
-- **Outlier (2024-)**: Spanish model evaluation
+  - Specialized data annotation for ML training
+  - French-language model evaluation and improvement
+- **Oneforma (2024-)**: Structured data annotation for ML training
+- **Outlier (2024-)**: Spanish-language model evaluation and refinement
 
-## Research Technology Ecosystem
+## Research Technology Toolkit
 
-**Methodological Toolkit:**
-- Mixed-methods research design
-- Computational social science
-- Multilingual text analysis
-- AI-assisted research techniques
+**Methodological Approaches:**
+- Mixed-methods research design with computational enhancement
+- Integrated qualitative-quantitative analysis
+- Multilingual text processing
+- Machine learning-assisted pattern recognition
 
 **Languages & Tools:**
-- **Primary**: Python 
-  - Data analysis
-  - NLP pipelines
-  - Research automation
+- **Primary**: Python ecosystem
+  - Data analysis (pandas, numpy)
+  - ML/NLP (scikit-learn, spaCy, NLTK)
+  - Visualization (matplotlib, plotly)
+  - Research automation (custom frameworks)
 - **Emerging Skills**: 
-  - R (in development)
-  - SQL fundamentals
+  - R for statistical analysis
+  - SQL for complex data queries
+  - Vector databases for semantic search
 
 ## Research Affiliations
 
 Projects developed in collaboration with:
 - Intercultural Relations Research Laboratory (LABRRI)
 - Research Chair in Intercultural Relations
+- Culture-Arts-Societies Research Centre (CELAT)
 
 ## Publications & Contributions
 
@@ -113,8 +123,10 @@ Projects developed in collaboration with:
 
 ## Ongoing Research Objectives
 
-- Advanced NLP technique implementation
-- Computational research methodology expansion
+- Advanced NLP techniques for qualitative research
+- Computational pattern recognition in social data
+- Cross-cultural data processing methodologies
+- Multilingual research tool development
 - Completing master's thesis research
 
 [Explore GitHub Profile](https://github.com/9scorp4){: .btn .btn--primary}
