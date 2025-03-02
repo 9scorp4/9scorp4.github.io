@@ -1,0 +1,228 @@
+// _sass/base/_variables.scss
+
+// =========================================================================
+// COLOR SYSTEM
+// =========================================================================
+
+// Primary color scheme
+$color-primary: #2C3E50;       // Deep Navy
+$color-secondary: #3498DB;     // Digital Blue
+$color-accent: #E67E22;        // Terra Cotta
+
+// Generate color variations programmatically
+$color-primary-light: lighten($color-primary, 15%);
+$color-primary-dark: darken($color-primary, 10%);
+$color-secondary-light: lighten($color-secondary, 15%);
+$color-secondary-dark: darken($color-secondary, 10%);
+$color-accent-light: lighten($color-accent, 15%);
+$color-accent-dark: darken($color-accent, 10%);
+
+// Background colors
+$color-background: #F5F7FA;       // Background Light
+$color-background-dark: #1A202C;  // Background Dark
+
+// Text colors
+$color-text: #2D3748;          // Text Primary
+$color-text-light: #718096;    // Text Secondary
+$color-text-inverse: #ffffff;  // Text on dark background
+
+// Neutral colors
+$color-neutral: #718096;       // Gray
+$color-neutral-light: lighten($color-neutral, 25%);
+$color-neutral-dark: darken($color-neutral, 15%);
+
+// State colors
+$color-success: #2ECC71;
+$color-warning: #F1C40F;
+$color-error: #E74C3C;
+$color-info: #3498DB;
+
+// Export as CSS variables for use anywhere
+:root {
+  --color-primary: #{$color-primary};
+  --color-primary-light: #{$color-primary-light};
+  --color-primary-dark: #{$color-primary-dark};
+  
+  --color-secondary: #{$color-secondary};
+  --color-secondary-light: #{$color-secondary-light};
+  --color-secondary-dark: #{$color-secondary-dark};
+  
+  --color-accent: #{$color-accent};
+  --color-accent-light: #{$color-accent-light};
+  --color-accent-dark: #{$color-accent-dark};
+  
+  --color-background: #{$color-background};
+  --color-background-dark: #{$color-background-dark};
+  
+  --color-text: #{$color-text};
+  --color-text-light: #{$color-text-light};
+  --color-text-inverse: #{$color-text-inverse};
+  
+  --color-neutral: #{$color-neutral};
+  --color-neutral-light: #{$color-neutral-light};
+  --color-neutral-dark: #{$color-neutral-dark};
+  
+  --color-success: #{$color-success};
+  --color-warning: #{$color-warning};
+  --color-error: #{$color-error};
+  --color-info: #{$color-info};
+}
+
+// =========================================================================
+// TYPOGRAPHY
+// =========================================================================
+
+// Font families
+$font-heading: "Montserrat", -apple-system, BlinkMacSystemFont, "Roboto", "Segoe UI", "Helvetica Neue", "Lucida Grande", Arial, sans-serif;
+$font-body: "Source Sans Pro", -apple-system, BlinkMacSystemFont, "Roboto", "Segoe UI", "Helvetica Neue", "Lucida Grande", Arial, sans-serif;
+$font-mono: "Fira Mono", Monaco, Consolas, "Lucida Console", monospace;
+
+// Font sizes
+$font-size-base: 1rem;              // 16px
+$font-size-xs: $font-size-base * 0.75;    // 12px
+$font-size-sm: $font-size-base * 0.875;   // 14px
+$font-size-lg: $font-size-base * 1.25;    // 20px
+$font-size-xl: $font-size-base * 1.5;     // 24px
+$font-size-2xl: $font-size-base * 2;      // 32px
+$font-size-3xl: $font-size-base * 2.5;    // 40px
+$font-size-4xl: $font-size-base * 3;      // 48px
+
+// Line heights
+$line-height-tight: 1.2;
+$line-height-base: 1.5;
+$line-height-loose: 1.8;
+
+// Font weights
+$font-weight-light: 300;
+$font-weight-normal: 400;
+$font-weight-medium: 500;
+$font-weight-semibold: 600;
+$font-weight-bold: 700;
+
+// Export typography as CSS variables
+:root {
+  --font-heading: #{$font-heading};
+  --font-body: #{$font-body};
+  --font-mono: #{$font-mono};
+  
+  --font-size-xs: #{$font-size-xs};
+  --font-size-sm: #{$font-size-sm};
+  --font-size-base: #{$font-size-base};
+  --font-size-lg: #{$font-size-lg};
+  --font-size-xl: #{$font-size-xl};
+  --font-size-2xl: #{$font-size-2xl};
+  --font-size-3xl: #{$font-size-3xl};
+  --font-size-4xl: #{$font-size-4xl};
+}
+
+// =========================================================================
+// SPACING
+// =========================================================================
+
+// Base spacing unit (1rem = 16px)
+$spacing-unit: 1rem;
+
+// Spacing scale
+$spacing-xs: $spacing-unit * 0.25;  // 4px
+$spacing-sm: $spacing-unit * 0.5;   // 8px
+$spacing-md: $spacing-unit;         // 16px
+$spacing-lg: $spacing-unit * 1.5;   // 24px
+$spacing-xl: $spacing-unit * 2;     // 32px
+$spacing-2xl: $spacing-unit * 3;    // 48px
+$spacing-3xl: $spacing-unit * 4;    // 64px
+$spacing-4xl: $spacing-unit * 6;    // 96px
+
+// Export spacing as CSS variables
+:root {
+  --spacing-xs: #{$spacing-xs};
+  --spacing-sm: #{$spacing-sm};
+  --spacing-md: #{$spacing-md};
+  --spacing-lg: #{$spacing-lg};
+  --spacing-xl: #{$spacing-xl};
+  --spacing-2xl: #{$spacing-2xl};
+  --spacing-3xl: #{$spacing-3xl};
+  --spacing-4xl: #{$spacing-4xl};
+}
+
+// =========================================================================
+// BREAKPOINTS
+// =========================================================================
+
+// Device breakpoints
+$breakpoint-xs: 0;
+$breakpoint-sm: 576px;
+$breakpoint-md: 768px;
+$breakpoint-lg: 992px;
+$breakpoint-xl: 1200px;
+$breakpoint-xxl: 1400px;
+
+// =========================================================================
+// ANIMATION
+// =========================================================================
+
+// Timing
+$transition-fast: 150ms;
+$transition-base: 300ms;
+$transition-slow: 500ms;
+
+// Easing functions
+$ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+$ease-in: cubic-bezier(0.4, 0, 1, 1);
+$ease-out: cubic-bezier(0, 0, 0.2, 1);
+
+// Export animation variables
+:root {
+  --transition-fast: #{$transition-fast};
+  --transition-base: #{$transition-base};
+  --transition-slow: #{$transition-slow};
+  --ease-in-out: #{$ease-in-out};
+  --ease-in: #{$ease-in};
+  --ease-out: #{$ease-out};
+}
+
+// =========================================================================
+// LAYOUT
+// =========================================================================
+
+// Container widths
+$container-sm: 540px;
+$container-md: 720px;
+$container-lg: 960px;
+$container-xl: 1140px;
+$container-xxl: 1320px;
+
+// Z-index layers
+$z-index-dropdown: 1000;
+$z-index-sticky: 1020;
+$z-index-fixed: 1030;
+$z-index-modal-backdrop: 1040;
+$z-index-modal: 1050;
+$z-index-popover: 1060;
+$z-index-tooltip: 1070;
+
+// Border radius
+$border-radius-sm: 0.25rem;
+$border-radius: 0.5rem;
+$border-radius-lg: 0.75rem;
+$border-radius-xl: 1rem;
+
+// Box shadow
+$shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+$shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+$shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+$shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+$shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+
+// Export layout variables
+:root {
+  --border-radius-sm: #{$border-radius-sm};
+  --border-radius: #{$border-radius};
+  --border-radius-lg: #{$border-radius-lg};
+  --border-radius-xl: #{$border-radius-xl};
+  
+  --shadow-sm: #{$shadow-sm};
+  --shadow: #{$shadow};
+  --shadow-md: #{$shadow-md};
+  --shadow-lg: #{$shadow-lg};
+  --shadow-xl: #{$shadow-xl};
+}

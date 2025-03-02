@@ -29,26 +29,8 @@ jobs:
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: '3.2'
-          bundler-cache: false # Disable bundler cache initially
+          bundler-cache: true  # Enable bundler cache for faster builds
           
-      - name: Display Ruby and Bundler Versions
-        run: |
-          ruby -v || echo "Ruby version command failed"
-          gem -v || echo "Gem version command failed"
-          bundle -v || echo "Bundle version command failed"
-          # Using || true to prevent grep from failing if no matches are found
-          env | grep -i ruby || true
-          env | grep -i bundle || true
-
-      - name: Install Dependencies
-        run: |
-          bundle config set --local path 'vendor/bundle'
-          bundle config set --local without 'development test'
-          bundle install --jobs 4 --retry 3
-
-      - name: List Installed Gems
-        run: bundle list
-
       - name: Setup Pages
         id: pages
         uses: actions/configure-pages@v4
@@ -66,7 +48,6 @@ jobs:
           JEKYLL_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           # Additional helpful environment variables
           PAGES_API_URL: ${{ steps.pages.outputs.api_url }}
-          PAGES_HEALTH_CHECK_URL: "https://github.com/github/pages-health-check"
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
