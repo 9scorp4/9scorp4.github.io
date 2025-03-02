@@ -1,0 +1,216 @@
+/* ==========================================================================
+   HERO COMPONENTS
+   ========================================================================== */
+
+/*
+   Video Hero
+   ========================================================================== */
+
+   .page__hero--video {
+    position: relative;
+    width: 100%;
+    height: 65vh;
+    min-height: 25rem;
+    max-height: 80vh;
+    overflow: hidden;
+    margin-bottom: $spacing-lg;
+    
+    &::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.3);
+      z-index: 1;
+    }
+    
+    video {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      min-width: 100%;
+      min-height: 100%;
+      width: auto;
+      height: auto;
+      z-index: 0;
+      transform: translateX(-50%) translateY(-50%);
+    }
+    
+    .wrapper {
+      position: relative;
+      z-index: 2;
+      text-align: center;
+      padding: $spacing-xl $spacing-lg;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      max-width: $container-max-width;
+      margin: 0 auto;
+      
+      .page__title {
+        font-size: $font-size-xxlarge;
+        margin-bottom: $spacing-sm;
+        color: white;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+        
+        @include breakpoint(md) {
+          font-size: $font-size-xxxlarge;
+        }
+      }
+      
+      .page__lead {
+        font-size: $font-size-large;
+        max-width: 800px;
+        margin: 0 auto;
+        color: white;
+        text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.7);
+        
+        @include breakpoint(md) {
+          font-size: $font-size-xlarge;
+        }
+      }
+    }
+    
+    @include breakpoint(mobile-only) {
+      height: 50vh;
+      
+      .wrapper {
+        padding: $spacing-lg $spacing-md;
+      }
+    }
+  }
+  
+  /*
+     Image Overlay Hero
+     ========================================================================== */
+  
+  .page__hero--overlay {
+    position: relative;
+    margin-bottom: $spacing-lg;
+    padding: $spacing-xl 0;
+    clear: both;
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+    animation: fadeIn 0.3s both;
+    animation-delay: 0.25s;
+    
+    &::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+    }
+    
+    .wrapper {
+      position: relative;
+      max-width: $container-max-width;
+      margin: 0 auto;
+      padding: $spacing-xl $spacing-md;
+      text-align: center;
+      
+      @include breakpoint(md) {
+        padding: $spacing-xxl $spacing-lg;
+      }
+      
+      .page__title,
+      .page__lead {
+        color: white;
+        text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.7);
+      }
+      
+      .page__title {
+        font-size: $font-size-xxlarge;
+        margin-bottom: $spacing-sm;
+        
+        @include breakpoint(md) {
+          font-size: $font-size-xxxlarge;
+        }
+      }
+      
+      .page__lead {
+        font-size: $font-size-large;
+        max-width: 768px;
+        margin: 0 auto;
+        
+        @include breakpoint(md) {
+          font-size: $font-size-xlarge;
+        }
+      }
+      
+      .btn {
+        margin-top: $spacing-md;
+      }
+    }
+  }
+  
+  /*
+     Standard Page Hero
+     ========================================================================== */
+  
+  .page__hero {
+    position: relative;
+    margin-bottom: $spacing-lg;
+    padding: $spacing-lg 0;
+    background-color: $color-background;
+    border-bottom: 1px solid rgba($color-neutral, 0.2);
+    
+    .wrapper {
+      max-width: $container-max-width;
+      margin: 0 auto;
+      padding: 0 $spacing-md;
+      
+      @include breakpoint(md) {
+        padding: 0 $spacing-lg;
+      }
+      
+      .page__title {
+        margin-top: 0;
+        margin-bottom: $spacing-xs;
+        color: $color-primary;
+      }
+      
+      .page__meta {
+        margin-bottom: 0;
+        font-size: $font-size-small;
+        color: $color-neutral;
+      }
+      
+      .page__lead {
+        margin-top: $spacing-sm;
+        font-size: $font-size-medium;
+        color: $color-text;
+        
+        @include breakpoint(md) {
+          font-size: $font-size-large;
+        }
+      }
+    }
+  }
+  
+  /*
+     Hero Buttons
+     ========================================================================== */
+  
+  .hero-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-top: $spacing-md;
+    gap: $spacing-sm;
+    
+    .btn {
+      min-width: 150px;
+      
+      @include breakpoint(mobile-only) {
+        min-width: 120px;
+        font-size: $font-size-small;
+      }
+    }
+  }

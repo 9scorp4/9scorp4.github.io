@@ -1,0 +1,210 @@
+/* ==========================================================================
+   FOOTER
+   ========================================================================== */
+
+   .page__footer {
+    color: white;
+    background-color: $color-primary;
+    padding: $spacing-xl 0 $spacing-lg;
+    
+    a {
+      color: white;
+      
+      &:hover {
+        color: rgba(white, 0.8);
+        text-decoration: none;
+      }
+    }
+  }
+  
+  .page__footer-follow {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding-bottom: $spacing-md;
+    margin-bottom: $spacing-md;
+    
+    ul {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      @include flex-container(row, wrap, center, center);
+      
+      @include breakpoint(md) {
+        justify-content: flex-start;
+      }
+      
+      li {
+        margin-right: $spacing-md;
+        margin-bottom: $spacing-sm;
+        
+        &:last-child {
+          margin-right: 0;
+        }
+        
+        strong {
+          display: block;
+          margin-bottom: $spacing-xs;
+          font-family: $font-heading;
+          text-transform: uppercase;
+          letter-spacing: 1px;
+          font-size: $font-size-small;
+        }
+      }
+    }
+  }
+  
+  .footer-columns {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: $spacing-md;
+    
+    @include breakpoint(sm) {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    
+    @include breakpoint(md) {
+      grid-template-columns: repeat(3, 1fr);
+    }
+    
+    @include breakpoint(lg) {
+      grid-template-columns: 2fr 1fr 1fr;
+    }
+  }
+  
+  .footer-column {
+    margin-bottom: $spacing-md;
+    
+    @include breakpoint(md) {
+      margin-bottom: 0;
+    }
+  }
+  
+  .footer-heading {
+    font-family: $font-heading;
+    font-size: $font-size-medium;
+    font-weight: $font-weight-bold;
+    margin: 0 0 $spacing-sm;
+    color: white;
+    position: relative;
+    padding-bottom: $spacing-xs;
+    
+    &::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      bottom: 0;
+      width: 40px;
+      height: 2px;
+      background-color: $color-accent;
+    }
+  }
+  
+  .footer-text {
+    font-size: $font-size-small;
+    opacity: 0.8;
+    line-height: $line-height-base;
+  }
+  
+  .footer-links {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    
+    li {
+      margin-bottom: $spacing-xs;
+    }
+    
+    a {
+      font-size: $font-size-small;
+      opacity: 0.8;
+      transition: $global-transition;
+      
+      &:hover {
+        opacity: 1;
+      }
+      
+      i {
+        margin-right: $spacing-xs;
+        width: 16px;
+        text-align: center;
+      }
+    }
+  }
+  
+  .footer-bottom {
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    padding-top: $spacing-md;
+  }
+  
+  .page__footer-copyright {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    
+    @include breakpoint(md) {
+      flex-direction: row;
+      justify-content: space-between;
+    }
+    
+    .site-title {
+      margin-bottom: $spacing-sm;
+      
+      @include breakpoint(md) {
+        margin-bottom: 0;
+      }
+    }
+    
+    .footer-logo {
+      max-width: 120px;
+      filter: brightness(0) invert(1);
+    }
+    
+    .copyright {
+      font-size: $font-size-small;
+      opacity: 0.8;
+      text-align: center;
+      
+      @include breakpoint(md) {
+        text-align: right;
+      }
+      
+      p {
+        margin: $spacing-xxs 0;
+      }
+    }
+  }
+  
+  /*
+     Back to top button
+     ========================================================================== */
+  
+  .back-to-top {
+    display: none;
+    position: fixed;
+    bottom: $spacing-md;
+    right: $spacing-md;
+    width: 40px;
+    height: 40px;
+    line-height: 40px;
+    text-align: center;
+    background-color: $color-primary;
+    color: white;
+    border-radius: 50%;
+    opacity: 0.7;
+    z-index: $z-index-fixed;
+    transition: $global-transition;
+    
+    &:hover, &:focus {
+      opacity: 1;
+      color: white;
+      text-decoration: none;
+    }
+    
+    &.visible {
+      display: block;
+    }
+    
+    i {
+      line-height: inherit;
+    }
+  }

@@ -1,0 +1,194 @@
+// ==========================================================================
+// FOOTER COMPONENTS
+// ==========================================================================
+
+// Main Footer
+// --------------------------------------------------------------------------
+.page__footer {
+    padding: $spacing-8 0 $spacing-6;
+    background-color: $color-primary;
+    color: #fff;
+    
+    a {
+      color: rgba(255, 255, 255, 0.8);
+      text-decoration: none;
+      
+      &:hover {
+        color: white;
+        text-decoration: underline;
+      }
+    }
+  }
+  
+  // Social Icons
+  // --------------------------------------------------------------------------
+  .page__footer-follow {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding-bottom: $spacing-5;
+    margin-bottom: $spacing-5;
+    
+    ul {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      display: flex;
+      flex-wrap: wrap;
+      
+      li {
+        margin-right: $spacing-5;
+        margin-bottom: $spacing-3;
+        font-size: $font-size-sm;
+        
+        strong {
+          display: block;
+          margin-bottom: $spacing-2;
+          text-transform: uppercase;
+          letter-spacing: 1px;
+        }
+        
+        a {
+          display: flex;
+          align-items: center;
+          
+          i {
+            margin-right: $spacing-2;
+          }
+        }
+      }
+    }
+  }
+  
+  // Footer Content
+  // --------------------------------------------------------------------------
+  .page__footer-content {
+    @extend .container;
+  }
+  
+  // Footer Columns Layout
+  // --------------------------------------------------------------------------
+  .footer-columns {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: $spacing-6;
+    margin-bottom: $spacing-6;
+  }
+  
+  .footer-column {
+    h3 {
+      font-size: $font-size-lg;
+      margin: 0 0 $spacing-4;
+      color: #fff;
+      position: relative;
+      padding-bottom: $spacing-3;
+      
+      &::after {
+        content: "";
+        position: absolute;
+        left: 0;
+        bottom: 0;
+        width: 40px;
+        height: 2px;
+        background-color: $color-accent;
+      }
+    }
+    
+    p {
+      font-size: $font-size-sm;
+      opacity: 0.8;
+      line-height: $line-height-base;
+    }
+  }
+  
+  // Footer Links
+  // --------------------------------------------------------------------------
+  .footer-links {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    
+    li {
+      margin-bottom: $spacing-2;
+    }
+    
+    a {
+      font-size: $font-size-sm;
+      opacity: 0.8;
+      transition: opacity $transition-fast;
+      
+      &:hover {
+        opacity: 1;
+      }
+      
+      i {
+        margin-right: $spacing-2;
+      }
+    }
+  }
+  
+  // Footer Bottom
+  // --------------------------------------------------------------------------
+  .footer-bottom {
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    padding-top: $spacing-5;
+  }
+  
+  .page__footer-copyright {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: $spacing-4;
+    
+    .site-title {
+      text-decoration: none;
+      
+      .footer-logo {
+        max-width: 120px;
+        filter: brightness(0) invert(1);
+      }
+    }
+    
+    .copyright {
+      font-size: $font-size-sm;
+      opacity: 0.8;
+      
+      p {
+        margin: $spacing-1 0;
+      }
+    }
+    
+    @media (max-width: $breakpoint-md) {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+  }
+  
+  // Back to Top Button
+  // --------------------------------------------------------------------------
+  .back-to-top {
+    position: fixed;
+    right: $spacing-4;
+    bottom: $spacing-4;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: $color-primary;
+    color: white;
+    text-align: center;
+    line-height: 40px;
+    z-index: $z-index-fixed;
+    box-shadow: $box-shadow;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity $transition-fast, visibility $transition-fast;
+    
+    &.visible {
+      opacity: 0.8;
+      visibility: visible;
+    }
+    
+    &:hover {
+      opacity: 1;
+      color: white;
+    }
+  }

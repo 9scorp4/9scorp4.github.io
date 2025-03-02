@@ -1,0 +1,261 @@
+// ==========================================================================
+// ECOSYSTEM VISUALIZATION COMPONENT
+// ==========================================================================
+
+.ecosystem-component {
+    margin: $spacing-6 0;
+    padding: $spacing-6 $spacing-4;
+    background-color: $color-background;
+    border-radius: $border-radius-lg;
+    box-shadow: $box-shadow;
+    
+    // Header area
+    .ecosystem-header {
+      text-align: center;
+      margin-bottom: $spacing-6;
+      
+      h2 {
+        margin-top: 0;
+        margin-bottom: $spacing-3;
+        color: $color-primary;
+      }
+      
+      .ecosystem-description {
+        max-width: 600px;
+        margin: 0 auto;
+        color: rgba($color-text, 0.8);
+      }
+    }
+    
+    // Nodes container
+    .ecosystem-nodes {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: $spacing-5;
+      position: relative;
+      
+      // Connection lines (visible on larger screens only)
+      @media (min-width: $breakpoint-lg) {
+        &::before,
+        &::after {
+          content: "";
+          position: absolute;
+          background-color: rgba($color-neutral, 0.2);
+          z-index: 0;
+        }
+        
+        // Horizontal connection
+        &::before {
+          top: 50%;
+          left: 25%;
+          right: 25%;
+          height: 2px;
+        }
+        
+        // Vertical connection
+        &::after {
+          left: 50%;
+          top: 25%;
+          bottom: 25%;
+          width: 2px;
+        }
+      }
+    }
+    
+    // Individual nodes
+    .ecosystem-node {
+      background-color: white;
+      padding: $spacing-5;
+      border-radius: $border-radius;
+      box-shadow: $box-shadow;
+      transition: transform $transition-base, box-shadow $transition-base;
+      position: relative;
+      z-index: 1;
+      border-top: 4px solid $color-primary;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      
+      // Hover effects
+      &:hover {
+        transform: translateY(-5px);
+        box-shadow: $box-shadow-lg;
+      }
+      
+      // Active connection highlighting
+      &.connected {
+        border-color: $color-accent;
+        box-shadow: 0 0 0 2px rgba($color-accent, 0.3), $box-shadow;
+      }
+      
+      // Node icon
+      .ecosystem-node-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background-color: $color-primary;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: $spacing-4;
+        font-size: $font-size-2xl;
+      }
+      
+      // Node title
+      .ecosystem-node-title {
+        margin: 0 0 $spacing-3;
+        font-size: $font-size-xl;
+        color: $color-primary;
+      }
+      
+      // Node description
+      .ecosystem-node-description {
+        color: rgba($color-text, 0.8);
+        margin-bottom: $spacing-4;
+        flex-grow: 1;
+      }
+      
+      // Node link
+      .ecosystem-node-link {
+        margin-top: auto;
+        
+        a {
+          display: inline-block;
+          padding: $spacing-2 $spacing-4;
+          background-color: $color-primary;
+          color: white;
+          border-radius: $border-radius;
+          text-decoration: none;
+          font-weight: 500;
+          font-size: $font-size-sm;
+          transition: background-color $transition-fast;
+          
+          &:hover {
+            background-color: $color-primary-dark;
+          }
+        }
+      }
+      
+      // Color variations for different node types
+      &:nth-child(2) {
+        border-top-color: $color-secondary;
+        
+        .ecosystem-node-icon {
+          background-color: $color-secondary;
+        }
+        
+        .ecosystem-node-title {
+          color: $color-secondary;
+        }
+        
+        .ecosystem-node-link a {
+          background-color: $color-secondary;
+          
+          &:hover {
+            background-color: $color-secondary-dark;
+          }
+        }
+      }
+      
+      &:nth-child(3) {
+        border-top-color: $color-accent;
+        
+        .ecosystem-node-icon {
+          background-color: $color-accent;
+        }
+        
+        .ecosystem-node-title {
+          color: $color-accent;
+        }
+        
+        .ecosystem-node-link a {
+          background-color: $color-accent;
+          
+          &:hover {
+            background-color: $color-accent-dark;
+          }
+        }
+      }
+    }
+    
+    // Animation classes
+    .ecosystem-node.fade-in {
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+      
+      &.visible {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  }
+  
+  // Research Ecosystem Diagram
+  // --------------------------------------------------------------------------
+  .research-ecosystem-diagram {
+    max-width: 100%;
+    margin: $spacing-6 auto;
+    display: block;
+    
+    svg {
+      width: 100%;
+      height: auto;
+      max-width: 800px;
+      margin: 0 auto;
+      display: block;
+    }
+  }
+  
+  // Knowledge Domains Section
+  // --------------------------------------------------------------------------
+  .knowledge-domain {
+    margin-bottom: $spacing-8;
+    
+    .knowledge-domain__header {
+      margin-bottom: $spacing-5;
+      padding-bottom: $spacing-3;
+      border-bottom: 1px solid $border-color;
+      
+      h2 {
+        display: flex;
+        align-items: center;
+        margin-bottom: $spacing-2;
+        
+        i {
+          margin-right: $spacing-3;
+          color: $color-primary;
+          font-size: $font-size-2xl;
+        }
+      }
+      
+      .knowledge-domain__description {
+        font-size: $font-size-lg;
+        color: rgba($color-text, 0.8);
+      }
+    }
+    
+    .knowledge-domain__content {
+      padding-left: $spacing-6;
+    }
+    
+    // Adjust colors for different domains
+    &.anthropological {
+      h2 i {
+        color: $color-primary;
+      }
+    }
+    
+    &.systems {
+      h2 i {
+        color: $color-secondary;
+      }
+    }
+    
+    &.technical {
+      h2 i {
+        color: $color-accent;
+      }
+    }
+  }

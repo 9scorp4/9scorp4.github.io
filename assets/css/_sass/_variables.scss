@@ -1,0 +1,119 @@
+/* ==========================================================================
+   VARIABLES
+   ========================================================================== */
+
+/*
+   Color Variables Compatibility Layer
+   ========================================================================== */
+
+/* Primary color palette from anthroposai theme */
+$color-primary: #2C3E50;        // Deep Navy
+$color-secondary: #3498DB;      // Digital Blue
+$color-accent: #E67E22;         // Terra Cotta
+$color-background: #F5F7FA;     // Background Light
+$color-background-dark: #1A202C; // Background Dark
+$color-text: #2D3748;           // Text Primary
+$color-neutral: #718096;        // Neutral
+
+/* Pre-calculate color variations with SASS functions */
+$color-primary-dark: darken($color-primary, 10%);
+$color-primary-light: lighten($color-primary, 10%);
+$color-secondary-dark: darken($color-secondary, 10%);
+$color-secondary-light: lighten($color-secondary, 10%);
+$color-accent-dark: darken($color-accent, 10%);
+$color-accent-light: lighten($color-accent, 10%);
+
+/* Define CSS variables for use in styles */
+:root {
+  --color-primary: #{$color-primary};
+  --color-secondary: #{$color-secondary};
+  --color-accent: #{$color-accent};
+  --color-background: #{$color-background};
+  --color-background-dark: #{$color-background-dark};
+  --color-text: #{$color-text};
+  --color-neutral: #{$color-neutral};
+  --color-primary-dark: #{$color-primary-dark};
+  --color-primary-light: #{$color-primary-light};
+  --color-secondary-dark: #{$color-secondary-dark};
+  --color-secondary-light: #{$color-secondary-light};
+  --color-accent-dark: #{$color-accent-dark};
+  --color-accent-light: #{$color-accent-light};
+  
+  /* Typography */
+  --font-heading: "Montserrat", -apple-system, BlinkMacSystemFont, "Roboto", "Segoe UI", "Helvetica Neue", "Lucida Grande", Arial, sans-serif;
+  --font-body: "Source Sans Pro", -apple-system, BlinkMacSystemFont, "Roboto", "Segoe UI", "Helvetica Neue", "Lucida Grande", Arial, sans-serif;
+  --font-mono: "Fira Mono", Monaco, Consolas, "Lucida Console", monospace;
+}
+
+/*
+   Typography
+   ========================================================================== */
+
+$font-heading: var(--font-heading);
+$font-body: var(--font-body);
+$font-mono: var(--font-mono);
+
+/* Font Sizes */
+$font-size-base: 16px;
+$font-size-small: 0.875rem;
+$font-size-medium: 1rem;
+$font-size-large: 1.25rem;
+$font-size-xlarge: 1.5rem;
+$font-size-xxlarge: 2rem;
+$font-size-xxxlarge: 2.5rem;
+
+/* Line Heights */
+$line-height-tight: 1.2;
+$line-height-base: 1.5;
+$line-height-relaxed: 1.65;
+
+/* Font Weights */
+$font-weight-normal: 400;
+$font-weight-medium: 500;
+$font-weight-semibold: 600;
+$font-weight-bold: 700;
+
+/*
+   Breakpoints
+   ========================================================================== */
+
+$breakpoint-xs: 0;
+$breakpoint-sm: 576px;
+$breakpoint-md: 768px;
+$breakpoint-lg: 992px;
+$breakpoint-xl: 1200px;
+
+/*
+   Layout
+   ========================================================================== */
+
+$container-max-width: 1200px;
+$sidebar-width: 300px;
+$content-width: calc(100% - #{$sidebar-width});
+$gutter: 2rem;
+$border-radius: 6px;
+$global-transition: all 0.3s ease;
+
+/*
+   Spacing
+   ========================================================================== */
+
+$spacing-xxs: 0.25rem;
+$spacing-xs: 0.5rem;
+$spacing-sm: 1rem;
+$spacing-md: 1.5rem;
+$spacing-lg: 2rem;
+$spacing-xl: 3rem;
+$spacing-xxl: 4rem;
+
+/*
+   Z-index
+   ========================================================================== */
+
+$z-index-dropdown: 1000;
+$z-index-sticky: 1020;
+$z-index-fixed: 1030;
+$z-index-modal-backdrop: 1040;
+$z-index-modal: 1050;
+$z-index-popover: 1060;
+$z-index-tooltip: 1070;

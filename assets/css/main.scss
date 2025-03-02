@@ -1,44 +1,27 @@
-// main.scss implementation
-@charset "utf-8";
+---
+# Only the main Sass file needs front matter (the dashes are enough)
+---
 
-// Import variables before everything else
-@import "base/variables";
-
-// Import theme with access to variables
+// Import theme skin from Minimal Mistakes
 @import "minimal-mistakes/skins/{{ site.minimal_mistakes_skin | default: 'default' }}";
+
+// Import Minimal Mistakes framework
 @import "minimal-mistakes";
 
-// Import base styles
-@import "base/reset";
-@import "base/typography";
-@import "base/animations";
+// Import our modular system
+// Base variables and settings
+@import "variables";
+@import "base";
+@import "layout";
 
-// Import utility styles
-@import "utils/mixins";
-@import "utils/functions";
-@import "utils/helpers";
-@import "utils/responsive";
-
-// Import layout styles
-@import "layout/grid";
-@import "layout/header";
-@import "layout/footer";
-@import "layout/sidebar";
-@import "layout/hero";
-
-// Import component styles
-@import "components/buttons";
-@import "components/cards";
+// Component styles
 @import "components/navigation";
 @import "components/sidebar";
 @import "components/ecosystem";
+@import "components/hero";
+@import "components/footer";
 
-// Import page-specific styles
-@import "pages/home";
-@import "pages/about";
-@import "pages/blog";
-@import "pages/projects";
-@import "pages/cv";
-
-// Import vendor overrides (always last)
-@import "vendor/minimal-mistakes-fixes";
+// Utility styles
+@import "utilities";
+@import "animations";
+@import "responsive";

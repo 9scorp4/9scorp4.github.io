@@ -1,142 +1,177 @@
 /**
- * Ecosystem Visualization Module
- * 
- * Handles the interactive behavior of the research ecosystem visualization
- * Uses a systems thinking approach to manage component interactions
+ * Ecosystem Module
+ * Handles the interactive ecosystem visualization component
  */
-import { animateElements, fadeIn } from '../utils/animations.js';
-import { onElementsInView } from '../utils/dom.js';
 
-export class EcosystemVisualization {
+import DOMUtils from '../utils/dom.js';
+
+const Ecosystem = {
   /**
-   * Initialize the ecosystem visualization
-   */
-  constructor() {
-    this.container = document.querySelector('.ecosystem-component');
-    
-    // Exit if component isn't on current page
-    if (!this.container) {
-      return;
-    }
-    
-    // Find key elements
-    this.nodes = this.container.querySelectorAll('.ecosystem-node');
-    
-    // Initialize the component
-    this.init();
-  }
-  
-  /**
-   * Initialize the visualization
+   * Initialize ecosystem component
    */
   init() {
-    // Bind event handlers to maintain 'this' context
-    this.handleNodeMouseEnter = this.handleNodeMouseEnter.bind(this);
-    this.handleNodeMouseLeave = this.handleNodeMouseLeave.bind(this);
-    
-    // Set up event listeners
-    this.bindEvents();
-    
-    // Set up animation
-    this.setupAnimations();
-    
-    // Track initialization for debugging
-    this.container.dataset.initialized = true;
-  }
+    this.setupEcosystemComponent();
+  },
   
   /**
-   * Bind all event listeners
+   * Set up the ecosystem visualization component
    */
-  bindEvents() {
-    // Add interaction handlers for each node
-    this.nodes.forEach(node => {
-      node.addEventListener('mouseenter', this.handleNodeMouseEnter);
-      node.addEventListener('mouseleave', this.handleNodeMouseLeave);
-    });
+  setupEcosystemComponent() {
+    const ecosystemComponent = DOMUtils.get('.ecosystem-component');
     
-    // Use Intersection Observer to trigger animations when visible
-    onElementsInView(this.nodes, (node) => {
-      this.animateNodeEntry(node);
-    });
-  }
+    if (!ecosystemComponent) return;
+    
+    // Nodes are the main interactive elements
+    const nodes = DOMUtils.getAll('.ecosystem-node');
+    
+    if (nodes.length === 0) return;
+    
+    // Add connection highlighting
+    this.setupConnectionHighlighting(nodes);
+    
+    // Add entrance animations
+    this.setupEntranceAnimations(nodes);
+    
+    // Add interactive features (optional)
+    this.setupInteractiveFeatures(nodes);
+  },
   
   /**
-   * Set up animations for ecosystem nodes
+   * Set up connection highlighting between nodes
+   * @param {NodeList} nodes - List of ecosystem nodes
    */
-  setupAnimations() {
-    // Add transition classes to nodes
-    this.nodes.forEach((node, index) => {
-      node.classList.add('fade-in');
+  setupConnectionHighlighting(nodes) {
+    nodes.forEach(node => {
+      // When hovering over a node, highlight connections
+      DOMUtils.on(node, 'mouseenter', () => {
+        // Get connections from data attribute
+        const connections = this.getNodeConnections(node);
+        
+        if (connections.length === 0) return;
+        
+        // Highlight node itself
+        DOMUtils.addClass(node, 'is-active');
+        
+        // Highlight connected nodes
+        nodes.forEach(otherNode => {
+          const nodeId = this.getNodeId(otherNode);
+          
+          if (connections.includes(nodeId)) {
+            DOMUtils.addClass(otherNode, 'connected');
+          }
+        });
+      });
+      
+      // When mouse leaves, remove highlighting
+      DOMUtils.on(node, 'mouseleave', () => {
+        // Remove active state from this node
+        DOMUtils.removeClass(node, 'is-active');
+        
+        // Remove connected state from all nodes
+        nodes.forEach(otherNode => {
+          DOMUtils.removeClass(otherNode, 'connected');
+        });
+      });
+    });
+  },
+  
+  /**
+   * Set up entrance animations for nodes
+   * @param {NodeList} nodes - List of ecosystem nodes
+   */
+  setupEntranceAnimations(nodes) {
+    // Add fade-in animation classes with staggered delays
+    nodes.forEach((node, index) => {
+      DOMUtils.addClass(node, 'fade-in');
       node.style.transitionDelay = `${index * 0.15}s`;
     });
-  }
-  
-  /**
-   * Animate a node when it enters the viewport
-   * @param {HTMLElement} node - The node to animate
-   */
-  animateNodeEntry(node) {
-    // Add visible class to trigger CSS transition
+    
+    // Make nodes visible after a short delay
     setTimeout(() => {
-      node.classList.add('visible');
-    }, 50); // Small delay to ensure proper transition
-  }
+      nodes.forEach(node => {
+        DOMUtils.addClass(node, 'visible');
+      });
+    }, 100);
+  },
   
   /**
-   * Handle mouse enter on ecosystem node
-   * @param {Event} event - The mouse event
+   * Add extra interactive features to ecosystem component
+   * @param {NodeList} nodes - List of ecosystem nodes
    */
-  handleNodeMouseEnter(event) {
-    const currentNode = event.currentTarget;
-    // Get connections from data attribute
-    const connections = currentNode.dataset.connections?.split(',') || [];
-    
-    // Add active class to current node
-    currentNode.classList.add('active');
-    
-    // Highlight connected nodes
-    this.nodes.forEach(node => {
-      // Get the ID from the node title
-      const nodeId = node.querySelector('.ecosystem-node-title')
-        .textContent.toLowerCase()
-        .replace(/\s+/g, '-')
-        .replace(/[^a-z0-9-]/g, '');
+  setupInteractiveFeatures(nodes) {
+    // Add click functionality for mobile devices
+    // This is optional but helps with mobile UX
+    if ('ontouchstart' in window) {
+      nodes.forEach(node => {
+        DOMUtils.on(node, 'click', (e) => {
+          // If not already active, prevent default and show connections
+          if (!DOMUtils.hasClass(node, 'is-active')) {
+            e.preventDefault();
+            
+            // Remove active state from all nodes
+            nodes.forEach(n => {
+              DOMUtils.removeClass(n, 'is-active');
+              DOMUtils.removeClass(n, 'connected');
+            });
+            
+            // Add active state to clicked node
+            DOMUtils.addClass(node, 'is-active');
+            
+            // Get connections from data attribute
+            const connections = this.getNodeConnections(node);
+            
+            if (connections.length === 0) return;
+            
+            // Highlight connected nodes
+            nodes.forEach(otherNode => {
+              const nodeId = this.getNodeId(otherNode);
+              
+              if (connections.includes(nodeId)) {
+                DOMUtils.addClass(otherNode, 'connected');
+              }
+            });
+          }
+        });
+      });
       
-      // Add connected class if in connections array
-      if (connections.includes(nodeId)) {
-        node.classList.add('connected');
-      } else if (node !== currentNode) {
-        // Dim other nodes that aren't connected
-        node.classList.add('dimmed');
-      }
-    });
-  }
-  
-  /**
-   * Handle mouse leave on ecosystem node
-   * @param {Event} event - The mouse event
-   */
-  handleNodeMouseLeave() {
-    // Remove all special classes from nodes
-    this.nodes.forEach(node => {
-      node.classList.remove('active', 'connected', 'dimmed');
-    });
-  }
-  
-  /**
-   * Clean up the component and remove event listeners
-   * Called when the page is unloaded or component is destroyed
-   */
-  destroy() {
-    // Remove all event listeners
-    this.nodes.forEach(node => {
-      node.removeEventListener('mouseenter', this.handleNodeMouseEnter);
-      node.removeEventListener('mouseleave', this.handleNodeMouseLeave);
-    });
-    
-    // Optional: log clean-up for debugging
-    if (process.env.NODE_ENV === 'development') {
-      console.log('Ecosystem visualization destroyed');
+      // Close connections when clicking outside
+      DOMUtils.on(document, 'click', (e) => {
+        if (!DOMUtils.get('.ecosystem-component').contains(e.target)) {
+          nodes.forEach(node => {
+            DOMUtils.removeClass(node, 'is-active');
+            DOMUtils.removeClass(node, 'connected');
+          });
+        }
+      });
     }
+  },
+  
+  /**
+   * Get node connections from data attribute
+   * @param {Element} node - The ecosystem node
+   * @return {Array} - List of connected node IDs
+   */
+  getNodeConnections(node) {
+    const connectionsAttr = node.dataset.connections || '';
+    return connectionsAttr.split(',').filter(Boolean).map(id => id.trim());
+  },
+  
+  /**
+   * Get node ID from its title
+   * @param {Element} node - The ecosystem node
+   * @return {string} - Node ID derived from title
+   */
+  getNodeId(node) {
+    const titleEl = node.querySelector('.ecosystem-node-title');
+    
+    if (!titleEl) return '';
+    
+    // Generate ID from title: "Technical Methods" -> "technical-methods"
+    return titleEl.textContent.trim()
+      .toLowerCase()
+      .replace(/\s+/g, '-')
+      .replace(/[^a-z0-9-]/g, '');
   }
-}
+};
+
+export default Ecosystem;

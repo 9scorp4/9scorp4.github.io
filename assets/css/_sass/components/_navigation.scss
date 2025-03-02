@@ -1,0 +1,161 @@
+/* ==========================================================================
+   NAVIGATION
+   ========================================================================== */
+
+/*
+   Masthead
+   ========================================================================== */
+
+   .masthead {
+    position: relative;
+    background-color: $color-primary;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    color: white;
+    
+    .masthead__inner-wrap {
+      max-width: $container-max-width;
+      margin: 0 auto;
+      padding: 0.75rem $spacing-md;
+      
+      @media (min-width: $breakpoint-sm) {
+        padding: 0.75rem $spacing-lg;
+      }
+      
+      display: flex;
+      flex-direction: row;
+      flex-wrap: nowrap;
+      justify-content: space-between;
+      align-items: center;
+    }
+  }
+  
+  /*
+     Site Title / Logo
+     ========================================================================== */
+  
+  .site-title {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    align-items: center;
+    color: white;
+    text-decoration: none;
+    margin: 0;
+    
+    &:hover {
+      color: white;
+      text-decoration: none;
+    }
+    
+    .logo-container {
+      margin-right: $spacing-sm;
+    }
+    
+    .site-logo {
+      width: 40px;
+      height: auto;
+      display: block;
+    }
+    
+    .site-name {
+      font-family: $font-heading;
+      font-weight: $font-weight-bold;
+      font-size: $font-size-large;
+      line-height: 1.2;
+      
+      @media (max-width: $breakpoint-md) {
+        font-size: $font-size-medium;
+      }
+    }
+    
+    .site-tagline {
+      display: none;
+      font-size: $font-size-small;
+      opacity: 0.7;
+      margin-top: 0.25rem;
+      
+      @media (min-width: $breakpoint-md) {
+        display: block;
+      }
+    }
+  }
+  
+  /*
+     Main Navigation
+     ========================================================================== */
+  
+  .greedy-nav {
+    background-color: transparent;
+    
+    .visible-links {
+      display: flex;
+      flex-direction: row;
+      flex-wrap: nowrap;
+      justify-content: flex-end;
+      align-items: center;
+      
+      li {
+        margin: 0;
+      }
+      
+      a {
+        position: relative;
+        color: white;
+        padding: 0.75rem $spacing-sm;
+        font-family: $font-heading;
+        font-weight: $font-weight-medium;
+        text-decoration: none;
+        
+        &:before {
+          content: "";
+          position: absolute;
+          left: $spacing-sm;
+          right: $spacing-sm;
+          bottom: 0.5rem;
+          height: 3px;
+          background: $color-accent;
+          transform: scaleX(0);
+          transition: transform 0.3s ease;
+        }
+        
+        &:hover, &:focus, &.active {
+          color: white;
+          text-decoration: none;
+          
+          &:before {
+            transform: scaleX(1);
+          }
+        }
+      }
+    }
+    
+    /* Dropdown toggle button */
+    .greedy-nav__toggle {
+      background-color: $color-primary !important;
+      color: white !important;
+      padding: 0.5rem;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: $border-radius;
+      
+      &:hover, &:focus {
+        background-color: $color-primary-dark !important;
+      }
+    }
+    
+    /* Dropdown menu */
+    .hidden-links {
+      background: $color-primary-dark;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: $border-radius;
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.175);
+      
+      a {
+        color: white;
+        
+        &:hover, &:focus {
+          color: $color-accent;
+        }
+      }
+    }
+  }

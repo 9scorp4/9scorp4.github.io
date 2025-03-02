@@ -1,0 +1,167 @@
+/* ==========================================================================
+   MIXINS
+   ========================================================================== */
+
+/*
+   Media Query Mixins
+   ========================================================================== */
+
+// Breakpoint viewport sizes and media queries.
+@mixin breakpoint($point) {
+    @if $point == xs {
+      @media (max-width: $breakpoint-sm - 1) { @content; }
+    }
+    @else if $point == sm {
+      @media (min-width: $breakpoint-sm) { @content; }
+    }
+    @else if $point == md {
+      @media (min-width: $breakpoint-md) { @content; }
+    }
+    @else if $point == lg {
+      @media (min-width: $breakpoint-lg) { @content; }
+    }
+    @else if $point == xl {
+      @media (min-width: $breakpoint-xl) { @content; }
+    }
+    @else if $point == mobile-only {
+      @media (max-width: $breakpoint-md - 1) { @content; }
+    }
+    @else if $point == tablet-only {
+      @media (min-width: $breakpoint-md) and (max-width: $breakpoint-lg - 1) { @content; }
+    }
+    @else if $point == desktop-only {
+      @media (min-width: $breakpoint-lg) { @content; }
+    }
+  }
+  
+  /*
+     Flexbox Mixins
+     ========================================================================== */
+  
+  @mixin flex-container($direction: row, $wrap: nowrap, $justify: flex-start, $align: stretch) {
+    display: flex;
+    flex-direction: $direction;
+    flex-wrap: $wrap;
+    justify-content: $justify;
+    align-items: $align;
+  }
+  
+  @mixin flex-center {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  /*
+     Grid Mixins
+     ========================================================================== */
+  
+  @mixin grid-container($columns: repeat(12, 1fr), $gap: $spacing-md) {
+    display: grid;
+    grid-template-columns: $columns;
+    gap: $gap;
+  }
+  
+  /*
+     Shadow Mixins
+     ========================================================================== */
+  
+  @mixin box-shadow($level: 1) {
+    @if $level == 1 {
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+    } @else if $level == 2 {
+      box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
+    } @else if $level == 3 {
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.19), 0 6px 6px rgba(0, 0, 0, 0.23);
+    } @else if $level == 4 {
+      box-shadow: 0 14px 28px rgba(0, 0, 0, 0.25), 0 10px 10px rgba(0, 0, 0, 0.22);
+    } @else if $level == 5 {
+      box-shadow: 0 19px 38px rgba(0, 0, 0, 0.30), 0 15px 12px rgba(0, 0, 0, 0.22);
+    }
+  }
+  
+  /*
+     Typography Mixins
+     ========================================================================== */
+  
+  @mixin heading-style($size, $weight: $font-weight-bold, $line-height: $line-height-tight) {
+    font-family: $font-heading;
+    font-size: $size;
+    font-weight: $weight;
+    line-height: $line-height;
+  }
+  
+  @mixin body-style($size: $font-size-medium, $weight: $font-weight-normal, $line-height: $line-height-base) {
+    font-family: $font-body;
+    font-size: $size;
+    font-weight: $weight;
+    line-height: $line-height;
+  }
+  
+  @mixin code-style($size: $font-size-small) {
+    font-family: $font-mono;
+    font-size: $size;
+    line-height: $line-height-base;
+  }
+  
+  /*
+     Animation Mixins
+     ========================================================================== */
+  
+  @mixin transition($property: all, $duration: 0.3s, $timing: ease, $delay: 0s) {
+    transition: $property $duration $timing $delay;
+  }
+  
+  @mixin fade-in($duration: 0.6s, $delay: 0s) {
+    opacity: 0;
+    animation: fadeIn $duration ease-out $delay forwards;
+  }
+  
+  @mixin fade-in-up($duration: 0.6s, $delay: 0s, $distance: 20px) {
+    opacity: 0;
+    transform: translateY($distance);
+    animation: fadeInUp $duration ease-out $delay forwards;
+  }
+  
+  /*
+     Button Mixins
+     ========================================================================== */
+  
+  @mixin button-base {
+    display: inline-block;
+    padding: $spacing-xs $spacing-sm;
+    border-radius: $border-radius;
+    font-family: $font-heading;
+    font-weight: $font-weight-semibold;
+    text-align: center;
+    text-decoration: none;
+    cursor: pointer;
+    transition: $global-transition;
+  }
+  
+  @mixin button-style($bg-color, $text-color: white) {
+    background-color: $bg-color;
+    color: $text-color;
+    
+    &:hover, &:focus {
+      background-color: darken($bg-color, 10%);
+      color: $text-color;
+      text-decoration: none;
+    }
+  }
+  
+  /*
+     Card Mixins
+     ========================================================================== */
+  
+  @mixin card-base {
+    background-color: white;
+    border-radius: $border-radius;
+    @include box-shadow(1);
+    transition: $global-transition;
+    
+    &:hover {
+      @include box-shadow(2);
+      transform: translateY(-5px);
+    }
+  }

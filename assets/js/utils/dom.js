@@ -1,254 +1,324 @@
 /**
- * DOM Utility Functions
- * 
- * Provides helper functions for common DOM operations
- * Centralizes DOM manipulation patterns for consistency
+ * DOM Utilities
+ * A collection of helper functions for DOM manipulation
  */
 
-/**
- * Select a single element with error handling
- * @param {string} selector - CSS selector
- * @param {Element} [parent=document] - Parent element to query within
- * @returns {Element|null} - The selected element or null
- */
-export function select(selector, parent = document) {
-    try {
-      return parent.querySelector(selector);
-    } catch (error) {
-      console.error(`Error selecting "${selector}":`, error);
-      return null;
-    }
-  }
-  
-  /**
-   * Select multiple elements with error handling
-   * @param {string} selector - CSS selector
-   * @param {Element} [parent=document] - Parent element to query within
-   * @returns {Element[]} - Array of selected elements
-   */
-  export function selectAll(selector, parent = document) {
-    try {
-      return Array.from(parent.querySelectorAll(selector));
-    } catch (error) {
-      console.error(`Error selecting all "${selector}":`, error);
-      return [];
-    }
-  }
-  
-  /**
-   * Create an element with optional attributes and content
-   * @param {string} tag - HTML tag name
-   * @param {Object} [attributes={}] - Element attributes
-   * @param {string} [content=''] - Inner HTML content
-   * @returns {Element} - The created element
-   */
-  export function createElement(tag, attributes = {}, content = '') {
-    const element = document.createElement(tag);
+const DOMUtils = {
+    /**
+     * Get element by selector
+     * @param {string} selector - CSS selector
+     * @return {Element|null} - DOM element or null
+     */
+    get(selector) {
+      return document.querySelector(selector);
+    },
     
-    // Set attributes
-    Object.entries(attributes).forEach(([key, value]) => {
-      if (key === 'class' || key === 'className') {
-        // Handle classes specially
-        element.className = value;
-      } else if (key === 'style' && typeof value === 'object') {
-        // Handle style objects
-        Object.assign(element.style, value);
-      } else if (key.startsWith('data-')) {
-        // Handle data attributes
-        element.setAttribute(key, value);
-      } else {
-        // Standard attributes
-        element[key] = value;
-      }
-    });
+    /**
+     * Get all elements matching selector
+     * @param {string} selector - CSS selector
+     * @return {NodeList} - List of matching elements
+     */
+    getAll(selector) {
+      return document.querySelectorAll(selector);
+    },
     
-    // Set content if provided
-    if (content) {
-      element.innerHTML = content;
-    }
-    
-    return element;
-  }
-  
-  /**
-   * Add a delegated event listener
-   * @param {Element} element - Element to attach the listener to
-   * @param {string} eventType - Type of event
-   * @param {string} selector - CSS selector for delegated elements
-   * @param {Function} handler - Event handler function
-   * @param {Object} [options={}] - Event listener options
-   * @returns {Function} - Function to remove the event listener
-   */
-  export function delegateEvent(element, eventType, selector, handler, options = {}) {
-    const listener = (event) => {
-      let targetElement = event.target;
+    /**
+     * Create element with attributes and content
+     * @param {string} tag - Element tag name
+     * @param {object} attrs - Element attributes
+     * @param {string|Element|Element[]} content - Inner content
+     * @return {Element} - Created element
+     */
+    create(tag, attrs = {}, content = null) {
+      const el = document.createElement(tag);
       
-      while (targetElement && targetElement !== element) {
-        if (targetElement.matches(selector)) {
-          // Call handler with targetElement as 'this'
-          handler.call(targetElement, event, targetElement);
-          if (options.once) break;
-        }
-        targetElement = targetElement.parentNode;
-      }
-    };
-    
-    element.addEventListener(eventType, listener, options);
-    
-    // Return function to remove event listener
-    return () => {
-      element.removeEventListener(eventType, listener, options);
-    };
-  }
-  
-  /**
-   * Toggle a class on an element
-   * @param {Element} element - Element to toggle class on
-   * @param {string} className - Class to toggle
-   * @param {boolean} [force] - Force add or remove
-   * @returns {boolean} - Whether class is present after toggling
-   */
-  export function toggleClass(element, className, force) {
-    if (element?.classList) {
-      return element.classList.toggle(className, force);
-    }
-    return false;
-  }
-  
-  /**
-   * Execute a callback when elements enter viewport using Intersection Observer
-   * @param {Element[]|NodeList|string} elements - Elements or selector
-   * @param {Function} callback - Function to call when element is visible
-   * @param {Object} [options={}] - IntersectionObserver options
-   * @returns {IntersectionObserver} - The observer instance
-   */
-  export function onElementsInView(elements, callback, options = {}) {
-    // Convert string selector to elements
-    if (typeof elements === 'string') {
-      elements = document.querySelectorAll(elements);
-    }
-    
-    // Default options
-    const defaultOptions = {
-      root: null,
-      rootMargin: '0px',
-      threshold: 0.1,
-      once: true
-    };
-    
-    const config = { ...defaultOptions, ...options };
-    const { once, ...observerOptions } = config;
-    
-    // Convert NodeList to array
-    const elementsArray = Array.from(elements);
-    
-    // Track observed elements if using once option
-    const observedElements = new WeakSet();
-    
-    // Create observer
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          // Call callback with the element
-          callback(entry.target, entry);
-          
-          // Unobserve if once option is true
-          if (once) {
-            observer.unobserve(entry.target);
-            observedElements.add(entry.target);
-          }
+      // Set attributes
+      Object.keys(attrs).forEach(key => {
+        if (key === 'className') {
+          el.className = attrs[key];
+        } else if (key === 'dataset') {
+          Object.keys(attrs.dataset).forEach(dataKey => {
+            el.dataset[dataKey] = attrs.dataset[dataKey];
+          });
+        } else {
+          el.setAttribute(key, attrs[key]);
         }
       });
-    }, observerOptions);
-    
-    // Start observing elements
-    elementsArray.forEach(element => {
-      if (!observedElements.has(element)) {
-        observer.observe(element);
+      
+      // Set content
+      if (content !== null) {
+        if (typeof content === 'string') {
+          el.innerHTML = content;
+        } else if (content instanceof Element) {
+          el.appendChild(content);
+        } else if (Array.isArray(content)) {
+          content.forEach(item => {
+            if (item instanceof Element) {
+              el.appendChild(item);
+            }
+          });
+        }
       }
-    });
+      
+      return el;
+    },
     
-    return observer;
-  }
-  
-  /**
-   * Set multiple CSS variables on an element
-   * @param {Element} element - Target element
-   * @param {Object} variables - Object with variable names and values
-   * @returns {void}
-   */
-  export function setCSSVariables(element, variables) {
-    Object.entries(variables).forEach(([name, value]) => {
-      // Ensure variable name has -- prefix
-      const varName = name.startsWith('--') ? name : `--${name}`;
-      element.style.setProperty(varName, value);
-    });
-  }
-  
-  /**
-   * Get viewport dimensions
-   * @returns {Object} - Object with width and height properties
-   */
-  export function getViewportSize() {
-    return {
-      width: Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0),
-      height: Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0)
-    };
-  }
-  
-  /**
-   * Check if an element is visible in the DOM
-   * @param {Element} element - Element to check
-   * @returns {boolean} - Whether element is visible
-   */
-  export function isVisible(element) {
-    if (!element) return false;
+    /**
+     * Add event listener with delegation support
+     * @param {Element|string} el - Element or selector
+     * @param {string} event - Event name
+     * @param {string|Function} selectorOrCallback - Selector for delegation or callback
+     * @param {Function} [callback] - Callback function (for delegation)
+     */
+    on(el, event, selectorOrCallback, callback) {
+      const element = typeof el === 'string' ? this.get(el) : el;
+      
+      if (!element) return;
+      
+      if (typeof selectorOrCallback === 'function') {
+        // Simple event listener
+        element.addEventListener(event, selectorOrCallback);
+      } else {
+        // Delegated event listener
+        element.addEventListener(event, e => {
+          const target = e.target.closest(selectorOrCallback);
+          if (target && element.contains(target)) {
+            callback.call(target, e);
+          }
+        });
+      }
+    },
     
-    const style = window.getComputedStyle(element);
-    return style.display !== 'none' && 
-           style.visibility !== 'hidden' && 
-           style.opacity !== '0';
-  }
+    /**
+     * Remove event listener
+     * @param {Element|string} el - Element or selector
+     * @param {string} event - Event name
+     * @param {Function} callback - Callback function
+     */
+    off(el, event, callback) {
+      const element = typeof el === 'string' ? this.get(el) : el;
+      
+      if (!element) return;
+      
+      element.removeEventListener(event, callback);
+    },
+    
+    /**
+     * Add class to element
+     * @param {Element|string} el - Element or selector
+     * @param {string} className - Class to add
+     */
+    addClass(el, className) {
+      const element = typeof el === 'string' ? this.get(el) : el;
+      
+      if (!element) return;
+      
+      if (className.includes(' ')) {
+        const classNames = className.split(' ').filter(Boolean);
+        classNames.forEach(name => element.classList.add(name));
+      } else {
+        element.classList.add(className);
+      }
+    },
+    
+    /**
+     * Remove class from element
+     * @param {Element|string} el - Element or selector
+     * @param {string} className - Class to remove
+     */
+    removeClass(el, className) {
+      const element = typeof el === 'string' ? this.get(el) : el;
+      
+      if (!element) return;
+      
+      if (className.includes(' ')) {
+        const classNames = className.split(' ').filter(Boolean);
+        classNames.forEach(name => element.classList.remove(name));
+      } else {
+        element.classList.remove(className);
+      }
+    },
+    
+    /**
+     * Toggle class on element
+     * @param {Element|string} el - Element or selector
+     * @param {string} className - Class to toggle
+     * @param {boolean} [force] - Force add or remove
+     */
+    toggleClass(el, className, force) {
+      const element = typeof el === 'string' ? this.get(el) : el;
+      
+      if (!element) return;
+      
+      if (typeof force !== 'undefined') {
+        element.classList.toggle(className, force);
+      } else {
+        element.classList.toggle(className);
+      }
+    },
+    
+    /**
+     * Check if element has class
+     * @param {Element|string} el - Element or selector
+     * @param {string} className - Class to check
+     * @return {boolean} - Whether element has class
+     */
+    hasClass(el, className) {
+      const element = typeof el === 'string' ? this.get(el) : el;
+      
+      if (!element) return false;
+      
+      return element.classList.contains(className);
+    },
+    
+    /**
+     * Get or set element attribute
+     * @param {Element|string} el - Element or selector
+     * @param {string} attr - Attribute name
+     * @param {string} [value] - Attribute value to set
+     * @return {string|null} - Attribute value (when getting)
+     */
+    attr(el, attr, value) {
+      const element = typeof el === 'string' ? this.get(el) : el;
+      
+      if (!element) return null;
+      
+      if (typeof value !== 'undefined') {
+        element.setAttribute(attr, value);
+      } else {
+        return element.getAttribute(attr);
+      }
+    },
+    
+    /**
+     * Remove element attribute
+     * @param {Element|string} el - Element or selector
+     * @param {string} attr - Attribute name
+     */
+    removeAttr(el, attr) {
+      const element = typeof el === 'string' ? this.get(el) : el;
+      
+      if (!element) return;
+      
+      element.removeAttribute(attr);
+    },
+    
+    /**
+     * Get or set element style
+     * @param {Element|string} el - Element or selector
+     * @param {string|object} prop - Style property or object of properties
+     * @param {string} [value] - Style value
+     * @return {string} - Style value (when getting)
+     */
+    css(el, prop, value) {
+      const element = typeof el === 'string' ? this.get(el) : el;
+      
+      if (!element) return null;
+      
+      if (typeof prop === 'object') {
+        Object.keys(prop).forEach(key => {
+          element.style[key] = prop[key];
+        });
+      } else if (typeof value !== 'undefined') {
+        element.style[prop] = value;
+      } else {
+        return getComputedStyle(element)[prop];
+      }
+    },
+    
+    /**
+     * Add intersection observer to elements
+     * @param {string} selector - Elements selector
+     * @param {Function} callback - Callback when element intersects
+     * @param {Object} options - IntersectionObserver options
+     */
+    observe(selector, callback, options = { threshold: 0.1 }) {
+      const elements = this.getAll(selector);
+      
+      if (!elements.length || !('IntersectionObserver' in window)) return;
+      
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          callback(entry.target, entry.isIntersecting, entry);
+        });
+      }, options);
+      
+      elements.forEach(element => {
+        observer.observe(element);
+      });
+      
+      return observer;
+    },
+    
+    /**
+     * Serialize form data to object
+     * @param {Element|string} form - Form element or selector
+     * @return {Object} - Form data as object
+     */
+    serializeForm(form) {
+      const formElement = typeof form === 'string' ? this.get(form) : form;
+      
+      if (!formElement || formElement.nodeName !== 'FORM') return null;
+      
+      const formData = new FormData(formElement);
+      const result = {};
+      
+      for (let [key, value] of formData.entries()) {
+        result[key] = value;
+      }
+      
+      return result;
+    },
+    
+    /**
+     * Get element dimensions
+     * @param {Element|string} el - Element or selector
+     * @return {Object} - Element dimensions {width, height, top, left, right, bottom}
+     */
+    dimensions(el) {
+      const element = typeof el === 'string' ? this.get(el) : el;
+      
+      if (!element) return null;
+      
+      const rect = element.getBoundingClientRect();
+      
+      return {
+        width: rect.width,
+        height: rect.height,
+        top: rect.top + window.scrollY,
+        left: rect.left + window.scrollX,
+        right: rect.right + window.scrollX,
+        bottom: rect.bottom + window.scrollY
+      };
+    },
+    
+    /**
+     * Check if element is visible in viewport
+     * @param {Element|string} el - Element or selector
+     * @param {number} [threshold=0] - Visibility threshold (0-1)
+     * @return {boolean} - Whether element is visible
+     */
+    isInViewport(el, threshold = 0) {
+      const element = typeof el === 'string' ? this.get(el) : el;
+      
+      if (!element) return false;
+      
+      const rect = element.getBoundingClientRect();
+      const windowHeight = window.innerHeight || document.documentElement.clientHeight;
+      const windowWidth = window.innerWidth || document.documentElement.clientWidth;
+      
+      const verticalVisible = (
+        rect.top <= windowHeight - (windowHeight * threshold) &&
+        rect.bottom >= windowHeight * threshold
+      );
+      
+      const horizontalVisible = (
+        rect.left <= windowWidth - (windowWidth * threshold) &&
+        rect.right >= windowWidth * threshold
+      );
+      
+      return verticalVisible && horizontalVisible;
+    }
+  };
   
-  /**
-   * Get the offset position of an element
-   * @param {Element} element - Element to get position of
-   * @returns {Object} - Object with top and left properties
-   */
-  export function getOffset(element) {
-    const rect = element.getBoundingClientRect();
-    return {
-      top: rect.top + window.scrollY,
-      left: rect.left + window.scrollX
-    };
-  }
-  
-  /**
-   * Insert an element after a reference element
-   * @param {Element} newElement - Element to insert
-   * @param {Element} referenceElement - Element to insert after
-   * @returns {Element} - The inserted element
-   */
-  export function insertAfter(newElement, referenceElement) {
-    referenceElement.parentNode.insertBefore(newElement, referenceElement.nextSibling);
-    return newElement;
-  }
-  
-  /**
-   * Check if the device is touch-capable
-   * @returns {boolean} - Whether device has touch capability
-   */
-  export function isTouchDevice() {
-    return ('ontouchstart' in window) || 
-           (navigator.maxTouchPoints > 0) || 
-           (navigator.msMaxTouchPoints > 0);
-  }
-  
-  /**
-   * Check current media query match
-   * @param {string} query - Media query string
-   * @returns {boolean} - Whether the media query matches
-   */
-  export function matchesMedia(query) {
-    return window.matchMedia(query).matches;
-  }
+  export default DOMUtils;

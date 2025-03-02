@@ -1,0 +1,288 @@
+// ==========================================================================
+// UTILITIES
+// ==========================================================================
+
+// Text Utilities
+// --------------------------------------------------------------------------
+.text-center { text-align: center; }
+.text-left { text-align: left; }
+.text-right { text-align: right; }
+
+.text-primary { color: $color-primary; }
+.text-secondary { color: $color-secondary; }
+.text-accent { color: $color-accent; }
+.text-neutral { color: $color-neutral; }
+.text-white { color: white; }
+
+.text-xs { font-size: $font-size-sm * 0.875; }
+.text-sm { font-size: $font-size-sm; }
+.text-base { font-size: $font-size-base; }
+.text-lg { font-size: $font-size-lg; }
+.text-xl { font-size: $font-size-xl; }
+.text-2xl { font-size: $font-size-2xl; }
+.text-3xl { font-size: $font-size-3xl; }
+.text-4xl { font-size: $font-size-4xl; }
+
+.font-heading { font-family: $font-heading; }
+.font-body { font-family: $font-body; }
+.font-mono { font-family: $font-mono; }
+
+.font-normal { font-weight: 400; }
+.font-medium { font-weight: 500; }
+.font-semibold { font-weight: 600; }
+.font-bold { font-weight: 700; }
+
+.leading-tight { line-height: $line-height-tight; }
+.leading-normal { line-height: $line-height-base; }
+.leading-loose { line-height: $line-height-loose; }
+
+// Display & Visibility
+// --------------------------------------------------------------------------
+.hidden { display: none; }
+.block { display: block; }
+.inline-block { display: inline-block; }
+.inline { display: inline; }
+.flex { display: flex; }
+.inline-flex { display: inline-flex; }
+.grid { display: grid; }
+
+.visible { visibility: visible; }
+.invisible { visibility: hidden; }
+
+@media (max-width: $breakpoint-sm) {
+  .hidden-sm { display: none; }
+}
+
+@media (max-width: $breakpoint-md) {
+  .hidden-md { display: none; }
+}
+
+@media (min-width: $breakpoint-md) {
+  .hidden-md-up { display: none; }
+}
+
+// Flexbox Utilities
+// --------------------------------------------------------------------------
+.flex-row { flex-direction: row; }
+.flex-col { flex-direction: column; }
+.flex-wrap { flex-wrap: wrap; }
+.flex-nowrap { flex-wrap: nowrap; }
+
+.justify-start { justify-content: flex-start; }
+.justify-end { justify-content: flex-end; }
+.justify-center { justify-content: center; }
+.justify-between { justify-content: space-between; }
+.justify-around { justify-content: space-around; }
+
+.items-start { align-items: flex-start; }
+.items-end { align-items: flex-end; }
+.items-center { align-items: center; }
+.items-stretch { align-items: stretch; }
+
+.self-start { align-self: flex-start; }
+.self-end { align-self: flex-end; }
+.self-center { align-self: center; }
+.self-stretch { align-self: stretch; }
+
+.flex-grow { flex-grow: 1; }
+.flex-shrink { flex-shrink: 1; }
+.flex-no-grow { flex-grow: 0; }
+.flex-no-shrink { flex-shrink: 0; }
+
+// Width & Height
+// --------------------------------------------------------------------------
+.w-full { width: 100%; }
+.w-auto { width: auto; }
+.w-half { width: 50%; }
+.w-third { width: 33.333333%; }
+.w-two-thirds { width: 66.666667%; }
+.w-quarter { width: 25%; }
+.w-three-quarters { width: 75%; }
+
+.h-full { height: 100%; }
+.h-auto { height: auto; }
+.h-screen { height: 100vh; }
+
+// Position
+// --------------------------------------------------------------------------
+.static { position: static; }
+.fixed { position: fixed; }
+.absolute { position: absolute; }
+.relative { position: relative; }
+.sticky { position: sticky; }
+
+.inset-0 {
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+}
+
+.top-0 { top: 0; }
+.right-0 { right: 0; }
+.bottom-0 { bottom: 0; }
+.left-0 { left: 0; }
+
+// Border Utilities
+// --------------------------------------------------------------------------
+.border { border: $border-width solid $border-color; }
+.border-t { border-top: $border-width solid $border-color; }
+.border-r { border-right: $border-width solid $border-color; }
+.border-b { border-bottom: $border-width solid $border-color; }
+.border-l { border-left: $border-width solid $border-color; }
+
+.border-0 { border-width: 0; }
+.border-2 { border-width: 2px; }
+.border-4 { border-width: 4px; }
+
+.border-primary { border-color: $color-primary; }
+.border-secondary { border-color: $color-secondary; }
+.border-accent { border-color: $color-accent; }
+
+.rounded-none { border-radius: 0; }
+.rounded { border-radius: $border-radius; }
+.rounded-lg { border-radius: $border-radius-lg; }
+.rounded-full { border-radius: 9999px; }
+
+// Background Utilities
+// --------------------------------------------------------------------------
+.bg-transparent { background-color: transparent; }
+.bg-white { background-color: white; }
+.bg-black { background-color: black; }
+.bg-primary { background-color: $color-primary; }
+.bg-secondary { background-color: $color-secondary; }
+.bg-accent { background-color: $color-accent; }
+.bg-background { background-color: $color-background; }
+.bg-background-dark { background-color: $color-background-dark; }
+
+// Shadow Utilities
+// --------------------------------------------------------------------------
+.shadow-none { box-shadow: none; }
+.shadow-sm { box-shadow: $box-shadow-sm; }
+.shadow { box-shadow: $box-shadow; }
+.shadow-lg { box-shadow: $box-shadow-lg; }
+
+// Interaction Utilities
+// --------------------------------------------------------------------------
+.pointer-events-none { pointer-events: none; }
+.pointer-events-auto { pointer-events: auto; }
+
+.cursor-auto { cursor: auto; }
+.cursor-default { cursor: default; }
+.cursor-pointer { cursor: pointer; }
+.cursor-not-allowed { cursor: not-allowed; }
+
+// Z-index Utilities
+// --------------------------------------------------------------------------
+.z-0 { z-index: 0; }
+.z-10 { z-index: 10; }
+.z-20 { z-index: 20; }
+.z-30 { z-index: 30; }
+.z-40 { z-index: 40; }
+.z-50 { z-index: 50; }
+.z-auto { z-index: auto; }
+
+// Overflow
+// --------------------------------------------------------------------------
+.overflow-auto { overflow: auto; }
+.overflow-hidden { overflow: hidden; }
+.overflow-visible { overflow: visible; }
+.overflow-scroll { overflow: scroll; }
+.overflow-x-auto { overflow-x: auto; }
+.overflow-y-auto { overflow-y: auto; }
+.overflow-x-hidden { overflow-x: hidden; }
+.overflow-y-hidden { overflow-y: hidden; }
+
+// Opacity
+// --------------------------------------------------------------------------
+.opacity-0 { opacity: 0; }
+.opacity-25 { opacity: 0.25; }
+.opacity-50 { opacity: 0.5; }
+.opacity-75 { opacity: 0.75; }
+.opacity-100 { opacity: 1; }
+
+// Special Utilities
+// --------------------------------------------------------------------------
+.clearfix {
+  &::after {
+    content: "";
+    display: table;
+    clear: both;
+  }
+}
+
+.screen-reader-text {
+  border: 0;
+  clip: rect(1px, 1px, 1px, 1px);
+  clip-path: inset(50%);
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  padding: 0;
+  position: absolute;
+  width: 1px;
+  word-wrap: normal;
+}
+
+// Button Utilities
+// --------------------------------------------------------------------------
+.btn {
+  display: inline-block;
+  padding: $spacing-2 $spacing-4;
+  font-family: $font-heading;
+  font-size: $font-size-sm;
+  font-weight: 600;
+  text-align: center;
+  text-decoration: none;
+  border-radius: $border-radius;
+  cursor: pointer;
+  transition: background-color $transition-fast, color $transition-fast;
+  
+  &--primary {
+    background-color: $color-primary;
+    color: white;
+    
+    &:hover {
+      background-color: $color-primary-dark;
+    }
+  }
+  
+  &--secondary {
+    background-color: $color-secondary;
+    color: white;
+    
+    &:hover {
+      background-color: $color-secondary-dark;
+    }
+  }
+  
+  &--accent {
+    background-color: $color-accent;
+    color: white;
+    
+    &:hover {
+      background-color: $color-accent-dark;
+    }
+  }
+  
+  &--outline {
+    background-color: transparent;
+    border: 1px solid $color-primary;
+    color: $color-primary;
+    
+    &:hover {
+      background-color: $color-primary;
+      color: white;
+    }
+  }
+  
+  &--sm {
+    padding: $spacing-1 $spacing-3;
+    font-size: $font-size-sm * 0.875;
+  }
+  
+  &--lg {
+    padding: $spacing-3 $spacing-5;
+    font-size: $font-size-base;
+  }
+}

@@ -41,3 +41,6 @@ _posts/unpublished
 # Directory structure generator
 generate-directory structure.py
 current_directory_structure.txt
+
+# Node modules
+node_modules/
