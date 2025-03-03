@@ -1,0 +1,201 @@
+/* ==========================================================================
+   LAYOUT
+   ========================================================================== */
+
+/*
+   Container
+   ========================================================================== */
+
+   .container {
+    width: 100%;
+    max-width: $container-max-width;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: $spacing-md;
+    padding-right: $spacing-md;
+    
+    @include breakpoint(sm) {
+      padding-left: $spacing-lg;
+      padding-right: $spacing-lg;
+    }
+  }
+  
+  .container-fluid {
+    width: 100%;
+    padding-left: $spacing-md;
+    padding-right: $spacing-md;
+    
+    @include breakpoint(sm) {
+      padding-left: $spacing-lg;
+      padding-right: $spacing-lg;
+    }
+  }
+  
+  /*
+     Grid System
+     ========================================================================== */
+  
+  .row {
+    @include flex-container(row, wrap, flex-start, stretch);
+    margin-left: -$spacing-sm;
+    margin-right: -$spacing-sm;
+  }
+  
+  .col {
+    flex: 1 0 0%;
+    padding-left: $spacing-sm;
+    padding-right: $spacing-sm;
+  }
+  
+  @for $i from 1 through 12 {
+    .col-#{$i} {
+      flex: 0 0 auto;
+      width: percentage($i / 12);
+      padding-left: $spacing-sm;
+      padding-right: $spacing-sm;
+    }
+  }
+  
+  @each $breakpoint, $width in (
+    sm: $breakpoint-sm,
+    md: $breakpoint-md,
+    lg: $breakpoint-lg,
+    xl: $breakpoint-xl
+  ) {
+    @media (min-width: $width) {
+      @for $i from 1 through 12 {
+        .col-#{$breakpoint}-#{$i} {
+          flex: 0 0 auto;
+          width: percentage($i / 12);
+        }
+      }
+    }
+  }
+  
+  /*
+     Page Layout
+     ========================================================================== */
+  
+  .page {
+    @include flex-container(row, nowrap, flex-start, stretch);
+    min-height: 100vh;
+  }
+  
+  .page__content {
+    flex: 1;
+    min-width: 0; // Fix for flexbox content overflow
+    padding: $spacing-lg 0;
+    
+    @include breakpoint(sm) {
+      padding: $spacing-xl 0;
+    }
+  }
+  
+  /* Content wrapper with sidebar */
+  .content-with-sidebar {
+    @include flex-container(column, nowrap, flex-start, stretch);
+    
+    @include breakpoint(lg) {
+      flex-direction: row;
+    }
+  }
+  
+  .content-main {
+    flex: 1;
+    min-width: 0; // Fix for flexbox content overflow
+    
+    @include breakpoint(lg) {
+      width: calc(100% - #{$sidebar-width});
+      padding-right: $spacing-lg;
+    }
+  }
+  
+  /*
+     Section Layout
+     ========================================================================== */
+  
+  .section {
+    padding: $spacing-xl 0;
+  }
+  
+  .section--small {
+    padding: $spacing-lg 0;
+  }
+  
+  .section--large {
+    padding: $spacing-xxl 0;
+  }
+  
+  .section--gray {
+    background-color: lighten($color-background, 2%);
+  }
+  
+  .section--dark {
+    background-color: $color-background-dark;
+    color: white;
+    
+    h1, h2, h3, h4, h5, h6 {
+      color: white;
+    }
+  }
+  
+  /*
+     Cards Layout
+     ========================================================================== */
+  
+  .card-grid {
+    @include grid-container(repeat(auto-fill, minmax(300px, 1fr)), $spacing-lg);
+  }
+  
+  .card-grid--small {
+    @include grid-container(repeat(auto-fill, minmax(250px, 1fr)), $spacing-md);
+  }
+  
+  .card-grid--large {
+    @include grid-container(repeat(auto-fill, minmax(350px, 1fr)), $spacing-lg);
+  }
+  
+  /*
+     Responsive Adjustments
+     ========================================================================== */
+  
+  .d-none {
+    display: none !important;
+  }
+  
+  .d-block {
+    display: block !important;
+  }
+  
+  .d-flex {
+    display: flex !important;
+  }
+  
+  .d-grid {
+    display: grid !important;
+  }
+  
+  @each $breakpoint, $width in (
+    sm: $breakpoint-sm,
+    md: $breakpoint-md,
+    lg: $breakpoint-lg,
+    xl: $breakpoint-xl
+  ) {
+    @media (min-width: $width) {
+      .d-#{$breakpoint}-none {
+        display: none !important;
+      }
+      
+      .d-#{$breakpoint}-block {
+        display: block !important;
+      }
+      
+      .d-#{$breakpoint}-flex {
+        display: flex !important;
+      }
+      
+      .d-#{$breakpoint}-grid {
+        display: grid !important;
+      }
+    }
+  }

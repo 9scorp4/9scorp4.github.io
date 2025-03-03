@@ -1,0 +1,136 @@
+﻿// ==========================================================================
+// VARIABLES
+// ==========================================================================
+
+// Colors
+// --------------------------------------------------------------------------
+$color-primary: #2C3E50;        // Deep Navy
+$color-secondary: #3498DB;      // Digital Blue
+$color-accent: #E67E22;         // Terra Cotta
+$color-background: #F5F7FA;     // Background Light
+$color-background-dark: #1A202C; // Background Dark
+$color-text: #2D3748;           // Text Primary
+$color-neutral: #718096;        // Neutral
+
+// Color variations (calculated with SASS functions)
+$color-primary-dark: darken($color-primary, 10%);
+$color-primary-light: lighten($color-primary, 10%);
+$color-secondary-dark: darken($color-secondary, 10%);
+$color-secondary-light: lighten($color-secondary, 10%);
+$color-accent-dark: darken($color-accent, 10%);
+$color-accent-light: lighten($color-accent, 10%);
+
+// Typography
+// --------------------------------------------------------------------------
+$font-heading: "Montserrat", -apple-system, BlinkMacSystemFont, "Roboto", "Segoe UI", "Helvetica Neue", "Lucida Grande", Arial, sans-serif;
+$font-body: "Source Sans Pro", -apple-system, BlinkMacSystemFont, "Roboto", "Segoe UI", "Helvetica Neue", "Lucida Grande", Arial, sans-serif;
+$font-mono: "Fira Mono", Monaco, Consolas, "Lucida Console", monospace;
+
+// Font sizes
+$font-size-base: 1rem;          // 16px
+$font-size-sm: 0.875rem;        // 14px
+$font-size-lg: 1.125rem;        // 18px
+$font-size-xl: 1.25rem;         // 20px
+$font-size-2xl: 1.5rem;         // 24px
+$font-size-3xl: 1.875rem;       // 30px
+$font-size-4xl: 2.25rem;        // 36px
+
+// Line heights
+$line-height-tight: 1.25;
+$line-height-base: 1.65;
+$line-height-loose: 1.8;
+
+// Breakpoints
+// --------------------------------------------------------------------------
+$breakpoint-xs: 0;
+$breakpoint-sm: 576px;
+$breakpoint-md: 768px;
+$breakpoint-lg: 992px;
+$breakpoint-xl: 1200px;
+
+// Layout
+// --------------------------------------------------------------------------
+$container-max-width: 1200px;
+$sidebar-width: 300px;
+$content-width: calc(100% - #{$sidebar-width});
+$gutter: 2rem;
+
+// Spacing
+// --------------------------------------------------------------------------
+$spacing-1: 0.25rem;   // 4px
+$spacing-2: 0.5rem;    // 8px
+$spacing-3: 0.75rem;   // 12px
+$spacing-4: 1rem;      // 16px
+$spacing-5: 1.5rem;    // 24px
+$spacing-6: 2rem;      // 32px
+
+// Semantic spacing aliases
+$spacing-xs: $spacing-1;   // 4px
+$spacing-sm: $spacing-2;   // 8px
+$spacing-md: $spacing-4;   // 16px
+$spacing-lg: $spacing-6;   // 32px
+$spacing-xl: $spacing-8;   // 48px
+$spacing-8: 3rem;      // 48px
+$spacing-10: 4rem;     // 64px
+$spacing-12: 5rem;     // 80px
+
+// Borders and Shadows
+// --------------------------------------------------------------------------
+$border-radius-sm: 0.125rem;   // 2px
+$border-radius: 0.25rem;       // 4px
+$border-radius-lg: 0.5rem;     // 8px
+$border-width: 1px;
+$border-width-lg: 2px;
+$border-color: rgba($color-neutral, 0.3);
+
+$box-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+$box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+$box-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+
+// Transitions
+// --------------------------------------------------------------------------
+$transition-fast: 0.2s ease;
+$transition-base: 0.3s ease;
+$transition-slow: 0.5s ease;
+
+// Z-index values
+// --------------------------------------------------------------------------
+$z-index-dropdown: 1000;
+$z-index-sticky: 1020;
+$z-index-fixed: 1030;
+$z-index-modal-backdrop: 1040;
+$z-index-modal: 1050;
+$z-index-popover: 1060;
+$z-index-tooltip: 1070;
+
+// CSS variables (for runtime access)
+// --------------------------------------------------------------------------
+:root {
+  // Colors
+  --color-primary: #{$color-primary};
+  --color-secondary: #{$color-secondary};
+  --color-accent: #{$color-accent};
+  --color-background: #{$color-background};
+  --color-background-dark: #{$color-background-dark};
+  --color-text: #{$color-text};
+  --color-neutral: #{$color-neutral};
+  
+  // Color variations
+  --color-primary-dark: #{$color-primary-dark};
+  --color-primary-light: #{$color-primary-light};
+  --color-secondary-dark: #{$color-secondary-dark};
+  --color-secondary-light: #{$color-secondary-light};
+  --color-accent-dark: #{$color-accent-dark};
+  --color-accent-light: #{$color-accent-light};
+  
+  // Typography
+  --font-heading: #{$font-heading};
+  --font-body: #{$font-body};
+  --font-mono: #{$font-mono};
+  
+  // Layout
+  --sidebar-width: #{$sidebar-width};
+  --content-width: #{$content-width};
+  --container-max-width: #{$container-max-width};
+  --gutter: #{$gutter};
+}

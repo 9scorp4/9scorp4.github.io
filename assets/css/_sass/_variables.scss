@@ -1,0 +1,65 @@
+/* ==========================================================================
+   SPACING VARIABLES
+   ========================================================================== */
+
+/*
+   Basic spacing variables - defined first to avoid circular references
+*/
+
+/* Direct value definitions without references to other variables */
+$spacing-1: 0.25rem;    /* 4px */
+$spacing-2: 0.5rem;     /* 8px */
+$spacing-3: 0.75rem;    /* 12px */
+$spacing-4: 1rem;       /* 16px */
+$spacing-5: 1.25rem;    /* 20px */
+$spacing-6: 1.5rem;     /* 24px */
+$spacing-7: 1.75rem;    /* 28px */
+$spacing-8: 2rem;       /* 32px - Critical variable that was missing */
+$spacing-9: 2.25rem;    /* 36px */
+$spacing-10: 2.5rem;    /* 40px */
+$spacing-12: 3rem;      /* 48px */
+$spacing-16: 4rem;      /* 64px */
+$spacing-20: 5rem;      /* 80px */
+$spacing-24: 6rem;      /* 96px */
+$spacing-32: 8rem;      /* 128px */
+
+/* Border radius */
+$border-radius: 4px !default;
+$border-radius-md: 6px !default;
+$border-radius-lg: 8px !default;
+
+/* 
+   COLOR VARIABLES
+   ========================================================================== */
+
+/* Base colors */
+$primary-color: #2C3E50 !default; // Deep Navy
+$secondary-color: #3498DB !default; // Digital Blue
+$accent-color: #E67E22 !default; // Terra Cotta
+$background-color: #F5F7FA !default; // Background Light
+$background-color-dark: #1A202C !default; // Background Dark
+$text-color: #2D3748 !default; // Text Primary
+$muted-text-color: #718096 !default; // Neutral
+
+/* Other color definitions can go here */
+
+/* 
+   TYPOGRAPHY VARIABLES
+   ========================================================================== */
+
+/* Font stacks */
+$global-font-family: "Source Sans Pro", -apple-system, BlinkMacSystemFont, "Roboto", "Segoe UI", "Helvetica Neue", "Lucida Grande", Arial, sans-serif !default;
+$header-font-family: "Montserrat", -apple-system, BlinkMacSystemFont, "Roboto", "Segoe UI", "Helvetica Neue", "Lucida Grande", Arial, sans-serif !default;
+$monospace-font-family: "Fira Mono", Monaco, Consolas, "Lucida Console", monospace !default;
+
+/* Other typography definitions can go here */
+
+/* 
+   MINIMAL MISTAKES COMPATIBILITY
+   ========================================================================== */
+
+/* Variables expected by the theme */
+$link-color: $secondary-color !default;
+$masthead-link-color: #fff !default;
+$masthead-link-color-hover: $accent-color !default;
+$footer-background-color: $primary-color !default;

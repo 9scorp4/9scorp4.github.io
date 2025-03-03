@@ -1,56 +1,17 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 80">
-  <!-- Background Rectangle - Transparent -->
-  <rect width="240" height="80" fill="none"/>
-  
-  <!-- Define filters and gradients for improved visual appeal -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 120" preserveAspectRatio="xMidYMid meet">
+  <title>Nicolas Arias Garcia Network Logo</title>
   <defs>
-    <!-- Drop shadow for nodes -->
-    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
-      <feDropShadow dx="1" dy="1" stdDeviation="1" flood-opacity="0.3"/>
-    </filter>
-    
-    <!-- Gradient for the primary nodes -->
-    <linearGradient id="blueGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+    <linearGradient id="networkGradient" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#3498DB"/>
-      <stop offset="100%" stop-color="#2980B9"/>
-    </linearGradient>
-    
-    <!-- Gradient for the accent node -->
-    <linearGradient id="orangeGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#E67E22"/>
-      <stop offset="100%" stop-color="#D35400"/>
+      <stop offset="100%" stop-color="#2C3E50"/>
     </linearGradient>
   </defs>
   
-  <!-- Abstract Network Representation with enhanced visuals -->
-  <g>
-    <!-- Connection lines with improved styling and z-index -->
-    <g fill="none" stroke="#2C3E50" stroke-width="1.5" stroke-opacity="0.7">
-      <line x1="40" y1="40" x2="70" y2="25"/>
-      <line x1="40" y1="40" x2="90" y2="50"/>
-      <line x1="40" y1="40" x2="65" y2="60"/>
-      <line x1="70" y1="25" x2="90" y2="50"/>
-      <line x1="70" y1="25" x2="110" y2="30"/>
-      <line x1="90" y1="50" x2="65" y2="60"/>
-      <line x1="90" y1="50" x2="110" y2="30"/>
+  <g transform="translate(30,30) scale(0.8)">
+    <g stroke="url(#networkGradient)" stroke-width="4" fill="none">
+      <path d="M10 40 L30 20 L50 40 L30 60 Z"/>
+      <path d="M30 60 L50 40 L70 60 L50 80 Z"/>
+      <line x1="10" y1="40" x2="70" y2="60" stroke-dasharray="4,2"/>
     </g>
-    
-    <!-- Network Nodes with gradients and shadows -->
-    <g filter="url(#shadow)">
-      <circle cx="40" cy="40" r="8" fill="url(#blueGradient)" stroke="#2C3E50" stroke-width="1.5"/>
-      <circle cx="70" cy="25" r="6" fill="url(#blueGradient)" stroke="#2C3E50" stroke-width="1.5"/>
-      <circle cx="90" cy="50" r="7" fill="url(#blueGradient)" stroke="#2C3E50" stroke-width="1.5"/>
-      <circle cx="65" cy="60" r="5" fill="url(#blueGradient)" stroke="#2C3E50" stroke-width="1.5"/>
-      <circle cx="110" cy="30" r="6" fill="url(#orangeGradient)" stroke="#2C3E50" stroke-width="1.5"/>
-    </g>
-  </g>
-  
-  <!-- Text Elements with web-safe font alternatives -->
-  <g filter="url(#shadow)">
-    <text x="130" y="35" font-family="Montserrat, 'Helvetica Neue', Arial, sans-serif" font-size="18" font-weight="bold" fill="#2C3E50">Nicolas</text>
-    <text x="130" y="55" font-family="Montserrat, 'Helvetica Neue', Arial, sans-serif" font-size="18" font-weight="bold" fill="#2C3E50">Arias Garcia</text>
-    
-    <!-- Tagline with improved contrast -->
-    <text x="130" y="70" font-family="'Source Sans Pro', 'Helvetica Neue', Arial, sans-serif" font-size="10" fill="#555555">Anthropology | Systems | Research</text>
   </g>
 </svg>

@@ -1,0 +1,29 @@
+{
+    "name": "portfolio-site",
+    "version": "1.0.0",
+    "description": "Nicolas Arias Garcia's personal portfolio",
+    "private": true,
+    "scripts": {
+        "build:css": "sass assets/css/main.scss:assets/css/style.css --style compressed",
+        "watch:css": "sass assets/css/main.scss:assets/css/style.css --watch",
+        "build:js": "esbuild assets/js/main.js --bundle --minify --outfile=assets/js/dist/bundle.js --format=esm",
+        "watch:js": "esbuild assets/js/main.js --bundle --outfile=assets/js/dist/bundle.js --format=esm --watch",
+        "build": "npm run build:css && npm run build:js",
+        "dev": "concurrently \"npm run watch:css\" \"npm run watch:js\"",
+        "serve": "bundle exec jekyll serve",
+        "dev:all": "concurrently \"npm run watch:css\" \"npm run watch:js\" \"npm run serve\""
+    },
+    "engines": {
+        "node": ">=16.0.0"
+    },
+    "devDependencies": {
+        "concurrently": "^8.2.2",
+        "esbuild": "^0.25.0",
+        "sass": "^1.70.0"
+    },
+    "browserslist": [
+        ">0.2%",
+        "not dead",
+        "not op_mini all"
+    ]
+}
