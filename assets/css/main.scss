@@ -3,16 +3,21 @@
 ---
 
 /* 
-   IMPORTANT: Import variables first, before any other imports
-   This ensures all variable definitions are available before use
+   IMPORTANT: Import variables and dependencies in the correct order
+   to avoid undefined variable errors
 */
+
+// First import spacing variables
+@import "spacing";
+
+// Import other variables
 @import "variables";
 
-/* Then import the theme skin and core stylesheet */
+// Then import the theme skin and core stylesheet
 @import "minimal-mistakes/skins/{{ site.minimal_mistakes_skin | default: 'default' }}";
 @import "minimal-mistakes";
 
-/* Import custom animations */
+// Import custom animations
 @import "animations";
 
 /* ==========================================================================
@@ -78,7 +83,7 @@ $color-accent-light: lighten($color-accent, 10%);
   min-height: 25rem;
   max-height: 80vh;
   overflow: hidden;
-  margin-bottom: $spacing-8; /* Now using the variable safely */
+  margin-bottom: $spacing-8;
   
   &::before {
     content: "";
