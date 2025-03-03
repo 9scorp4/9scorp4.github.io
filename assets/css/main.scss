@@ -2,26 +2,437 @@
 # Only the main Sass file needs front matter (the dashes are enough)
 ---
 
-// Import theme skin from Minimal Mistakes
-@import "minimal-mistakes/skins/{{ site.minimal_mistakes_skin | default: 'default' }}";
+/* 
+   IMPORTANT: Import variables first, before any other imports
+   This ensures all variable definitions are available before use
+*/
+@import "variables";
 
-// Import Minimal Mistakes framework
+/* Then import the theme skin and core stylesheet */
+@import "minimal-mistakes/skins/{{ site.minimal_mistakes_skin | default: 'default' }}";
 @import "minimal-mistakes";
 
-// Import our modular system
-// Base variables and settings
-@import "variables";
-@import "base";
-@import "layout";
-
-// Component styles
-@import "components/navigation";
-@import "components/sidebar";
-@import "components/ecosystem";
-@import "components/hero";
-@import "components/footer";
-
-// Utility styles
-@import "utilities";
+/* Import custom animations */
 @import "animations";
-@import "responsive";
+
+/* ==========================================================================
+   CUSTOM STYLES
+   ========================================================================== */
+
+/* 
+   Color Variables Compatibility Layer
+   ========================================================================== */
+
+/* 
+   This block resolves the compatibility issue between SASS functions 
+   and CSS variables. We use SASS variables for color manipulation functions 
+   like darken() and lighten(), then expose them as CSS variables.
+*/
+
+$color-primary: $primary-color;             // Deep Navy #2C3E50
+$color-secondary: $link-color;              // Digital Blue #3498DB
+$color-accent: $masthead-link-color-hover;  // Terra Cotta #E67E22
+$color-background: $background-color;       // Background Light #F5F7FA
+$color-background-dark: #1A202C;            // Background Dark
+$color-text: $text-color;                   // Text Primary #2D3748
+$color-neutral: $border-color;              // Neutral #718096
+
+/* Pre-calculate color variations with SASS functions */
+$color-primary-dark: darken($color-primary, 10%);
+$color-primary-light: lighten($color-primary, 10%);
+$color-secondary-dark: darken($color-secondary, 10%);
+$color-secondary-light: lighten($color-secondary, 10%);
+$color-accent-dark: darken($color-accent, 10%);
+$color-accent-light: lighten($color-accent, 10%);
+
+/* Define CSS variables for use in later styles */
+:root {
+  --color-primary: #{$color-primary};
+  --color-secondary: #{$color-secondary};
+  --color-accent: #{$color-accent};
+  --color-background: #{$color-background};
+  --color-background-dark: #{$color-background-dark};
+  --color-text: #{$color-text};
+  --color-neutral: #{$color-neutral};
+  --color-primary-dark: #{$color-primary-dark};
+  --color-primary-light: #{$color-primary-light};
+  --color-secondary-dark: #{$color-secondary-dark};
+  --color-secondary-light: #{$color-secondary-light};
+  --color-accent-dark: #{$color-accent-dark};
+  --color-accent-light: #{$color-accent-light};
+  
+  /* Font family variables */
+  --font-body: #{$global-font-family};
+  --font-heading: #{$header-font-family};
+  --font-mono: #{$monospace-font-family};
+}
+
+/* 
+   Hero Video Component
+   ========================================================================== */
+
+.page__hero--video {
+  position: relative;
+  width: 100%;
+  height: 65vh;
+  min-height: 25rem;
+  max-height: 80vh;
+  overflow: hidden;
+  margin-bottom: $spacing-8; /* Now using the variable safely */
+  
+  &::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.3);
+    z-index: 1;
+  }
+  
+  video {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    min-width: 100%;
+    min-height: 100%;
+    width: auto;
+    height: auto;
+    z-index: 0;
+    transform: translateX(-50%) translateY(-50%);
+  }
+  
+  .wrapper {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    padding: $spacing-16 $spacing-8;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    
+    .page__title {
+      font-size: 2.5rem;
+      margin-bottom: $spacing-4;
+      color: white;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+      
+      @media (min-width: 768px) {
+        font-size: 3.5rem;
+      }
+    }
+    
+    .page__lead {
+      font-size: 1.25rem;
+      max-width: 800px;
+      margin: 0 auto;
+      color: white;
+      text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.7);
+      
+      @media (min-width: 768px) {
+        font-size: 1.5rem;
+      }
+    }
+  }
+}
+
+/* 
+   Fallback Hero (Image Overlay)
+   ========================================================================== */
+
+.page__hero--overlay {
+  position: relative;
+  margin-bottom: $spacing-8;
+  padding: $spacing-12 0;
+  clear: both;
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center;
+  -webkit-animation: intro 0.3s both;
+  animation: intro 0.3s both;
+  -webkit-animation-delay: 0.25s;
+  animation-delay: 0.25s;
+  
+  .wrapper {
+    position: relative;
+    z-index: 2;
+    padding: $spacing-12 $spacing-4;
+    text-align: center;
+    
+    @media (min-width: 768px) {
+      padding: $spacing-20 $spacing-8;
+    }
+    
+    .page__title,
+    .page__lead {
+      color: #fff;
+      text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.7);
+    }
+    
+    .page__title {
+      font-size: 2.5em;
+      margin-bottom: $spacing-2;
+    }
+    
+    .page__lead {
+      max-width: 768px;
+      margin: 0 auto;
+    }
+  }
+}
+
+/* 
+   Content Layout Enhancements
+   ========================================================================== */
+
+.archive__content {
+  @media (min-width: 80em) {
+    width: calc(100% - 200px);
+    padding-right: $spacing-4;
+  }
+}
+
+/* 
+   Button Styling
+   ========================================================================== */
+
+.btn {
+  display: inline-block;
+  margin-bottom: $spacing-1;
+  padding: $spacing-2 $spacing-4;
+  font-family: $sans-serif;
+  font-size: $type-size-6;
+  font-weight: bold;
+  text-align: center;
+  text-decoration: none;
+  border-width: 0;
+  border-radius: $border-radius;
+  cursor: pointer;
+  
+  &--primary {
+    background-color: $color-primary;
+    color: #fff;
+    
+    &:hover {
+      background-color: $color-primary-dark;
+    }
+  }
+  
+  &--info {
+    background-color: $color-secondary;
+    color: #fff;
+    
+    &:hover {
+      background-color: $color-secondary-dark;
+    }
+  }
+  
+  &:visited {
+    color: #fff;
+  }
+}
+
+/* 
+   Footer Customizations
+   ========================================================================== */
+
+.page__footer {
+  margin-top: $spacing-12;
+  color: #fff;
+  background-color: $footer-background-color;
+  
+  .footer-logo {
+    max-width: 120px;
+    margin-bottom: $spacing-4;
+  }
+  
+  .copyright {
+    font-size: $type-size-7;
+  }
+}
+
+/* 
+   Responsive Adjustments
+   ========================================================================== */
+
+@media (max-width: 768px) {
+  .page__hero--video {
+    height: 50vh;
+    
+    .wrapper {
+      padding: $spacing-8 $spacing-4;
+    }
+  }
+  
+  .archive__content {
+    padding: 0 $spacing-4;
+  }
+}
+
+/* 
+   Typography Enhancements
+   ========================================================================== */
+
+body {
+  font-family: var(--font-body, $sans-serif);
+  line-height: 1.65;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading, $sans-serif);
+  font-weight: bold;
+  line-height: 1.3;
+}
+
+code, pre {
+  font-family: var(--font-mono, $monospace);
+}
+
+/* 
+   Masthead/Navigation Fixes
+   ========================================================================== */
+
+/* Target the main navigation container */
+.masthead {
+  background-color: $color-primary;
+  
+  .greedy-nav {
+    background-color: $color-primary;
+    
+    .visible-links {
+      a {
+        color: #ffffff; /* Explicit white for maximum contrast */
+        
+        &:before {
+          background: $color-accent; /* Underline indicator color */
+        }
+      }
+    }
+    
+    .hidden-links {
+      background: $color-primary;
+      
+      a {
+        color: #ffffff;
+        
+        &:hover {
+          color: $color-accent;
+        }
+      }
+    }
+    
+    .masthead__menu-item {
+      color: #ffffff; /* Reinforcing text color */
+    }
+    
+    /* Fix for toggle button */
+    button.greedy-nav__toggle {
+      background-color: $color-primary;
+      color: #ffffff;
+      
+      &:hover {
+        background-color: $color-primary-dark;
+      }
+    }
+  }
+}
+
+/* Further enhance contrast and accessibility */
+.site-title {
+  color: #ffffff;
+}
+
+/* Ensure dropdowns are visible */
+.hidden-links {
+  a {
+    color: #ffffff;
+  }
+}
+
+/* 
+   Author Profile Enhancements
+   ========================================================================== */
+
+.author__avatar {
+  img {
+    border: 2px solid $color-primary;
+  }
+}
+
+.author__content {
+  h3 {
+    margin-top: 0;
+    margin-bottom: $spacing-2;
+  }
+  
+  .author__bio {
+    font-size: 0.9em;
+    line-height: 1.5;
+  }
+}
+
+.author__urls {
+  .author__social-links {
+    margin-top: $spacing-4;
+  }
+}
+
+.sidebar {
+  &.sticky {
+    @media (min-width: 1024px) {
+      opacity: 0.9;
+      transition: opacity 0.2s ease-in-out;
+      
+      &:hover {
+        opacity: 1;
+      }
+    }
+  }
+}
+
+/* 
+   Additional Component Styles
+   ========================================================================== */
+
+/* Post cards */
+.post-card {
+  border-radius: $border-radius-lg;
+  overflow: hidden;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  
+  &:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+  }
+}
+
+/* Breadcrumbs */
+.breadcrumbs {
+  margin: $spacing-6 0 $spacing-8;
+  font-family: var(--font-heading);
+  font-size: 0.85em;
+}
+
+/* Table styles */
+table {
+  border-collapse: collapse;
+  margin: $spacing-4 0;
+  width: 100%;
+  
+  th {
+    background-color: lighten($color-primary, 55%);
+    border: 1px solid $border-color;
+    padding: $spacing-2 $spacing-3;
+  }
+  
+  td {
+    border: 1px solid $border-color;
+    padding: $spacing-2 $spacing-3;
+  }
+  
+  tr:nth-child(even) {
+    background-color: lighten($color-primary, 65%);
+  }
+}

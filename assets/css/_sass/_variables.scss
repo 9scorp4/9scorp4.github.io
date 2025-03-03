@@ -1,119 +1,65 @@
 /* ==========================================================================
-   VARIABLES
+   SPACING VARIABLES
    ========================================================================== */
 
 /*
-   Color Variables Compatibility Layer
+   Basic spacing variables - defined first to avoid circular references
+*/
+
+/* Direct value definitions without references to other variables */
+$spacing-1: 0.25rem;    /* 4px */
+$spacing-2: 0.5rem;     /* 8px */
+$spacing-3: 0.75rem;    /* 12px */
+$spacing-4: 1rem;       /* 16px */
+$spacing-5: 1.25rem;    /* 20px */
+$spacing-6: 1.5rem;     /* 24px */
+$spacing-7: 1.75rem;    /* 28px */
+$spacing-8: 2rem;       /* 32px - Critical variable that was missing */
+$spacing-9: 2.25rem;    /* 36px */
+$spacing-10: 2.5rem;    /* 40px */
+$spacing-12: 3rem;      /* 48px */
+$spacing-16: 4rem;      /* 64px */
+$spacing-20: 5rem;      /* 80px */
+$spacing-24: 6rem;      /* 96px */
+$spacing-32: 8rem;      /* 128px */
+
+/* Border radius */
+$border-radius: 4px !default;
+$border-radius-md: 6px !default;
+$border-radius-lg: 8px !default;
+
+/* 
+   COLOR VARIABLES
    ========================================================================== */
 
-/* Primary color palette from anthroposai theme */
-$color-primary: #2C3E50;        // Deep Navy
-$color-secondary: #3498DB;      // Digital Blue
-$color-accent: #E67E22;         // Terra Cotta
-$color-background: #F5F7FA;     // Background Light
-$color-background-dark: #1A202C; // Background Dark
-$color-text: #2D3748;           // Text Primary
-$color-neutral: #718096;        // Neutral
+/* Base colors */
+$primary-color: #2C3E50 !default; // Deep Navy
+$secondary-color: #3498DB !default; // Digital Blue
+$accent-color: #E67E22 !default; // Terra Cotta
+$background-color: #F5F7FA !default; // Background Light
+$background-color-dark: #1A202C !default; // Background Dark
+$text-color: #2D3748 !default; // Text Primary
+$muted-text-color: #718096 !default; // Neutral
 
-/* Pre-calculate color variations with SASS functions */
-$color-primary-dark: darken($color-primary, 10%);
-$color-primary-light: lighten($color-primary, 10%);
-$color-secondary-dark: darken($color-secondary, 10%);
-$color-secondary-light: lighten($color-secondary, 10%);
-$color-accent-dark: darken($color-accent, 10%);
-$color-accent-light: lighten($color-accent, 10%);
+/* Other color definitions can go here */
 
-/* Define CSS variables for use in styles */
-:root {
-  --color-primary: #{$color-primary};
-  --color-secondary: #{$color-secondary};
-  --color-accent: #{$color-accent};
-  --color-background: #{$color-background};
-  --color-background-dark: #{$color-background-dark};
-  --color-text: #{$color-text};
-  --color-neutral: #{$color-neutral};
-  --color-primary-dark: #{$color-primary-dark};
-  --color-primary-light: #{$color-primary-light};
-  --color-secondary-dark: #{$color-secondary-dark};
-  --color-secondary-light: #{$color-secondary-light};
-  --color-accent-dark: #{$color-accent-dark};
-  --color-accent-light: #{$color-accent-light};
-  
-  /* Typography */
-  --font-heading: "Montserrat", -apple-system, BlinkMacSystemFont, "Roboto", "Segoe UI", "Helvetica Neue", "Lucida Grande", Arial, sans-serif;
-  --font-body: "Source Sans Pro", -apple-system, BlinkMacSystemFont, "Roboto", "Segoe UI", "Helvetica Neue", "Lucida Grande", Arial, sans-serif;
-  --font-mono: "Fira Mono", Monaco, Consolas, "Lucida Console", monospace;
-}
-
-/*
-   Typography
+/* 
+   TYPOGRAPHY VARIABLES
    ========================================================================== */
 
-$font-heading: var(--font-heading);
-$font-body: var(--font-body);
-$font-mono: var(--font-mono);
+/* Font stacks */
+$global-font-family: "Source Sans Pro", -apple-system, BlinkMacSystemFont, "Roboto", "Segoe UI", "Helvetica Neue", "Lucida Grande", Arial, sans-serif !default;
+$header-font-family: "Montserrat", -apple-system, BlinkMacSystemFont, "Roboto", "Segoe UI", "Helvetica Neue", "Lucida Grande", Arial, sans-serif !default;
+$monospace-font-family: "Fira Mono", Monaco, Consolas, "Lucida Console", monospace !default;
 
-/* Font Sizes */
-$font-size-base: 16px;
-$font-size-small: 0.875rem;
-$font-size-medium: 1rem;
-$font-size-large: 1.25rem;
-$font-size-xlarge: 1.5rem;
-$font-size-xxlarge: 2rem;
-$font-size-xxxlarge: 2.5rem;
+/* Other typography definitions can go here */
 
-/* Line Heights */
-$line-height-tight: 1.2;
-$line-height-base: 1.5;
-$line-height-relaxed: 1.65;
-
-/* Font Weights */
-$font-weight-normal: 400;
-$font-weight-medium: 500;
-$font-weight-semibold: 600;
-$font-weight-bold: 700;
-
-/*
-   Breakpoints
+/* 
+   MINIMAL MISTAKES COMPATIBILITY
    ========================================================================== */
 
-$breakpoint-xs: 0;
-$breakpoint-sm: 576px;
-$breakpoint-md: 768px;
-$breakpoint-lg: 992px;
-$breakpoint-xl: 1200px;
-
-/*
-   Layout
-   ========================================================================== */
-
-$container-max-width: 1200px;
-$sidebar-width: 300px;
-$content-width: calc(100% - #{$sidebar-width});
-$gutter: 2rem;
-$border-radius: 6px;
-$global-transition: all 0.3s ease;
-
-/*
-   Spacing
-   ========================================================================== */
-
-$spacing-xxs: 0.25rem;
-$spacing-xs: 0.5rem;
-$spacing-sm: 1rem;
-$spacing-md: 1.5rem;
-$spacing-lg: 2rem;
-$spacing-xl: 3rem;
-$spacing-xxl: 4rem;
-
-/*
-   Z-index
-   ========================================================================== */
-
-$z-index-dropdown: 1000;
-$z-index-sticky: 1020;
-$z-index-fixed: 1030;
-$z-index-modal-backdrop: 1040;
-$z-index-modal: 1050;
-$z-index-popover: 1060;
-$z-index-tooltip: 1070;
+/* Variables expected by the theme */
+$link-color: $secondary-color !default;
+$masthead-link-color: #fff !default;
+$masthead-link-color-hover: $accent-color !default;
+$footer-background-color: $primary-color !default;
