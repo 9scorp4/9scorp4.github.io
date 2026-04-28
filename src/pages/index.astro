@@ -1,0 +1,41 @@
+---
+import Garden from '../layouts/Garden.astro';
+---
+
+<Garden>
+  <main class="garden">
+    <header class="station-header">
+      <h1>un jardín cibernético</h1>
+      <p class="subtitle">waiting for spring.</p>
+    </header>
+  </main>
+</Garden>
+
+<style>
+  .garden {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: var(--rhythm-lg);
+  }
+
+  .station-header {
+    text-align: center;
+  }
+
+  h1 {
+    font-size: 26px;
+    font-style: italic;
+    font-weight: 400;
+    color: var(--ink);
+    margin-bottom: var(--rhythm-sm);
+  }
+
+  .subtitle {
+    font-size: 14px;
+    font-style: italic;
+    color: var(--ink-soft);
+  }
+</style>
