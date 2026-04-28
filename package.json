@@ -1,0 +1,17 @@
+{
+  "name": "9scorp4.github.io",
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview"
+  },
+  "dependencies": {
+    "astro": "^5",
+    "@astrojs/mdx": "^4",
+    "p5": "^1.11"
+  },
+  "devDependencies": {
+    "typescript": "^5"
+  }
+}
