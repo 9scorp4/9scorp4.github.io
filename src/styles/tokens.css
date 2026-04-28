@@ -1,0 +1,31 @@
+:root {
+  /* grounds */
+  --paper:        #efe2c2;
+  --paper-deep:   #e8d9af;
+  --paper-deeper: #e3d4ae;
+  --paper-line:   #c9b886;
+
+  /* inks */
+  --ink:       #3d2f1a;
+  --ink-soft:  #6b5435;
+  --ink-faint: #8a7350;
+  --ink-quiet: #5a4423;
+
+  /* botanical accents */
+  --fern:       #2d5a3d;
+  --ochre:      #c08820;
+  --terracotta: #a8472a;
+
+  /* the punch */
+  --sun: #c93f7a;
+
+  /* type */
+  --font-serif: "IM Fell DW Pica", Georgia, serif;
+  --font-mono:  "JetBrains Mono", ui-monospace, monospace;
+
+  /* spacing rhythm */
+  --rhythm-sm: 0.5rem;
+  --rhythm:    1rem;
+  --rhythm-md: 1.5rem;
+  --rhythm-lg: 2rem;
+}
