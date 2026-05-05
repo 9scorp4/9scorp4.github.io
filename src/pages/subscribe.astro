@@ -1,0 +1,97 @@
+---
+import Garden from '../layouts/Garden.astro';
+---
+
+<Garden
+  title="subscribe — un jardín cibernético"
+  description="how to follow the field journal"
+  canonicalUrl="/subscribe/"
+>
+  <main id="main" class="subscribe-page">
+    <article>
+      <h1>subscribe</h1>
+
+      <p>
+        this site has an <a href="/feed.xml">RSS feed</a>.
+        when something new grows in the field journal or a dispatch
+        appears in the now, the feed updates.
+      </p>
+
+      <p>
+        browsers used to read RSS directly — you could subscribe to a site
+        the way you'd bookmark it. that's gone now. the browser vendors
+        decided you didn't need it. so now you need a separate app.
+      </p>
+
+      <h2>readers that work</h2>
+
+      <ul>
+        <li><a href="https://feedly.com/">Feedly</a> — free tier, works everywhere</li>
+        <li><a href="https://www.inoreader.com/">Inoreader</a> — free tier, works everywhere</li>
+        <li><a href="https://apps.gnome.org/NewsFlash/">Newsflash</a> — free, linux</li>
+        <li><a href="https://netnewswire.com/">NetNewsWire</a> — free, mac/ios</li>
+      </ul>
+
+      <p>
+        paste <code>https://9scorp4.github.io/feed.xml</code> into any of them.
+        or just paste the site URL — most readers find the feed automatically.
+      </p>
+
+      <p class="return"><a href="/">← jardín</a></p>
+    </article>
+  </main>
+</Garden>
+
+<style>
+  .subscribe-page {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: var(--rhythm-lg);
+  }
+
+  h1 {
+    font-family: var(--font-serif);
+    font-size: 28px;
+    font-weight: 400;
+    margin-bottom: var(--rhythm-lg);
+  }
+
+  h2 {
+    font-family: var(--font-serif);
+    font-size: 18px;
+    font-weight: 400;
+    font-style: italic;
+    color: var(--ink-soft);
+    margin: var(--rhythm-lg) 0 var(--rhythm) 0;
+  }
+
+  p {
+    font-family: var(--font-serif);
+    font-size: 17px;
+    line-height: 1.75;
+    margin-bottom: var(--rhythm);
+  }
+
+  ul {
+    font-family: var(--font-serif);
+    font-size: 17px;
+    line-height: 1.75;
+    margin: 0 0 var(--rhythm) 1.5em;
+  }
+
+  li {
+    margin-bottom: 0.5em;
+  }
+
+  code {
+    font-size: 14px;
+    background: var(--paper-deep);
+    padding: 2px 6px;
+    border-radius: 2px;
+  }
+
+  .return {
+    margin-top: var(--rhythm-lg);
+    font-style: italic;
+  }
+</style>
