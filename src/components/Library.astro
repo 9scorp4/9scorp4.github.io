@@ -1,0 +1,162 @@
+---
+interface Props {
+  authors: string[];
+}
+
+const { authors } = Astro.props;
+
+const authorDescriptions: Record<string, string> = {
+  "Gregory Bateson": "Anglo-American anthropologist. Ecology of mind, the double bind, Steps to an Ecology of Mind (1972), Mind and Nature (1979). The site's load-bearing influence; everything else in this list is here partly because Bateson is.",
+  "Stafford Beer": "British operations researcher. Designed the Viable System Model — a recursive anatomy of what any system needs to stay alive. Built Cybersyn in Allende's Chile (1971–73), the only serious attempt to govern a national economy with second-order cybernetics. The applied lineage.",
+  "Humberto Maturana": "Chilean biologist. Co-coined autopoiesis with Varela: living systems defined by continuously producing themselves. Later extended into cognition and language. Closest to Bateson in register; if Bateson clicks, Maturana follows.",
+  "Gordon Pask": "British cybernetician. Conversation Theory — learning as a conversation between two agents, or between an agent and itself. Built physical learning machines, theatrical interactive installations. The mechanics-of-understanding wing.",
+  "Norbert Wiener": "American mathematician. Founded cybernetics: the word, the field, the 1948 book. Feedback as the universal mechanism of self-correction. Bateson is downstream of Wiener.",
+  "Heinz von Foerster": "Austrian-American physicist. Ran the Biological Computer Laboratory at Illinois — the room where most of the others actually met. Coined second-order cybernetics: the cybernetics of cybernetics, observer included. Connective tissue."
+};
+
+// Split into two lines (3 names each by default)
+const half = Math.ceil(authors.length / 2);
+const firstRow = authors.slice(0, half);
+const secondRow = authors.slice(half);
+---
+
+<aside class="library">
+  <p class="intro">authors of the documentation, in absentia —</p>
+  <p class="authors">
+    {firstRow.map((name, i) => (
+      <>
+        <button
+          class="author-trigger"
+          aria-expanded="false"
+          data-author={name}
+        >
+          <span class="name">{name}</span>
+        </button>
+        {i < firstRow.length - 1 && ' · '}
+      </>
+    ))}
+    <br />
+    {secondRow.map((name, i) => (
+      <>
+        <button
+          class="author-trigger"
+          aria-expanded="false"
+          data-author={name}
+        >
+          <span class="name">{name}</span>
+        </button>
+        {i < secondRow.length - 1 && ' · '}
+      </>
+    ))}
+  </p>
+  <div class="description-container">
+    {authors.map((name) => (
+      <p
+        class="description"
+        data-for={name}
+        aria-hidden="true"
+        hidden
+      >
+        <strong>{name}</strong> — {authorDescriptions[name]}
+      </p>
+    ))}
+  </div>
+</aside>
+
+<script>
+  const triggers = document.querySelectorAll('.author-trigger');
+  let activeAuthor: string | null = null;
+
+  triggers.forEach(trigger => {
+    trigger.addEventListener('click', () => {
+      const author = (trigger as HTMLElement).dataset.author;
+      const wasActive = author === activeAuthor;
+
+      // Close any currently open
+      if (activeAuthor) {
+        const prev = document.querySelector(`[data-author="${activeAuthor}"]`) as HTMLElement;
+        prev?.setAttribute('aria-expanded', 'false');
+        const prevDesc = document.querySelector(`.description[data-for="${activeAuthor}"]`) as HTMLElement;
+        if (prevDesc) {
+          prevDesc.hidden = true;
+          prevDesc.setAttribute('aria-hidden', 'true');
+        }
+      }
+
+      // Toggle clicked (close if was open, open if was closed)
+      if (!wasActive && author) {
+        trigger.setAttribute('aria-expanded', 'true');
+        const desc = document.querySelector(`.description[data-for="${author}"]`) as HTMLElement;
+        if (desc) {
+          desc.hidden = false;
+          desc.setAttribute('aria-hidden', 'false');
+        }
+        activeAuthor = author;
+      } else {
+        activeAuthor = null;
+      }
+    });
+  });
+</script>
+
+<style>
+  .library {
+    text-align: center;
+  }
+
+  .intro {
+    font-family: var(--font-serif);
+    font-size: 15px;
+    font-style: italic;
+    color: var(--ink-soft);
+    margin: 0 0 12px 0;
+  }
+
+  .authors {
+    font-family: var(--font-serif);
+    font-size: 16px;
+    font-style: italic;
+    color: var(--ink);
+    line-height: 2;
+    margin: 0;
+  }
+
+  .name {
+    white-space: nowrap;
+  }
+
+  button.author-trigger {
+    all: unset;
+    cursor: pointer;
+    font: inherit;
+    color: inherit;
+  }
+
+  .author-trigger:hover .name {
+    color: var(--sun);
+  }
+
+  .author-trigger:focus-visible {
+    outline: 2px solid var(--fern);
+    outline-offset: 2px;
+  }
+
+  .description-container {
+    min-height: 0;
+  }
+
+  .description {
+    font-family: var(--font-serif);
+    font-size: 15px;
+    font-style: italic;
+    color: var(--ink-soft);
+    max-width: 38ch;
+    margin: 0.5rem auto 1rem;
+    text-align: center;
+  }
+
+  .description strong {
+    color: var(--ink);
+    font-weight: 400;
+  }
+</style>
