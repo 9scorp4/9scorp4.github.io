@@ -1,0 +1,127 @@
+---
+/**
+ * DiptychPage — main layout wrapper for diptych journal entries.
+ * Renders: Header → Article → Seam → Metalogue → Colophon → Return Marker
+ */
+
+import type { CollectionEntry } from 'astro:content';
+import Garden from '../layouts/Garden.astro';
+import DiptychHeader from './DiptychHeader.astro';
+import DiptychNav from './DiptychNav.astro';
+import Seam from './Seam.astro';
+import MetalogueBody from './MetalogueBody.astro';
+import DiptychColophon from './DiptychColophon.astro';
+import ReturnMarker from './ReturnMarker.astro';
+
+interface Props {
+  entry: CollectionEntry<'journal'>;
+  articleHtml: string;
+  metalogueHtml: string;
+}
+
+const { entry, articleHtml, metalogueHtml } = Astro.props;
+const { title, title_secondary, date, entry: entryNumber, preamble, metalogue_title, metalogue_epigraph, colophon } = entry.data;
+
+const pageTitle = `${title}${title_secondary ? ` · ${title_secondary}` : ''} — un jardín cibernético`;
+---
+
+<Garden title={pageTitle}>
+  <main class="diptych">
+    <article class="diptych-article">
+      <DiptychHeader
+        title={title}
+        title_secondary={title_secondary}
+        date={date}
+        entry={entryNumber}
+        preamble={preamble}
+      />
+
+      <div class="article-body" id="article" set:html={articleHtml} />
+
+      <Seam />
+
+      <MetalogueBody
+        id="metalogue"
+        title={metalogue_title || 'metalogue'}
+        epigraph={metalogue_epigraph}
+      >
+        <Fragment set:html={metalogueHtml} />
+      </MetalogueBody>
+
+      {colophon && <DiptychColophon text={colophon} />}
+
+      <ReturnMarker />
+    </article>
+    <DiptychNav />
+  </main>
+</Garden>
+
+<style>
+  .diptych {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: var(--rhythm-lg);
+  }
+
+  .diptych-article {
+    max-width: 700px;
+    margin: 0 auto;
+  }
+
+  /* Article body prose styles */
+  .article-body {
+    max-width: 650px;
+    margin: 0 auto;
+  }
+
+  .article-body :global(p) {
+    font-family: var(--font-serif);
+    font-size: 17px;
+    line-height: 1.75;
+    margin-bottom: var(--rhythm);
+    color: var(--ink);
+  }
+
+  .article-body :global(p:last-child) {
+    margin-bottom: 0;
+  }
+
+  /* Horizontal rules as section breaks */
+  .article-body :global(hr) {
+    border: none;
+    border-top: 1px solid var(--paper-line);
+    margin: var(--rhythm-lg) auto;
+    max-width: 100px;
+  }
+
+  /* Emphasis */
+  .article-body :global(em) {
+    font-style: italic;
+  }
+
+  .article-body :global(strong) {
+    font-weight: 600;
+  }
+
+  /* Links */
+  .article-body :global(a) {
+    color: var(--fern);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  .article-body :global(a:hover) {
+    text-decoration-thickness: 2px;
+  }
+
+  @media (max-width: 640px) {
+    .diptych {
+      padding: var(--rhythm);
+    }
+
+    .article-body :global(p),
+    .diptych :global(.metalogue-content p) {
+      font-size: 16px;
+    }
+  }
+</style>

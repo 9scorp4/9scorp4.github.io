@@ -1,0 +1,32 @@
+---
+/**
+ * DiptychColophon — closing italic note for diptych entries.
+ */
+
+interface Props {
+  text: string;
+}
+
+const { text } = Astro.props;
+---
+
+<footer class="colophon">
+  <p>{text}</p>
+</footer>
+
+<style>
+  .colophon {
+    margin-top: var(--rhythm-lg);
+    padding-top: var(--rhythm);
+    border-top: 1px solid var(--paper-line);
+  }
+
+  .colophon p {
+    font-family: var(--font-serif);
+    font-size: 14px;
+    font-style: italic;
+    color: var(--ink-soft);
+    text-align: center;
+    margin: 0;
+  }
+</style>

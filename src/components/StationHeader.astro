@@ -1,0 +1,71 @@
+---
+interface Props {
+  subtitle?: string;
+  tagline?: string;
+}
+
+const {
+  subtitle = "9scorp4 — un jardín cibernético",
+  tagline = "field notes from someone who reads ecologies for a living"
+} = Astro.props;
+---
+
+<header class="station-header">
+  <div class="mandala" id="mandala-canvas" aria-hidden="true"></div>
+  <div class="header-text">
+    <p class="banner">OBSERVATORIO · OBSERVATOIRE · OBSERVATORY</p>
+    <h1>{subtitle}</h1>
+    <p class="tagline">{tagline}</p>
+  </div>
+</header>
+
+<script>
+  import '../sketches/mandala/index';
+</script>
+
+<style>
+  .station-header {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding-bottom: 24px;
+    margin-bottom: 36px;
+    border-bottom: 1px solid var(--paper-line);
+  }
+
+  .mandala {
+    width: 80px;
+    height: 80px;
+    flex-shrink: 0;
+  }
+
+  .header-text {
+    flex: 1;
+  }
+
+  .banner {
+    font-family: var(--font-serif);
+    font-size: 13px;
+    font-variant: small-caps;
+    letter-spacing: 3px;
+    color: var(--fern);
+    margin: 0 0 6px 0;
+  }
+
+  h1 {
+    font-family: var(--font-serif);
+    font-size: 32px;
+    font-style: italic;
+    font-weight: 400;
+    color: var(--ink);
+    margin: 0;
+    line-height: 1.15;
+  }
+
+  .tagline {
+    font-family: var(--font-serif);
+    font-size: 16px;
+    color: var(--ink-soft);
+    margin: 6px 0 0 0;
+  }
+</style>

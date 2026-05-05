@@ -1,0 +1,35 @@
+---
+/**
+ * ReturnMarker — trilingual back-to-top anchor.
+ * Spanish (warmth) · French (place) · English (explanation)
+ */
+---
+
+<nav class="return-marker" aria-label="Return to top">
+  <a href="#top">↑ regresar · revenir · back to top</a>
+</nav>
+
+<style>
+  .return-marker {
+    text-align: center;
+    margin-top: var(--rhythm-lg);
+    padding-top: var(--rhythm);
+  }
+
+  .return-marker a {
+    font-family: var(--font-serif);
+    font-size: 14px;
+    font-style: italic;
+    color: var(--ink-soft);
+    text-decoration: none;
+  }
+
+  .return-marker a:hover {
+    color: var(--terracotta);
+  }
+
+  .return-marker a:focus-visible {
+    outline: 2px solid var(--sun);
+    outline-offset: 2px;
+  }
+</style>

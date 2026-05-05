@@ -1,0 +1,128 @@
+---
+/**
+ * DiptychNav — sticky section indicator for diptych pages.
+ * Shows current section (article/metalogue) and provides jump links.
+ * Appears after header scrolls out of view.
+ */
+---
+
+<nav class="diptych-nav" aria-label="Section navigation" data-visible="false">
+  <a href="#article" class="diptych-nav-link" data-section="article">article</a>
+  <span class="diptych-nav-sep" aria-hidden="true">·</span>
+  <a href="#metalogue" class="diptych-nav-link" data-section="metalogue">metalogue</a>
+</nav>
+
+<style>
+  .diptych-nav {
+    position: fixed;
+    bottom: var(--rhythm);
+    right: var(--rhythm);
+    z-index: 100;
+
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+
+    padding: 0.5rem 0.75rem;
+    background: var(--paper-deep);
+    border: 1px solid var(--paper-line);
+    border-radius: 999px;
+    box-shadow: 0 2px 8px rgba(61, 47, 26, 0.12);
+
+    font-family: var(--font-serif);
+    font-size: 14px;
+
+    opacity: 0;
+    transform: translateY(10px);
+    pointer-events: none;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+  }
+
+  .diptych-nav[data-visible="true"] {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+  }
+
+  .diptych-nav-link {
+    color: var(--ink-faint);
+    text-decoration: none;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    transition: color 0.15s ease;
+    min-height: 44px;
+    min-width: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .diptych-nav-link:hover {
+    color: var(--ink);
+  }
+
+  .diptych-nav-link:focus-visible {
+    outline: 2px solid var(--fern);
+    outline-offset: 2px;
+  }
+
+  .diptych-nav-link[data-active="true"] {
+    color: var(--fern);
+    font-weight: 500;
+  }
+
+  .diptych-nav-sep {
+    color: var(--ink-faint);
+    user-select: none;
+  }
+
+  @media (max-width: 640px) {
+    .diptych-nav {
+      bottom: var(--rhythm-sm);
+      right: var(--rhythm-sm);
+      font-size: 13px;
+    }
+  }
+</style>
+
+<script>
+  // Visibility: show nav after header scrolls out of view
+  const nav = document.querySelector('.diptych-nav') as HTMLElement;
+  const header = document.querySelector('.diptych-header') as HTMLElement;
+  const articleSection = document.getElementById('article');
+  const metalogueSection = document.getElementById('metalogue');
+
+  if (nav && header) {
+    // Observer for nav visibility (when header leaves viewport)
+    const visibilityObserver = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          nav.dataset.visible = entry.isIntersecting ? 'false' : 'true';
+        });
+      },
+      { threshold: 0 }
+    );
+    visibilityObserver.observe(header);
+
+    // Observer for active section detection
+    const articleLink = nav.querySelector('[data-section="article"]') as HTMLElement;
+    const metalogueLink = nav.querySelector('[data-section="metalogue"]') as HTMLElement;
+
+    if (articleSection && metalogueSection && articleLink && metalogueLink) {
+      const sectionObserver = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            const sectionId = entry.target.id;
+            const link = nav.querySelector(`[data-section="${sectionId}"]`) as HTMLElement;
+            if (link) {
+              link.dataset.active = entry.isIntersecting ? 'true' : 'false';
+            }
+          });
+        },
+        { threshold: 0.1, rootMargin: '-20% 0px -70% 0px' }
+      );
+      sectionObserver.observe(articleSection);
+      sectionObserver.observe(metalogueSection);
+    }
+  }
+</script>
