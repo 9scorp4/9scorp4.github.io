@@ -58,6 +58,9 @@ if (type === 'diptych') {
 
 // For regular articles, render the content directly
 const { Content } = await entry.render();
+
+const pageTitle = `${entry.data.title} — un jardín cibernético`;
+const canonicalUrl = `/cuaderno/${entry.slug}/`;
 ---
 
 {type === 'diptych' ? (
@@ -67,7 +70,13 @@ const { Content } = await entry.render();
     metalogueHtml={metalogueHtml}
   />
 ) : (
-  <Garden title={`${entry.data.title} — un jardín cibernético`}>
+  <Garden
+    title={pageTitle}
+    description={entry.data.summary}
+    ogType="article"
+    ogImageSlug={entry.slug}
+    canonicalUrl={canonicalUrl}
+  >
     <main class="article-page">
       <article>
         <header>

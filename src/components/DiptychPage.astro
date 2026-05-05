@@ -20,12 +20,19 @@ interface Props {
 }
 
 const { entry, articleHtml, metalogueHtml } = Astro.props;
-const { title, title_secondary, date, entry: entryNumber, preamble, metalogue_title, metalogue_epigraph, colophon } = entry.data;
+const { title, title_secondary, date, entry: entryNumber, preamble, metalogue_title, metalogue_epigraph, colophon, summary } = entry.data;
 
 const pageTitle = `${title}${title_secondary ? ` · ${title_secondary}` : ''} — un jardín cibernético`;
+const canonicalUrl = `/cuaderno/${entry.slug}/`;
 ---
 
-<Garden title={pageTitle}>
+<Garden
+  title={pageTitle}
+  description={summary}
+  ogType="article"
+  ogImageSlug={entry.slug}
+  canonicalUrl={canonicalUrl}
+>
   <main class="diptych">
     <article class="diptych-article">
       <DiptychHeader
