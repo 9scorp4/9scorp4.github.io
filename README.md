@@ -2,7 +2,7 @@
 
 > *un jardín cibernético — a cybernetic garden*
 
-A personal observatory: field notes, generative sketches, and research dispatches from someone who reads ecologies for a living. The lighter, more experimental sibling of [AnthroposAI](https://anthroposai.com) — the place where ideas can be in-progress and the aesthetic is allowed to be weird.
+A personal observatory: field notes, generative sketches, and research dispatches from someone who reads ecologies for a living. A place where ideas can be in-progress and the aesthetic is allowed to be weird.
 
 ## What lives here
 
