@@ -20,7 +20,11 @@ const {
 </header>
 
 <script>
-  import '../sketches/mandala/index';
+  // Lazy-load p5 mandala only when the container exists on the page
+  const container = document.getElementById('mandala-canvas');
+  if (container) {
+    import('../sketches/mandala/index');
+  }
 </script>
 
 <style>
