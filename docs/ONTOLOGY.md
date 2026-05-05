@@ -57,18 +57,50 @@ Each entry has:
 
 The entry numbers create a sense of accumulation over time. Don't reset them.
 
+### Diptychs
+
+A **diptych** is a paired journal entry: an article followed by a metalogue that answers back. The metalogue is a dialogue form borrowed from Bateson — a conversation whose structure enacts the question being asked.
+
+Diptychs are stored as folders:
+
+```
+src/content/journal/[slug]/
+  index.md           # frontmatter with type: diptych
+  _article.md        # prose body
+  _metalogue.md      # dialogue body
+```
+
+The underscore prefix tells Astro to skip these as separate entries.
+
+Index frontmatter includes:
+- `type: diptych`
+- `title_secondary` — bilingual subtitle
+- `preamble` — opening line, often Spanish
+- `metalogue_title` — e.g., "cómo me reconoces · how do you recognize me"
+- `metalogue_epigraph` — attribution or frame
+- `colophon` — closing italic note
+
+In the index listing, diptychs are marked with ⁂ (asterism) in ochre.
+
+The seam between article and metalogue uses ❦ (floral heart).
+
 ## The library
 
-Authors of the in-absentia documentation. Currently:
+Authors of the in-absentia documentation. The curation is the first and second generations of cybernetics — the room where Bateson's thinking became possible, and the room he later helped build. Each name is here because the site's form (recursive, observer-included, system-as-living) is downstream of theirs.
 
-- Gregory Bateson
-- Stafford Beer
-- Humberto Maturana
-- Gordon Pask
-- Norbert Wiener
-- Heinz von Foerster
+**Gregory Bateson** — Anglo-American anthropologist. Ecology of mind, the double bind, *Steps to an Ecology of Mind* (1972), *Mind and Nature* (1979). The site's load-bearing influence; everything else in this list is here partly because Bateson is.
 
-Add others only if their work is actually load-bearing for the site's content — not name-dropping. Francisco Varela, Donella Meadows, and Mary Catherine Bateson are reasonable future additions.
+**Stafford Beer** — British operations researcher. Designed the Viable System Model — a recursive anatomy of what any system needs to stay alive. Built Cybersyn in Allende's Chile (1971–73), the only serious attempt to govern a national economy with second-order cybernetics. The applied lineage.
+
+**Humberto Maturana** — Chilean biologist. Co-coined *autopoiesis* with Varela: living systems defined by continuously producing themselves. Later extended into cognition and language. Closest to Bateson in register; if Bateson clicks, Maturana follows.
+
+**Gordon Pask** — British cybernetician. Conversation Theory — learning as a conversation between two agents, or between an agent and itself. Built physical learning machines, theatrical interactive installations. The mechanics-of-understanding wing.
+
+**Norbert Wiener** — American mathematician. Founded cybernetics: the word, the field, the 1948 book. Feedback as the universal mechanism of self-correction. Bateson is downstream of Wiener.
+
+**Heinz von Foerster** — Austrian-American physicist. Ran the Biological Computer Laboratory at Illinois — the room where most of the others actually met. Coined *second-order cybernetics*: the cybernetics of cybernetics, observer included. Connective tissue.
+
+Add others only if their work is load-bearing for the site's content — not name-dropping. Francisco Varela, Donella Meadows, and Mary Catherine Bateson are reasonable future additions.
 
 ## Voice
 

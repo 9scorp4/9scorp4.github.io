@@ -55,7 +55,7 @@ Tech choices, file structure, build, deploy.
     │   ├── Specimen.astro         # conservatory tile
     │   ├── JournalEntry.astro     # field journal teaser
     │   ├── Cultivation.astro      # project card
-    │   ├── Library.astml          # the dedication block
+    │   ├── Library.astro          # the dedication block
     │   └── VisitorsBook.astro     # the console garnish
     ├── content/
     │   ├── config.ts              # collection schemas
@@ -132,6 +132,70 @@ src/sketches/redflag/
 - **Honor `prefers-reduced-motion`**: render the static thumbnail instead of the live sketch.
 - **Frame budget**: target 30fps for tiles, 60fps for full-page specimens. If you can't hit it, simplify the sketch — don't drop the standard.
 - **No external dependencies** beyond p5 itself unless documented in `STACK.md`.
+
+## Visitors' Book Worker
+
+Visitor message submissions go to a Cloudflare Worker with KV storage.
+
+### Architecture
+
+```
+workers/visitors/
+├── wrangler.toml         # KV bindings, env vars
+├── package.json          # Worker-specific deps (zod)
+├── tsconfig.json
+└── src/
+    ├── index.ts          # Routes + handlers
+    ├── schema.ts         # Zod validation
+    └── email.ts          # Resend notification
+```
+
+### Endpoints
+
+- `POST /submit` — public, rate-limited (3/hour/IP)
+- `GET /admin/pending` — auth required
+- `GET /admin/approved` — auth required
+- `POST /admin/approve/:id` — auth required
+- `POST /admin/reject/:id` — auth required
+
+### Secrets (via `wrangler secret put`)
+
+- `ADMIN_TOKEN` — bearer token for admin routes
+- `RESEND_API_KEY` — from resend.com
+
+### Deploy
+
+```bash
+cd workers/visitors
+npm install
+wrangler deploy
+```
+
+First, create a KV namespace:
+
+```bash
+wrangler kv:namespace create VISITORS_KV
+wrangler kv:namespace create VISITORS_KV --preview
+```
+
+Update `wrangler.toml` with the returned IDs.
+
+### Sync Automation
+
+`.github/workflows/sync-visitors.yml` runs every 6 hours to:
+1. Fetch approved messages from Worker
+2. Write YAML files to `src/content/visitors/`
+3. Commit and push if changes exist
+
+GitHub secrets needed:
+- `VISITORS_WORKER_URL`
+- `VISITORS_ADMIN_TOKEN`
+
+### Environment Variables (Astro site)
+
+Set `PUBLIC_VISITORS_WORKER_URL` in your deployment environment (e.g., GitHub Actions secrets or Netlify env) to enable the `dejar` command.
+
+---
 
 ## Deployment
 
