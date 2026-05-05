@@ -18,7 +18,7 @@ export async function sendNotification(
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        from: 'jardin@notifications.example.com',
+        from: 'El Jardín <onboarding@resend.dev>',
         to: env.OWNER_EMAIL,
         subject: `[jardín] nueva nota de ${message.nombre}`,
         html: `
