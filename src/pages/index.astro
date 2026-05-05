@@ -1,41 +1,173 @@
 ---
+import { getCollection } from 'astro:content';
 import Garden from '../layouts/Garden.astro';
+import StationHeader from '../components/StationHeader.astro';
+import SectionHeader from '../components/SectionHeader.astro';
+import Ahora from '../components/Ahora.astro';
+import JournalEntry from '../components/JournalEntry.astro';
+import Cultivation from '../components/Cultivation.astro';
+import Specimen from '../components/Specimen.astro';
+import SpecimenModal from '../components/SpecimenModal.astro';
+import Library from '../components/Library.astro';
+import VisitorsBook from '../components/VisitorsBook.astro';
+import Footer from '../components/Footer.astro';
+
+// Fetch collections
+const ahoraEntries = (await getCollection('ahora'))
+  .sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
+
+const journalEntries = (await getCollection('journal', ({ data }) => !data.draft))
+  .sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
+
+const specimens = (await getCollection('specimens'))
+  .sort((a, b) => b.data.grown.getTime() - a.data.grown.getTime());
+
+const cultivations = await getCollection('cultivations');
+
+// Library authors
+const libraryAuthors = [
+  'Gregory Bateson',
+  'Stafford Beer',
+  'Humberto Maturana',
+  'Gordon Pask',
+  'Norbert Wiener',
+  'Heinz von Foerster',
+];
 ---
 
 <Garden>
   <main class="garden">
-    <header class="station-header">
-      <h1>un jardín cibernético</h1>
-      <p class="subtitle">waiting for spring.</p>
-    </header>
+    <StationHeader />
+
+    <section class="section">
+      <SectionHeader slug="now" />
+      <div class="section-content">
+        <Ahora entries={ahoraEntries} />
+      </div>
+    </section>
+
+    <section class="section">
+      <SectionHeader slug="conservatory" />
+      <div class="section-content">
+        {specimens.length > 0 ? (
+          <div class="specimens-grid">
+            {specimens.map((specimen, index) => (
+              <Specimen specimen={specimen} index={index} />
+            ))}
+          </div>
+        ) : (
+          <p class="empty-state">the conservatory is quiet for now.</p>
+        )}
+      </div>
+    </section>
+
+    <section class="section">
+      <SectionHeader slug="journal" />
+      <div class="section-content">
+        {journalEntries.length > 0 ? (
+          <div class="journal-entries">
+            {journalEntries.map((entry) => (
+              <JournalEntry entry={entry} />
+            ))}
+          </div>
+        ) : (
+          <p class="empty-state">no field notes yet. the pen is somewhere.</p>
+        )}
+      </div>
+    </section>
+
+    <section class="section">
+      <SectionHeader slug="cultivations" />
+      <div class="section-content">
+        {cultivations.length > 0 ? (
+          <div class="cultivations-grid">
+            {cultivations.map((cultivation) => (
+              <Cultivation cultivation={cultivation} />
+            ))}
+          </div>
+        ) : (
+          <p class="empty-state">nothing planted yet. soon.</p>
+        )}
+      </div>
+    </section>
+
+    <section class="section">
+      <SectionHeader slug="library" />
+      <div class="section-content">
+        <Library authors={libraryAuthors} />
+      </div>
+    </section>
+
+    <section class="section">
+      <SectionHeader slug="visitors" />
+      <div class="section-content">
+        <VisitorsBook />
+      </div>
+    </section>
+
+    <Footer />
   </main>
+
+  <!-- Specimen modal for full-size sketch viewing -->
+  <SpecimenModal />
 </Garden>
 
 <style>
   .garden {
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
+    max-width: 800px;
+    margin: 0 auto;
     padding: var(--rhythm-lg);
   }
 
-  .station-header {
+  .section {
+    margin-bottom: 36px;
+  }
+
+  .section-content {
+    padding: 0;
+  }
+
+  .empty-state {
+    font-family: var(--font-serif);
+    font-size: 18px;
+    font-style: italic;
+    color: var(--ink-faint);
     text-align: center;
+    padding: var(--rhythm-lg) 0;
   }
 
-  h1 {
-    font-size: 26px;
-    font-style: italic;
-    font-weight: 400;
-    color: var(--ink);
-    margin-bottom: var(--rhythm-sm);
+  .specimens-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
   }
 
-  .subtitle {
-    font-size: 14px;
-    font-style: italic;
-    color: var(--ink-soft);
+  @media (max-width: 640px) {
+    .specimens-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (max-width: 400px) {
+    .specimens-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .cultivations-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+
+  @media (max-width: 500px) {
+    .cultivations-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .journal-entries {
+    max-width: 600px;
+    margin: 0 auto;
   }
 </style>
