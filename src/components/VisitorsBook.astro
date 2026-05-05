@@ -72,18 +72,26 @@ const batesonQuotes = [
       {visitorMessages
         .sort((a, b) => b.data.timestamp.localeCompare(a.data.timestamp))
         .slice(0, 10)
-        .map((v) => (
-          <div class="visitor-message">
-            <span class="visitor-nombre">{v.data.nombre}</span>
-            <span class="visitor-texto">"{v.data.mensaje}"</span>
-          </div>
-        ))}
+        .map((v) => {
+          const date = new Date(v.data.timestamp);
+          const formatted = date.toLocaleDateString('es', { day: 'numeric', month: 'short', year: '2-digit' });
+          return (
+            <div class="visitor-message">
+              <span class="visitor-meta">
+                <span class="visitor-nombre">{v.data.nombre}</span>
+                <span class="visitor-date">{formatted}</span>
+              </span>
+              <span class="visitor-texto">"{v.data.mensaje}"</span>
+            </div>
+          );
+        })}
     </div>
   )}
   <div class="console-input-row">
     <label for="console-input" class="prompt">leave a sign</label>
     <span class="prompt-arrow">→</span>
     <div class="input-wrapper">
+      <span class="ghost-text" id="ghost-text" aria-hidden="true"></span>
       <input
         type="text"
         id="console-input"
@@ -131,19 +139,29 @@ const batesonQuotes = [
     color: var(--ink-soft);
   }
 
+  .visitor-meta {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    margin-bottom: 2px;
+  }
+
   .visitor-nombre {
     color: var(--fern);
     font-style: italic;
   }
 
-  .visitor-nombre::after {
-    content: ' — ';
+  .visitor-date {
+    font-size: 12px;
     color: var(--ink-faint);
   }
 
   .visitor-texto {
     font-style: italic;
     color: var(--ink-soft);
+    display: block;
+    padding-left: 12px;
+    border-left: 2px solid var(--paper-line);
   }
 
   .console-input-row {
@@ -216,6 +234,23 @@ const batesonQuotes = [
 
   .console-input:focus ~ .cursor {
     color: var(--sun);
+  }
+
+  /* Ghost text typing guide */
+  .ghost-text {
+    position: absolute;
+    left: 0;
+    top: 0;
+    font-family: var(--font-mono);
+    font-size: 16px;
+    color: var(--ink-faint);
+    pointer-events: none;
+    white-space: pre;
+    opacity: 0.6;
+  }
+
+  .ghost-text.hidden {
+    display: none;
   }
 
   @keyframes blink {
@@ -445,6 +480,97 @@ const batesonQuotes = [
   // Initial position
   updateCursorPosition();
 
+  // Ghost text typing animation
+  const ghostText = document.getElementById('ghost-text') as HTMLSpanElement;
+  const exampleCommands = [
+    'random',
+    'about',
+    'seasons',
+    'dejar nombre="Ana" mensaje="hola"',
+  ];
+
+  // Check for reduced motion preference
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  let currentCommandIndex = 0;
+  let currentCharIndex = 0;
+  let typingTimeout: ReturnType<typeof setTimeout> | null = null;
+  let pauseTimeout: ReturnType<typeof setTimeout> | null = null;
+
+  function updateGhostVisibility(): void {
+    if (!ghostText) return;
+    if (input?.value) {
+      ghostText.classList.add('hidden');
+    } else {
+      ghostText.classList.remove('hidden');
+    }
+  }
+
+  function typeNextChar(): void {
+    if (!ghostText || prefersReducedMotion) return;
+
+    const currentCommand = exampleCommands[currentCommandIndex];
+
+    if (currentCharIndex < currentCommand.length) {
+      ghostText.textContent = currentCommand.slice(0, currentCharIndex + 1);
+      currentCharIndex++;
+      // Variable delay: slightly slower for punctuation, faster for letters
+      const char = currentCommand[currentCharIndex - 1];
+      const delay = /[=""]/.test(char) ? 120 : (50 + Math.random() * 50);
+      typingTimeout = setTimeout(typeNextChar, delay);
+    } else {
+      // Command complete, pause before clearing
+      const pauseDuration = currentCommandIndex === exampleCommands.length - 1 ? 3000 : 2000;
+      pauseTimeout = setTimeout(() => {
+        currentCommandIndex = (currentCommandIndex + 1) % exampleCommands.length;
+        currentCharIndex = 0;
+        ghostText.textContent = '';
+        typingTimeout = setTimeout(typeNextChar, 500);
+      }, pauseDuration);
+    }
+  }
+
+  function startTypingAnimation(): void {
+    if (!ghostText) return;
+
+    if (prefersReducedMotion) {
+      // Static fallback for reduced motion
+      ghostText.textContent = 'try: random';
+      return;
+    }
+
+    // Start typing the first command
+    currentCommandIndex = 0;
+    currentCharIndex = 0;
+    ghostText.textContent = '';
+    typeNextChar();
+  }
+
+  function stopTypingAnimation(): void {
+    if (typingTimeout) {
+      clearTimeout(typingTimeout);
+      typingTimeout = null;
+    }
+    if (pauseTimeout) {
+      clearTimeout(pauseTimeout);
+      pauseTimeout = null;
+    }
+  }
+
+  // Update ghost visibility on input changes
+  input?.addEventListener('input', () => {
+    updateGhostVisibility();
+    if (input.value) {
+      stopTypingAnimation();
+    } else if (!prefersReducedMotion) {
+      startTypingAnimation();
+    }
+  });
+
+  // Initialize ghost text
+  updateGhostVisibility();
+  startTypingAnimation();
+
   // Visitor state (localStorage)
   interface VisitorState {
     version: 1;
@@ -585,6 +711,10 @@ const batesonQuotes = [
     input.value = '';
     input.focus();
     updateCursorPosition();
+    updateGhostVisibility();
+    if (!prefersReducedMotion) {
+      startTypingAnimation();
+    }
   }
 
   // Helper: get season from date
