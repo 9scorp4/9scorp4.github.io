@@ -61,6 +61,23 @@ const { Content } = await entry.render();
 
 const pageTitle = `${entry.data.title} — un jardín cibernético`;
 const canonicalUrl = `/cuaderno/${entry.slug}/`;
+
+// JSON-LD structured data for regular articles
+const jsonLd = JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": entry.data.title,
+  "datePublished": entry.data.date.toISOString(),
+  "description": entry.data.summary,
+  "author": {
+    "@type": "Person",
+    "name": "Nico"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "Nico"
+  }
+});
 ---
 
 {type === 'diptych' ? (
@@ -77,7 +94,8 @@ const canonicalUrl = `/cuaderno/${entry.slug}/`;
     ogImageSlug={entry.slug}
     canonicalUrl={canonicalUrl}
   >
-    <main class="article-page">
+    <script type="application/ld+json" set:html={jsonLd} />
+    <main id="main" class="article-page">
       <article>
         <header>
           <h1>{entry.data.title}</h1>
