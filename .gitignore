@@ -1,5 +1,6 @@
 # dependencies
 node_modules/
+workers/*/node_modules/
 
 # build
 dist/
@@ -19,3 +20,24 @@ Thumbs.db
 *.swo
 .idea/
 .vscode/
+
+# logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# test / coverage
+coverage/
+.nyc_output/
+
+# misc artifacts
+*.tgz
+*.patch
+
+# cloudflare
+.wrangler/
+
+# claude
+.claude/
