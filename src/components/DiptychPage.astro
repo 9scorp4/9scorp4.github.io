@@ -24,6 +24,23 @@ const { title, title_secondary, date, entry: entryNumber, preamble, metalogue_ti
 
 const pageTitle = `${title}${title_secondary ? ` · ${title_secondary}` : ''} — un jardín cibernético`;
 const canonicalUrl = `/cuaderno/${entry.slug}/`;
+
+// JSON-LD structured data
+const jsonLd = JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": title + (title_secondary ? ` · ${title_secondary}` : ''),
+  "datePublished": date.toISOString(),
+  "description": summary,
+  "author": {
+    "@type": "Person",
+    "name": "Nico"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "Nico"
+  }
+});
 ---
 
 <Garden
@@ -33,7 +50,8 @@ const canonicalUrl = `/cuaderno/${entry.slug}/`;
   ogImageSlug={entry.slug}
   canonicalUrl={canonicalUrl}
 >
-  <main class="diptych">
+  <script type="application/ld+json" set:html={jsonLd} />
+  <main id="main" class="diptych">
     <article class="diptych-article">
       <DiptychHeader
         title={title}
