@@ -10,6 +10,9 @@
  *   VISITORS_ADMIN_TOKEN - Admin bearer token
  */
 
+import { config } from 'dotenv';
+config();
+
 import { readdir, writeFile, readFile } from 'fs/promises';
 import { join } from 'path';
 
