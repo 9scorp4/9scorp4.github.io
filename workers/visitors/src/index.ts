@@ -167,6 +167,7 @@ async function handleReject(id: string, env: Env): Promise<Response> {
   return json({ ok: true, message });
 }
 
+// TODO: N+1 query pattern — fine at current scale, batch if messages exceed ~50
 async function listMessagesByStatus(status: string, env: Env): Promise<VisitorMessage[]> {
   const list = await env.VISITORS_KV.list({ prefix: 'msg:' });
   const messages: VisitorMessage[] = [];
