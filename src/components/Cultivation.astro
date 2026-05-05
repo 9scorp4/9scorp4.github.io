@@ -1,0 +1,96 @@
+---
+import type { CollectionEntry } from 'astro:content';
+
+interface Props {
+  cultivation: CollectionEntry<'cultivations'>;
+}
+
+const { cultivation } = Astro.props;
+const { name, status, description, repo } = cultivation.data;
+
+const statusSymbols: Record<typeof status, string> = {
+  growing: '▲',
+  dormant: '◐',
+  wild: '○',
+  composted: '✕',
+};
+
+const symbol = statusSymbols[status];
+---
+
+<article class="cultivation" data-status={status}>
+  <p class="status">{symbol} {status}</p>
+  <h3>{name}</h3>
+  <p class="description">{description}</p>
+  {repo ? <a href={repo} class="repo-link">repo →</a> : <span class="repo-link">seeds</span>}
+</article>
+
+<style>
+  .cultivation {
+    display: flex;
+    flex-direction: column;
+    padding: 16px;
+    background: var(--paper-deep);
+    border: 1px solid var(--paper-line);
+    border-radius: 2px;
+  }
+
+  .cultivation[data-status="composted"] {
+    opacity: 0.6;
+  }
+
+  .status {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    letter-spacing: 1.5px;
+    text-transform: lowercase;
+    margin: 0 0 8px 0;
+  }
+
+  .cultivation[data-status="growing"] .status {
+    color: var(--fern);
+  }
+
+  .cultivation[data-status="dormant"] .status {
+    color: var(--ochre);
+  }
+
+  .cultivation[data-status="wild"] .status {
+    color: var(--fern);
+  }
+
+  .cultivation[data-status="composted"] .status {
+    color: var(--ink-faint);
+  }
+
+  h3 {
+    font-family: var(--font-serif);
+    font-size: 19px;
+    font-weight: 400;
+    font-style: italic;
+    color: var(--ink);
+    margin: 0 0 8px 0;
+  }
+
+  .description {
+    font-family: var(--font-serif);
+    font-size: 15px;
+    color: var(--ink-soft);
+    margin: 0;
+    line-height: 1.5;
+  }
+
+  .repo-link {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--ink-soft);
+    margin-top: auto;
+    padding-top: 12px;
+    text-decoration: none;
+    align-self: flex-end;
+  }
+
+  .repo-link:hover {
+    color: var(--ink);
+  }
+</style>
