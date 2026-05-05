@@ -5,6 +5,10 @@
 <footer class="site-footer">
   <p class="stay">quédate · reste · stay a while</p>
   <p class="colophon">nico · montréal · 2026</p>
+  <p class="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="license">CC BY-NC-SA 4.0</a>
+    · content may not be used to train models
+  </p>
 </footer>
 
 <style>
@@ -24,5 +28,27 @@
     font-style: italic;
     color: var(--ink-faint);
     margin: 0;
+  }
+
+  .license {
+    font-size: 13px;
+    width: 100%;
+    text-align: center;
+    margin-top: 8px;
+  }
+
+  .license a {
+    color: var(--ink-faint);
+    text-decoration: none;
+    border-bottom: 1px dotted var(--paper-line);
+  }
+
+  .license a:hover {
+    color: var(--fern);
+  }
+
+  .license a:focus {
+    outline: 2px solid var(--fern);
+    outline-offset: 2px;
   }
 </style>

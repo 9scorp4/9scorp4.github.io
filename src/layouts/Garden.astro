@@ -43,6 +43,9 @@ const fullImageUrl = `${siteUrl}${ogImagePath}`;
     <title>{title}</title>
     <meta name="description" content={description} />
 
+    <!-- AI training opt-out (defense in depth) -->
+    <meta name="robots" content="index, follow, noai, noimageai" />
+
     <!-- OpenGraph -->
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
