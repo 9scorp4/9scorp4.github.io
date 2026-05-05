@@ -1,0 +1,36 @@
+---
+/**
+ * Seam — botanical glyph divider between article and metalogue.
+ * Uses the floral heart (❦) in ochre.
+ */
+---
+
+<div class="seam" role="separator" aria-hidden="true">
+  <span class="seam-line"></span>
+  <span class="seam-glyph">❦</span>
+  <span class="seam-line"></span>
+</div>
+
+<style>
+  .seam {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    margin: var(--rhythm-lg) 0;
+    padding: var(--rhythm) 0;
+  }
+
+  .seam-line {
+    flex: 1;
+    max-width: 80px;
+    height: 1px;
+    background-color: var(--paper-line);
+  }
+
+  .seam-glyph {
+    font-size: 1.25rem;
+    color: var(--ochre);
+    line-height: 1;
+  }
+</style>

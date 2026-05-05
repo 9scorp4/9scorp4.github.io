@@ -1,0 +1,87 @@
+---
+/**
+ * MetalogueBody — wrapper for the metalogue dialogue section.
+ * Includes title and optional epigraph.
+ */
+
+interface Props {
+  id?: string;
+  title: string;
+  epigraph?: string;
+}
+
+const { id, title, epigraph } = Astro.props;
+---
+
+<section class="metalogue" id={id}>
+  <header class="metalogue-header">
+    <h2 class="metalogue-title">{title}</h2>
+    {epigraph && <p class="metalogue-epigraph">{epigraph}</p>}
+  </header>
+  <div class="metalogue-content">
+    <slot />
+  </div>
+</section>
+
+<style>
+  .metalogue {
+    margin-top: var(--rhythm);
+  }
+
+  .metalogue-header {
+    text-align: center;
+    margin-bottom: var(--rhythm-lg);
+  }
+
+  .metalogue-title {
+    font-family: var(--font-serif);
+    font-size: 22px;
+    font-weight: 400;
+    color: var(--ink);
+    margin: 0 0 var(--rhythm-sm) 0;
+  }
+
+  .metalogue-epigraph {
+    font-family: var(--font-serif);
+    font-size: 14px;
+    font-style: italic;
+    color: var(--ink-soft);
+    margin: 0;
+  }
+
+  .metalogue-content {
+    max-width: 650px;
+    margin: 0 auto;
+  }
+
+  /* Style dialogue lines */
+  .metalogue-content :global(p) {
+    font-family: var(--font-serif);
+    font-size: 17px;
+    line-height: 1.75;
+    margin-bottom: var(--rhythm);
+    color: var(--ink);
+  }
+
+  .metalogue-content :global(p:last-child) {
+    margin-bottom: 0;
+  }
+
+  /* Style speaker labels (DOG:, I:) with small-caps */
+  .metalogue-content :global(p) {
+    text-indent: 0;
+  }
+
+  /* Horizontal rules as section breaks */
+  .metalogue-content :global(hr) {
+    border: none;
+    border-top: 1px solid var(--paper-line);
+    margin: var(--rhythm-lg) auto;
+    max-width: 100px;
+  }
+
+  /* Emphasis */
+  .metalogue-content :global(em) {
+    font-style: italic;
+  }
+</style>

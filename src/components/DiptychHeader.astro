@@ -1,0 +1,112 @@
+---
+/**
+ * DiptychHeader — bilingual title + date + preamble for diptych entries.
+ * Breadcrumb follows trilingual rule: Spanish (warmth) · French (place) · date
+ */
+
+interface Props {
+  title: string;
+  title_secondary?: string;
+  date: Date;
+  entry: number;
+  preamble?: string;
+}
+
+const { title, title_secondary, date, entry, preamble } = Astro.props;
+
+// French month names
+const frenchMonths = [
+  'janvier', 'février', 'mars', 'avril', 'mai', 'juin',
+  'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'
+];
+
+// Format date in French style: "4 mai 2026" (using UTC to avoid timezone shifts)
+const day = date.getUTCDate();
+const month = frenchMonths[date.getUTCMonth()];
+const year = date.getUTCFullYear();
+const formattedDate = `${day} ${month} ${year}`;
+
+// Entry ID format: FR-001
+const entryId = `FR-${String(entry).padStart(3, '0')}`;
+---
+
+<header class="diptych-header" id="top">
+  <nav class="back-link">
+    <a href="/">← jardín</a>
+  </nav>
+  <p class="breadcrumb">cuaderno de campo · carnet de terrain · {formattedDate}</p>
+  <h1 class="title">
+    {title}
+    {title_secondary && <span class="title-secondary"> · {title_secondary}</span>}
+  </h1>
+  <p class="entry-id">{entryId}</p>
+  {preamble && <p class="preamble">{preamble}</p>}
+</header>
+
+<style>
+  .diptych-header {
+    margin-bottom: var(--rhythm-lg);
+    text-align: center;
+  }
+
+  .back-link {
+    text-align: left;
+    margin-bottom: var(--rhythm);
+  }
+
+  .back-link a {
+    font-family: var(--font-serif);
+    font-size: 14px;
+    color: var(--ink-soft);
+    text-decoration: none;
+  }
+
+  .back-link a:hover {
+    color: var(--terracotta);
+  }
+
+  .breadcrumb {
+    font-family: var(--font-serif);
+    font-size: 14px;
+    font-style: italic;
+    color: var(--ink-soft);
+    margin: 0 0 var(--rhythm-sm) 0;
+  }
+
+  .title {
+    font-family: var(--font-serif);
+    font-size: 28px;
+    font-weight: 400;
+    color: var(--ink);
+    margin: 0 0 var(--rhythm-sm) 0;
+    line-height: 1.3;
+  }
+
+  .title-secondary {
+    color: var(--ink-soft);
+  }
+
+  .entry-id {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--ink-faint);
+    letter-spacing: 0.05em;
+    margin: 0 0 var(--rhythm) 0;
+  }
+
+  .preamble {
+    font-family: var(--font-serif);
+    font-size: 16px;
+    font-style: italic;
+    color: var(--ink-soft);
+    max-width: 600px;
+    margin: 0 auto;
+    line-height: 1.6;
+  }
+
+  @media (max-width: 640px) {
+    .title {
+      font-size: 24px;
+    }
+  }
+</style>

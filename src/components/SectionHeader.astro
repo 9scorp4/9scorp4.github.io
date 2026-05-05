@@ -1,0 +1,49 @@
+---
+import SectionIcon from './SectionIcon.astro';
+
+type SectionSlug = 'now' | 'conservatory' | 'journal' | 'cultivations' | 'library' | 'visitors';
+
+interface Props {
+  slug: SectionSlug;
+}
+
+const sections: Record<SectionSlug, { es: string; fr: string; en: string }> = {
+  now:          { es: 'el ahora',          fr: 'le présent',        en: 'the now' },
+  conservatory: { es: 'el invernadero',    fr: 'la serre',          en: 'the conservatory' },
+  journal:      { es: 'cuaderno de campo', fr: 'carnet de terrain', en: 'field journal' },
+  cultivations: { es: 'los cultivos',      fr: 'les cultures',      en: 'cultivations' },
+  library:      { es: 'la biblioteca',     fr: 'la bibliothèque',   en: 'the library' },
+  visitors:     { es: 'libro de visitas',  fr: "livre d'or",        en: "visitors' book" },
+};
+
+const { slug } = Astro.props;
+const { es, fr, en } = sections[slug];
+---
+
+<header class="section-header" id={slug}>
+  <SectionIcon slug={slug} />
+  <h2>
+    <span lang="es">{es}</span> · <span lang="fr">{fr}</span> · <span lang="en">{en}</span>
+  </h2>
+</header>
+
+<style>
+  .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 18px;
+  }
+
+  h2 {
+    font-family: var(--font-serif);
+    font-size: 14px;
+    font-weight: 400;
+    font-variant: small-caps;
+    letter-spacing: 3px;
+    color: var(--fern);
+    text-transform: lowercase;
+    margin: 0;
+  }
+</style>
