@@ -24,7 +24,7 @@ const formattedDate = `${day} ${month}`;
 const isDiptych = type === 'diptych';
 ---
 
-<article class="journal-entry" lang={language}>
+<article class="journal-entry" id={entry.slug} lang={language}>
   <p class="meta">
     {isDiptych && <span class="diptych-marker" title="diptych">⁂</span>}
     {formattedDate} · entry {entryNumber}
