@@ -1,0 +1,197 @@
+---
+import type { CollectionEntry } from 'astro:content';
+
+interface Props {
+  entries: CollectionEntry<'ahora'>[];
+  maxEntries?: number;
+}
+
+const { entries, maxEntries = 5 } = Astro.props;
+
+// French month names (reuse pattern from JournalEntry)
+const frenchMonths = [
+  'janvier', 'février', 'mars', 'avril', 'mai', 'juin',
+  'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'
+];
+
+// Format date in French style: "4 mai" (using UTC to avoid timezone shifts)
+function formatDate(date: Date): string {
+  const day = date.getUTCDate();
+  const month = frenchMonths[date.getUTCMonth()];
+  return `${day} ${month}`;
+}
+
+// Seasonal empty state messages
+function getSeasonalMessage(): string {
+  const month = new Date().getMonth(); // 0-indexed
+  if (month >= 11 || month <= 1) return 'waiting for spring.';
+  if (month >= 2 && month <= 4) return 'el deshielo, por fin.';
+  if (month >= 5 && month <= 7) return 'el jardín está alto.';
+  return 'los días se acortan.';
+}
+
+// Check if latest entry is stale (> 6 months old)
+function isStale(latestDate: Date): boolean {
+  const now = new Date();
+  const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 6, now.getDate());
+  return latestDate < sixMonthsAgo;
+}
+
+// Limit entries
+const displayEntries = entries.slice(0, maxEntries);
+const latestEntry = displayEntries[0];
+const olderEntries = displayEntries.slice(1);
+const stale = latestEntry ? isStale(latestEntry.data.date) : false;
+
+// Render content for entries
+const renderedEntries = await Promise.all(
+  displayEntries.map(async (entry) => {
+    const { Content } = await entry.render();
+    return { entry, Content };
+  })
+);
+
+const latestRendered = renderedEntries[0];
+const olderRendered = renderedEntries.slice(1);
+---
+
+<div class="ahora">
+  {displayEntries.length === 0 ? (
+    <p class="empty-state">{getSeasonalMessage()}</p>
+  ) : stale ? (
+    <>
+      <p class="seasonal-message">{getSeasonalMessage()}</p>
+      <div class="archive dimmed">
+        {renderedEntries.map(({ entry, Content }) => (
+          <div class="ahora-entry older">
+            <span class="date">{formatDate(entry.data.date)}</span>
+            <div class="body">
+              <Content />
+            </div>
+          </div>
+        ))}
+      </div>
+    </>
+  ) : (
+    <>
+      <div class="ahora-entry latest">
+        <p class="date">{formatDate(latestRendered.entry.data.date)}</p>
+        <div class="body">
+          <latestRendered.Content />
+        </div>
+      </div>
+      {olderRendered.length > 0 && (
+        <div class="older-entries">
+          {olderRendered.map(({ entry, Content }) => (
+            <div class="ahora-entry older">
+              <span class="date">{formatDate(entry.data.date)}</span>
+              <div class="body">
+                <Content />
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </>
+  )}
+</div>
+
+<style>
+  .ahora {
+    text-align: center;
+    padding: var(--rhythm) 0;
+  }
+
+  .empty-state,
+  .seasonal-message {
+    font-family: var(--font-serif);
+    font-size: 18px;
+    font-style: italic;
+    color: var(--ink-faint);
+    margin: 0;
+  }
+
+  .seasonal-message {
+    margin-bottom: var(--rhythm);
+  }
+
+  .archive.dimmed {
+    opacity: 0.6;
+  }
+
+  .ahora-entry {
+    margin-bottom: var(--rhythm);
+  }
+
+  .ahora-entry:last-child {
+    margin-bottom: 0;
+  }
+
+  .ahora-entry.latest .date {
+    font-family: var(--font-serif);
+    font-size: 14px;
+    font-style: italic;
+    color: var(--ink-soft);
+    margin: 0 0 var(--rhythm-sm) 0;
+  }
+
+  .ahora-entry.latest .body {
+    font-family: var(--font-serif);
+    font-size: 16px;
+    color: var(--ink);
+    line-height: 1.6;
+    white-space: pre-line;
+  }
+
+  .ahora-entry.older {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5em;
+    justify-content: center;
+    align-items: baseline;
+  }
+
+  .ahora-entry.older .date {
+    font-family: var(--font-serif);
+    font-size: 14px;
+    font-style: italic;
+    color: var(--ink-faint);
+  }
+
+  .ahora-entry.older .body {
+    font-family: var(--font-serif);
+    font-size: 15px;
+    color: var(--ink-faint);
+    line-height: 1.5;
+    white-space: pre-line;
+  }
+
+  .older-entries {
+    margin-top: var(--rhythm-lg);
+    padding-top: var(--rhythm);
+    border-top: 1px solid var(--ink-faint);
+  }
+
+  /* Markdown content styling */
+  .body :global(p) {
+    margin: 0;
+  }
+
+  .body :global(p + p) {
+    margin-top: 0.5em;
+  }
+
+  .body :global(em) {
+    color: var(--ink-soft);
+  }
+
+  .body :global(a[href^="http"]) {
+    white-space: nowrap;
+  }
+
+  .body :global(a[href^="http"])::after {
+    content: " ↗";
+    font-size: 0.8em;
+    opacity: 0.6;
+  }
+</style>
