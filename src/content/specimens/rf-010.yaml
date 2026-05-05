@@ -1,0 +1,10 @@
+id: rf-010
+name: winter
+grown: 2024-04-22
+sketch: redflag/winter
+description: '"It''s not depression, it''s just winter."'
+status: wild
+series: redflag
+seriesIndex: 10
+thumbnail: /assets/redflag/thumb-winter.svg
+aspectRatio: '9:16'

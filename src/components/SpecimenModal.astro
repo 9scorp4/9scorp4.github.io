@@ -1,0 +1,383 @@
+---
+/**
+ * SpecimenModal - Full-size specimen viewer overlay
+ *
+ * Rendered hidden by default; client-side script handles opening/closing.
+ * The modal loads p5 sketches dynamically when opened.
+ */
+
+// Roman numerals for series display
+const romanNumerals = ['i', 'ii', 'iii', 'iv', 'v', 'vi', 'vii', 'viii', 'ix', 'x'];
+---
+
+<div class="modal-backdrop" id="specimen-modal" aria-hidden="true" role="dialog" aria-modal="true">
+  <div class="modal-container">
+    <button class="modal-close" aria-label="close modal" type="button">&times;</button>
+
+    <div class="modal-header">
+      <p class="modal-series" id="modal-series"></p>
+      <h3 class="modal-name" id="modal-name"></h3>
+    </div>
+
+    <div class="modal-canvas" id="modal-canvas" aria-hidden="true">
+      <div class="modal-loading">
+        <span class="loading-text">loading...</span>
+      </div>
+    </div>
+
+    <p class="modal-description" id="modal-description"></p>
+  </div>
+</div>
+
+<style>
+  .modal-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    background: rgba(5, 5, 5, 0.92);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--rhythm);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s ease, visibility 0.2s ease;
+  }
+
+  .modal-backdrop[aria-hidden="false"] {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .modal-backdrop[aria-hidden="false"] .modal-container {
+    transform: translateY(0);
+  }
+
+  .modal-container {
+    position: relative;
+    max-width: 480px;
+    width: 100%;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    gap: var(--rhythm-sm);
+    transform: translateY(10px);
+    transition: transform 0.2s ease;
+  }
+
+  .modal-close {
+    position: absolute;
+    top: -44px;
+    right: -4px;
+    width: 36px;
+    height: 36px;
+    border: none;
+    background: transparent;
+    color: var(--paper);
+    font-size: 32px;
+    font-family: var(--font-serif);
+    cursor: pointer;
+    opacity: 0.6;
+    transition: opacity 0.15s ease, color 0.15s ease;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .modal-close:hover {
+    opacity: 1;
+    color: var(--sun);
+  }
+
+  .modal-close:focus-visible {
+    outline: 2px solid var(--fern);
+    outline-offset: 2px;
+  }
+
+  .modal-header {
+    text-align: center;
+    padding: 0 var(--rhythm-sm);
+  }
+
+  .modal-series {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--sun);
+    letter-spacing: 1.5px;
+    margin: 0 0 6px 0;
+    text-transform: lowercase;
+  }
+
+  .modal-series:empty {
+    display: none;
+  }
+
+  .modal-name {
+    font-family: var(--font-serif);
+    font-size: 22px;
+    font-style: italic;
+    font-weight: 400;
+    color: var(--paper);
+    margin: 0;
+  }
+
+  .modal-canvas {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 9 / 16;
+    max-height: 65vh;
+    background: rgb(5, 5, 5);
+    border: 1px solid rgba(201, 63, 122, 0.3);
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5), 0 0 40px rgba(201, 63, 122, 0.1);
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .modal-canvas[data-aspect="1:1"] {
+    aspect-ratio: 1 / 1;
+  }
+
+  .modal-canvas[data-aspect="4:5"] {
+    aspect-ratio: 4 / 5;
+  }
+
+  .modal-canvas :global(canvas) {
+    display: block;
+    max-width: 100%;
+    max-height: 100%;
+  }
+
+  .modal-loading {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgb(5, 5, 5);
+    transition: opacity 0.3s ease;
+  }
+
+  .modal-loading.hidden {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .loading-text {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--paper-line);
+    animation: pulse 1.5s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 1; }
+  }
+
+  .modal-description {
+    font-family: var(--font-serif);
+    font-size: 15px;
+    font-style: italic;
+    color: var(--paper);
+    opacity: 0.75;
+    text-align: center;
+    margin: 0;
+    padding: 0 var(--rhythm);
+    line-height: 1.5;
+  }
+
+  /* Reduced motion: no backdrop blur, instant transitions */
+  @media (prefers-reduced-motion: reduce) {
+    .modal-backdrop {
+      backdrop-filter: none;
+      transition: none;
+    }
+
+    .modal-loading {
+      transition: none;
+    }
+
+    .loading-text {
+      animation: none;
+      opacity: 0.75;
+    }
+  }
+
+  /* Mobile adjustments */
+  @media (max-width: 600px) {
+    .modal-container {
+      max-width: 100%;
+    }
+
+    .modal-canvas {
+      max-height: 60vh;
+    }
+
+    .modal-close {
+      top: -36px;
+    }
+  }
+</style>
+
+<script>
+  // Pre-load all sketch modules using Vite's glob import
+  // This ensures they're bundled and available at runtime
+  const sketchModules = import.meta.glob('../sketches/**/*.ts') as Record<
+    string,
+    () => Promise<{ createSketch: (container: HTMLElement, options: any) => { remove: () => void } }>
+  >;
+
+  // Modal state
+  let currentSketch: { remove: () => void } | null = null;
+  let isOpen = false;
+
+  const modal = document.getElementById('specimen-modal') as HTMLDivElement;
+  const closeBtn = modal?.querySelector('.modal-close') as HTMLButtonElement;
+  const canvasContainer = document.getElementById('modal-canvas') as HTMLDivElement;
+  const loadingEl = canvasContainer?.querySelector('.modal-loading') as HTMLDivElement;
+  const nameEl = document.getElementById('modal-name') as HTMLHeadingElement;
+  const seriesEl = document.getElementById('modal-series') as HTMLParagraphElement;
+  const descriptionEl = document.getElementById('modal-description') as HTMLParagraphElement;
+
+  // Roman numerals for series display
+  const romanNumerals = ['i', 'ii', 'iii', 'iv', 'v', 'vi', 'vii', 'viii', 'ix', 'x'];
+
+  // Check reduced motion preference
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function openModal(specimen: {
+    name: string;
+    description: string;
+    sketch: string;
+    series?: string;
+    seriesIndex?: number;
+    aspectRatio?: string;
+  }) {
+    if (isOpen) return;
+    isOpen = true;
+
+    // Set content
+    nameEl.textContent = specimen.name;
+    descriptionEl.textContent = specimen.description;
+
+    // Series badge
+    if (specimen.series && specimen.seriesIndex) {
+      const numeral = romanNumerals[specimen.seriesIndex - 1] ?? String(specimen.seriesIndex);
+      seriesEl.textContent = `${specimen.series}.exe ${numeral} / x`;
+    } else {
+      seriesEl.textContent = '';
+    }
+
+    // Aspect ratio
+    if (specimen.aspectRatio) {
+      canvasContainer.dataset.aspect = specimen.aspectRatio;
+    } else {
+      delete canvasContainer.dataset.aspect;
+    }
+
+    // Show modal
+    modal.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+
+    // Show loading
+    loadingEl.classList.remove('hidden');
+
+    // Load sketch dynamically
+    loadSketch(specimen.sketch);
+  }
+
+  async function loadSketch(sketchPath: string) {
+    // Clean up previous sketch
+    destroySketch();
+
+    // Clear any existing canvas
+    const existingCanvas = canvasContainer.querySelector('canvas');
+    if (existingCanvas) {
+      existingCanvas.remove();
+    }
+
+    try {
+      // Find the matching module from the glob imports
+      const modulePath = `../sketches/${sketchPath}.ts`;
+      const moduleLoader = sketchModules[modulePath];
+
+      if (!moduleLoader) {
+        throw new Error(`Sketch not found: ${sketchPath}`);
+      }
+
+      // Dynamic import of the sketch module
+      const module = await moduleLoader();
+
+      if (typeof module.createSketch === 'function') {
+        // Get container dimensions
+        const rect = canvasContainer.getBoundingClientRect();
+
+        // Create sketch with container and dimensions
+        currentSketch = module.createSketch(canvasContainer, {
+          width: rect.width,
+          height: rect.height,
+          reducedMotion: prefersReducedMotion,
+        });
+
+        // Hide loading after a brief delay to allow canvas to render
+        setTimeout(() => {
+          loadingEl.classList.add('hidden');
+        }, 100);
+      }
+    } catch (err) {
+      console.error('Failed to load sketch:', sketchPath, err);
+      loadingEl.querySelector('.loading-text')!.textContent = 'failed to load sketch';
+    }
+  }
+
+  function destroySketch() {
+    if (currentSketch && typeof currentSketch.remove === 'function') {
+      currentSketch.remove();
+      currentSketch = null;
+    }
+  }
+
+  function closeModal() {
+    if (!isOpen) return;
+    isOpen = false;
+
+    modal.setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
+
+    // Destroy sketch
+    destroySketch();
+
+    // Clear canvas container
+    const canvas = canvasContainer.querySelector('canvas');
+    if (canvas) canvas.remove();
+
+    // Reset loading state
+    loadingEl.classList.remove('hidden');
+    const loadingText = loadingEl.querySelector('.loading-text');
+    if (loadingText) loadingText.textContent = 'loading...';
+  }
+
+  // Event listeners
+  closeBtn?.addEventListener('click', closeModal);
+
+  // Click outside to close
+  modal?.addEventListener('click', (e) => {
+    if (e.target === modal) {
+      closeModal();
+    }
+  });
+
+  // Escape key to close
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && isOpen) {
+      closeModal();
+    }
+  });
+
+  // Expose openModal globally for specimen tiles to use
+  (window as any).openSpecimenModal = openModal;
+</script>

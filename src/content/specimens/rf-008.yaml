@@ -1,0 +1,10 @@
+id: rf-008
+name: vulnerability
+grown: 2024-04-22
+sketch: redflag/vulnerability
+description: '"I''ll be vulnerable when it''s safe."'
+status: wild
+series: redflag
+seriesIndex: 8
+thumbnail: /assets/redflag/thumb-vulnerability.svg
+aspectRatio: '9:16'

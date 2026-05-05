@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" width="80" height="80" shape-rendering="crispEdges">
+  <rect width="80" height="80" fill="#e8d9af"/>
+  <!-- Zigzag line: jittery/dysregulated signal -->
+  <path d="M12 40 L20 28 L28 52 L36 24 L44 56 L52 28 L60 48 L68 36"
+        fill="none" stroke="#2d5a3d" stroke-width="4" stroke-linejoin="miter"/>
+</svg>

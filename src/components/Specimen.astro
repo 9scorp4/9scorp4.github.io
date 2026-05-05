@@ -1,0 +1,214 @@
+---
+import type { CollectionEntry } from 'astro:content';
+
+interface Props {
+  specimen: CollectionEntry<'specimens'>;
+  index: number;
+  interactive?: boolean;
+}
+
+const { specimen, index, interactive = false } = Astro.props;
+const { id, name, status, series, seriesIndex, thumbnail, description, sketch, aspectRatio } = specimen.data;
+
+// Roman numerals for display (1-10)
+const romanNumerals = ['i', 'ii', 'iii', 'iv', 'v', 'vi', 'vii', 'viii', 'ix', 'x'];
+const numeral = romanNumerals[index] ?? String(index + 1);
+
+// Series badge (e.g., "redflag.exe i / x")
+const seriesBadge = series && seriesIndex
+  ? `${series}.exe ${romanNumerals[seriesIndex - 1] ?? seriesIndex}`
+  : null;
+
+// Prepare data for modal
+const specimenData = JSON.stringify({
+  name,
+  description,
+  sketch,
+  series,
+  seriesIndex,
+  aspectRatio,
+});
+---
+
+<article
+  class="specimen"
+  data-status={status}
+  data-clickable={series ? 'true' : undefined}
+  tabindex={series ? 0 : undefined}
+  role={series ? 'button' : undefined}
+  aria-label={series ? `open ${name} specimen` : undefined}
+  data-specimen={series ? specimenData : undefined}
+>
+  {seriesBadge && (
+    <span class="series-badge">{seriesBadge}</span>
+  )}
+  <p class="specimen-number">specimen {numeral}</p>
+  <div class="canvas" aria-hidden="true">
+    {thumbnail ? (
+      <img
+        src={thumbnail}
+        alt=""
+        class="thumbnail"
+        loading="lazy"
+      />
+    ) : interactive ? (
+      <div class="sketch-container" data-sketch={sketch}></div>
+    ) : (
+      <svg viewBox="0 0 60 60" class="placeholder-svg">
+        <circle cx="30" cy="30" r="18" fill="var(--sun)" opacity="0.85" />
+        <circle cx="30" cy="30" r="9" fill="var(--ochre)" />
+      </svg>
+    )}
+  </div>
+  <p class="specimen-name">{name}</p>
+</article>
+
+<style>
+  .specimen {
+    position: relative;
+    background: var(--paper-deep);
+    border: 1px solid var(--paper-line);
+    aspect-ratio: 1;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .specimen[data-clickable="true"] {
+    cursor: pointer;
+    transition: border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  .specimen[data-clickable="true"]:hover {
+    border-color: var(--sun);
+    box-shadow: 0 0 0 1px var(--sun), 0 4px 12px rgba(201, 63, 122, 0.15);
+  }
+
+  .specimen[data-clickable="true"]:hover .thumbnail {
+    transform: scale(1.02);
+  }
+
+  .specimen[data-clickable="true"]:focus-visible {
+    outline: 2px solid var(--fern);
+    outline-offset: 2px;
+  }
+
+  .specimen[data-clickable="true"]:active {
+    transform: scale(0.98);
+  }
+
+  .specimen[data-status="composted"] {
+    opacity: 0.6;
+  }
+
+  .series-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--sun);
+    background: rgba(5, 5, 5, 0.9);
+    padding: 3px 6px;
+    border-radius: 2px;
+    letter-spacing: 0.5px;
+    text-transform: lowercase;
+    z-index: 1;
+  }
+
+  .specimen-number {
+    font-family: var(--font-serif);
+    font-size: 12px;
+    font-style: italic;
+    color: var(--ink-soft);
+    margin: 0;
+  }
+
+  .canvas {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    min-height: 0;
+  }
+
+  .placeholder-svg {
+    width: 60px;
+    height: 60px;
+  }
+
+  .thumbnail {
+    width: 100%;
+    height: 100%;
+    max-width: 120px;
+    max-height: 120px;
+    object-fit: contain;
+    border: 1px solid rgba(0, 0, 0, 0.3);
+    border-radius: 2px;
+    transition: transform 0.15s ease;
+  }
+
+  .sketch-container {
+    width: 100%;
+    height: 100%;
+  }
+
+  .specimen-name {
+    font-family: var(--font-serif);
+    font-size: 14px;
+    font-style: italic;
+    color: var(--ink);
+    margin: 0;
+    line-height: 1.3;
+  }
+
+  /* Reduced motion: no transform animation */
+  @media (prefers-reduced-motion: reduce) {
+    .specimen[data-clickable="true"] {
+      transition: border-color 0.15s ease;
+    }
+
+    .specimen[data-clickable="true"]:active {
+      transform: none;
+    }
+
+    .specimen[data-clickable="true"]:hover .thumbnail {
+      transform: none;
+    }
+
+    .thumbnail {
+      transition: none;
+    }
+  }
+</style>
+
+<script>
+  // Set up click handlers for specimens with series
+  document.querySelectorAll('.specimen[data-clickable="true"]').forEach((el) => {
+    const article = el as HTMLElement;
+    const specimenData = article.dataset.specimen;
+
+    if (!specimenData) return;
+
+    const handleOpen = () => {
+      try {
+        const data = JSON.parse(specimenData);
+        if (typeof (window as any).openSpecimenModal === 'function') {
+          (window as any).openSpecimenModal(data);
+        }
+      } catch (e) {
+        console.error('Failed to parse specimen data:', e);
+      }
+    };
+
+    article.addEventListener('click', handleOpen);
+    article.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        handleOpen();
+      }
+    });
+  });
+</script>

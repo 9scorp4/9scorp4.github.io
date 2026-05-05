@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" width="80" height="80" shape-rendering="crispEdges">
+  <rect width="80" height="80" fill="#e8d9af"/>
+  <!-- Downward chevron: drooping/SAD -->
+  <path d="M16 28 L40 52 L64 28" fill="none" stroke="#2d5a3d" stroke-width="4" stroke-linejoin="miter"/>
+  <path d="M16 44 L40 68 L64 44" fill="none" stroke="#2d5a3d" stroke-width="4" stroke-linejoin="miter"/>
+</svg>
