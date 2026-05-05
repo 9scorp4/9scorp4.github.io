@@ -1,5 +1,6 @@
 ---
 import type { CollectionEntry } from 'astro:content';
+import { getSeason } from '../lib/season';
 
 interface Props {
   entries: CollectionEntry<'ahora'>[];
@@ -21,13 +22,15 @@ function formatDate(date: Date): string {
   return `${day} ${month}`;
 }
 
-// Seasonal empty state messages
+// Seasonal empty state messages (uses canonical getSeason from src/lib/season.ts)
 function getSeasonalMessage(): string {
-  const month = new Date().getMonth(); // 0-indexed
-  if (month >= 11 || month <= 1) return 'waiting for spring.';
-  if (month >= 2 && month <= 4) return 'el deshielo, por fin.';
-  if (month >= 5 && month <= 7) return 'el jardín está alto.';
-  return 'los días se acortan.';
+  const season = getSeason(new Date().toISOString());
+  switch (season) {
+    case 'invierno': return 'waiting for spring.';
+    case 'primavera': return 'el deshielo, por fin.';
+    case 'verano': return 'el jardín está alto.';
+    case 'otoño': return 'los días se acortan.';
+  }
 }
 
 // Check if latest entry is stale (> 6 months old)

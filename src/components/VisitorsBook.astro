@@ -718,6 +718,7 @@ const batesonQuotes = [
   }
 
   // Helper: get season from date
+  // NOTE: Client-side duplicate of src/lib/season.ts (can't import server modules here)
   function getSeason(dateStr: string): 'primavera' | 'verano' | 'otoño' | 'invierno' {
     const date = new Date(dateStr);
     const month = date.getMonth(); // 0-11
