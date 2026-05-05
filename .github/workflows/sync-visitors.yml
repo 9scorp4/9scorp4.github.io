@@ -1,0 +1,47 @@
+name: Sync Visitors
+
+on:
+  schedule:
+    # Run every 6 hours
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - name: Sync approved messages
+        env:
+          VISITORS_WORKER_URL: ${{ secrets.VISITORS_WORKER_URL }}
+          VISITORS_ADMIN_TOKEN: ${{ secrets.VISITORS_ADMIN_TOKEN }}
+        run: npx tsx scripts/sync-visitors.ts
+
+      - name: Check for changes
+        id: changes
+        run: |
+          if [ -n "$(git status --porcelain src/content/visitors/)" ]; then
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Commit and push
+        if: steps.changes.outputs.has_changes == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add src/content/visitors/
+          git commit -m "chore: sync visitor messages"
+          git push
