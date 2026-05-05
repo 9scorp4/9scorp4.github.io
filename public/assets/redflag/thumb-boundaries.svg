@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" width="80" height="80" shape-rendering="crispEdges">
+  <rect width="80" height="80" fill="#e8d9af"/>
+  <!-- Pixelated concentric squares with a gap -->
+  <!-- Inner square -->
+  <rect x="34" y="34" width="12" height="12" fill="none" stroke="#2d5a3d" stroke-width="4"/>
+  <!-- Middle square with gap (drawn as segments) -->
+  <rect x="22" y="22" width="4" height="20" fill="#2d5a3d"/>
+  <rect x="22" y="22" width="20" height="4" fill="#2d5a3d"/>
+  <rect x="54" y="22" width="4" height="36" fill="#2d5a3d"/>
+  <rect x="22" y="54" width="36" height="4" fill="#2d5a3d"/>
+  <!-- Outer square -->
+  <rect x="10" y="10" width="60" height="60" fill="none" stroke="#2d5a3d" stroke-width="4"/>
+</svg>

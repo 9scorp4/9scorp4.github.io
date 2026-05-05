@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" width="80" height="80" shape-rendering="crispEdges">
+  <rect width="80" height="80" fill="#e8d9af"/>
+  <!-- Center dot with radiating corners: sensing/checking -->
+  <rect x="36" y="36" width="8" height="8" fill="#2d5a3d"/>
+  <!-- Corner marks -->
+  <rect x="12" y="12" width="12" height="4" fill="#2d5a3d"/>
+  <rect x="12" y="12" width="4" height="12" fill="#2d5a3d"/>
+  <rect x="56" y="12" width="12" height="4" fill="#2d5a3d"/>
+  <rect x="64" y="12" width="4" height="12" fill="#2d5a3d"/>
+  <rect x="12" y="64" width="12" height="4" fill="#2d5a3d"/>
+  <rect x="12" y="56" width="4" height="12" fill="#2d5a3d"/>
+  <rect x="56" y="64" width="12" height="4" fill="#2d5a3d"/>
+  <rect x="64" y="56" width="4" height="12" fill="#2d5a3d"/>
+</svg>

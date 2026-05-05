@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" width="80" height="80" shape-rendering="crispEdges">
+  <rect width="80" height="80" fill="#e8d9af"/>
+  <!-- Pixelated typing dots fading out -->
+  <!-- Dot 1: solid -->
+  <rect x="16" y="34" width="12" height="12" fill="#2d5a3d"/>
+  <!-- Dot 2: fading -->
+  <rect x="34" y="34" width="12" height="12" fill="#2d5a3d" opacity="0.5"/>
+  <!-- Dot 3: almost gone -->
+  <rect x="52" y="34" width="12" height="12" fill="#2d5a3d" opacity="0.18"/>
+</svg>
