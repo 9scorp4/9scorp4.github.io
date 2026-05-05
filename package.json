@@ -7,12 +7,19 @@
     "preview": "astro preview"
   },
   "dependencies": {
-    "astro": "^5",
     "@astrojs/mdx": "^4",
-    "p5": "^1.11"
+    "@astrojs/sitemap": "^3.7.2",
+    "@resvg/resvg-js": "^2.6.2",
+    "astro": "^5",
+    "p5": "^1.11",
+    "satori": "^0.26.0",
+    "yaml": "^2.8.4"
   },
   "devDependencies": {
+    "@fontsource/im-fell-dw-pica": "^5.2.6",
+    "@types/react": "^19.2.14",
     "dotenv": "^16.3.1",
+    "react": "^19.2.5",
     "tsx": "^4.7.0",
     "typescript": "^5"
   }
