@@ -1,0 +1,15 @@
+name = "visitors"
+main = "src/index.ts"
+compatibility_date = "2024-01-01"
+
+kv_namespaces = [
+  { binding = "VISITORS_KV", id = "375e72cebf7b42058651be6d0f20b395", preview_id = "82326b661b764152acbd025de14b159f" }
+]
+
+[vars]
+# Set your email for notifications
+OWNER_EMAIL = "REDACTED_EMAIL"
+
+# Secrets (set via wrangler secret put):
+# - ADMIN_TOKEN
+# - RESEND_API_KEY

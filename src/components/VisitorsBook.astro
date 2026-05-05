@@ -1,0 +1,1087 @@
+---
+/**
+ * VisitorsBook - Interactive CLI console for the garden
+ *
+ * Parser-flavored, terse responses. Occasionally quotes Bateson.
+ * Tracks visitor state in localStorage.
+ */
+
+import { getCollection } from 'astro:content';
+
+// Fetch content at build time
+const specimens = await getCollection('specimens');
+const journalEntries = await getCollection('journal', ({ data }) => !data.draft);
+const cultivations = await getCollection('cultivations');
+const visitorMessages = await getCollection('visitors');
+
+// Worker URL for submissions (injected at build time, set in astro.config or env)
+const VISITORS_WORKER_URL = import.meta.env.PUBLIC_VISITORS_WORKER_URL || '';
+
+// Serialize content for client-side use
+const contentData = {
+  specimens: specimens.map(s => ({
+    id: s.data.id,
+    name: s.data.name,
+    grown: s.data.grown.toISOString(),
+    series: s.data.series,
+  })),
+  journal: journalEntries.map(e => ({
+    slug: e.slug,
+    title: e.data.title,
+    date: e.data.date.toISOString(),
+    summary: e.data.summary,
+    language: e.data.language,
+    type: e.data.type,
+  })),
+  cultivations: cultivations.map(c => ({
+    slug: c.data.slug,
+    name: c.data.name,
+    status: c.data.status,
+  })),
+  visitors: visitorMessages
+    .map(v => ({
+      id: v.data.id,
+      nombre: v.data.nombre,
+      mensaje: v.data.mensaje,
+      timestamp: v.data.timestamp,
+    }))
+    .sort((a, b) => b.timestamp.localeCompare(a.timestamp)), // newest first
+  workerUrl: VISITORS_WORKER_URL,
+};
+
+const batesonQuotes = [
+  "The map is not the territory.",
+  "Information is a difference that makes a difference.",
+  "The pattern which connects.",
+  "We are not outside the ecology for which we plan.",
+  "The major problems in the world are the result of the difference between how nature works and the way people think.",
+  "Logic is a poor model of cause and effect.",
+  "Number is different from quantity.",
+  "The creature that wins against its environment destroys itself.",
+  "Rigor alone is paralytic death, but imagination alone is insanity.",
+  "It takes two to know one.",
+  "All experience is subjective.",
+  "Language commonly stresses only one side of any interaction.",
+  "There is an ecology of bad ideas, just as there is an ecology of weeds.",
+];
+---
+
+<div class="visitors-book" id="visitors-book" role="region" aria-label="visitors' book console">
+  {visitorMessages.length > 0 && (
+    <div class="visitor-messages" aria-label="visitor messages">
+      {visitorMessages
+        .sort((a, b) => b.data.timestamp.localeCompare(a.data.timestamp))
+        .slice(0, 10)
+        .map((v) => (
+          <div class="visitor-message">
+            <span class="visitor-nombre">{v.data.nombre}</span>
+            <span class="visitor-texto">"{v.data.mensaje}"</span>
+          </div>
+        ))}
+    </div>
+  )}
+  <div class="console-input-row">
+    <label for="console-input" class="prompt">leave a sign</label>
+    <span class="prompt-arrow">→</span>
+    <div class="input-wrapper">
+      <input
+        type="text"
+        id="console-input"
+        class="console-input"
+        autocomplete="off"
+        autocapitalize="off"
+        spellcheck="false"
+        aria-describedby="console-help"
+      />
+      <span class="text-measurer" id="text-measurer" aria-hidden="true"></span>
+      <span class="cursor" id="cursor" aria-hidden="true">_</span>
+    </div>
+  </div>
+  <p class="help" id="console-help">try: random · about · seasons · dejar</p>
+  <div class="console-output" id="console-output" role="log" aria-live="polite"></div>
+</div>
+
+<script id="garden-content-data" type="application/json" set:html={JSON.stringify(contentData)}></script>
+<script id="bateson-quotes" type="application/json" set:html={JSON.stringify(batesonQuotes)}></script>
+
+<style>
+  .visitors-book {
+    background: var(--paper);
+    border: 1px solid var(--paper-line);
+    padding: 14px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  /* Visitor messages */
+  .visitor-messages {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding-bottom: 12px;
+    margin-bottom: 4px;
+    border-bottom: 1px solid var(--paper-line);
+  }
+
+  .visitor-message {
+    font-family: var(--font-serif);
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--ink-soft);
+  }
+
+  .visitor-nombre {
+    color: var(--fern);
+    font-style: italic;
+  }
+
+  .visitor-nombre::after {
+    content: ' — ';
+    color: var(--ink-faint);
+  }
+
+  .visitor-texto {
+    font-style: italic;
+    color: var(--ink-soft);
+  }
+
+  .console-input-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: text;
+  }
+
+  .input-wrapper {
+    position: relative;
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+  }
+
+  .prompt {
+    font-family: var(--font-serif);
+    font-size: 16px;
+    font-style: italic;
+    color: var(--fern);
+    flex-shrink: 0;
+  }
+
+  .prompt-arrow {
+    font-family: var(--font-serif);
+    font-size: 16px;
+    color: var(--ink-faint);
+    flex-shrink: 0;
+  }
+
+  .console-input {
+    flex: 1;
+    min-width: 0;
+    font-family: var(--font-mono);
+    font-size: 16px; /* ≥16px prevents iOS zoom */
+    color: var(--ink);
+    background: transparent;
+    border: none;
+    outline: none;
+    padding: 0;
+    caret-color: transparent; /* hide native caret, use custom cursor */
+  }
+
+  /* Hidden span to measure text width */
+  .text-measurer {
+    position: absolute;
+    visibility: hidden;
+    white-space: pre;
+    font-family: var(--font-mono);
+    font-size: 16px;
+    pointer-events: none;
+  }
+
+  .console-input::placeholder {
+    color: var(--ink-faint);
+    opacity: 0.6;
+  }
+
+  .cursor {
+    position: absolute;
+    left: 0;
+    font-family: var(--font-mono);
+    font-size: 16px;
+    color: var(--fern);
+    animation: blink 1s step-end infinite;
+    pointer-events: none;
+  }
+
+  .console-input:focus ~ .cursor {
+    color: var(--sun);
+  }
+
+  @keyframes blink {
+    0%, 50% { opacity: 1; }
+    51%, 100% { opacity: 0; }
+  }
+
+  .help {
+    font-family: var(--font-serif);
+    font-size: 14px;
+    font-style: italic;
+    color: var(--ink-faint);
+    margin: 0;
+  }
+
+  .console-output {
+    display: none;
+    font-family: var(--font-serif);
+    font-size: 15px;
+    color: var(--ink);
+    line-height: 1.6;
+    padding-top: 8px;
+    border-top: 1px solid var(--paper-line);
+  }
+
+  .console-output.expanded {
+    display: block;
+  }
+
+  /* Output content styles */
+  .console-output :global(.output-line) {
+    margin: 0 0 4px 0;
+  }
+
+  .console-output :global(.output-line:last-child) {
+    margin-bottom: 0;
+  }
+
+  .console-output :global(.output-muted) {
+    color: var(--ink-faint);
+    font-style: italic;
+  }
+
+  .console-output :global(.output-fern) {
+    color: var(--fern);
+  }
+
+  .console-output :global(.output-ochre) {
+    color: var(--ochre);
+  }
+
+  .console-output :global(.output-sun) {
+    color: var(--sun);
+  }
+
+  .console-output :global(.output-quote) {
+    font-style: italic;
+    color: var(--ink-soft);
+    padding-left: 12px;
+    border-left: 2px solid var(--paper-line);
+  }
+
+  .console-output :global(.output-mono) {
+    font-family: var(--font-mono);
+    font-size: 13px;
+  }
+
+  /* Season collapsibles */
+  .console-output :global(.season-header) {
+    cursor: pointer;
+    padding: 4px 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    user-select: none;
+  }
+
+  .console-output :global(.season-header:hover) {
+    color: var(--fern);
+  }
+
+  .console-output :global(.season-chevron) {
+    display: inline-block;
+    font-family: var(--font-mono);
+    font-size: 14px;
+    color: var(--ink-faint);
+    min-width: 1ch;
+  }
+
+  .console-output :global(.season-items) {
+    display: none;
+    padding-left: 24px;
+    margin: 4px 0 8px 0;
+  }
+
+  .console-output :global(.season-header.expanded + .season-items) {
+    display: block;
+  }
+
+  .console-output :global(.season-item) {
+    padding: 2px 0;
+    color: var(--ink-soft);
+    display: flex;
+    gap: 1em;
+    align-items: baseline;
+  }
+
+  .console-output :global(.season-item)::before {
+    content: '·';
+    color: var(--ink-faint);
+  }
+
+  .console-output :global(.season-item .output-mono) {
+    color: var(--ink-faint);
+    flex-shrink: 0;
+  }
+
+  .console-output :global(.season-item a) {
+    color: var(--fern);
+    text-decoration: none;
+  }
+
+  .console-output :global(.season-item a:hover) {
+    text-decoration: underline;
+  }
+
+  /* Search results */
+  .console-output :global(.search-result) {
+    padding: 6px 0;
+    border-bottom: 1px solid var(--paper-line);
+  }
+
+  .console-output :global(.search-result:last-child) {
+    border-bottom: none;
+  }
+
+  .console-output :global(.search-result a) {
+    color: var(--fern);
+    text-decoration: none;
+    font-style: italic;
+  }
+
+  .console-output :global(.search-result a:hover) {
+    text-decoration: underline;
+  }
+
+  .console-output :global(.search-result .result-meta) {
+    font-size: 13px;
+    color: var(--ink-faint);
+    margin-top: 2px;
+  }
+
+  /* Dismiss button */
+  .console-output :global(.dismiss-row) {
+    margin-top: 12px;
+    padding-top: 8px;
+    border-top: 1px solid var(--paper-line);
+  }
+
+  .console-output :global(.dismiss-btn) {
+    font-family: var(--font-serif);
+    font-size: 13px;
+    font-style: italic;
+    color: var(--ink-faint);
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+  }
+
+  .console-output :global(.dismiss-btn:hover) {
+    color: var(--fern);
+  }
+
+  .console-output :global(.dismiss-btn:focus-visible) {
+    outline: 2px solid var(--fern);
+    outline-offset: 2px;
+  }
+
+  /* Reduced motion */
+  @media (prefers-reduced-motion: reduce) {
+    .cursor {
+      animation: none;
+      opacity: 1;
+    }
+  }
+</style>
+
+<script>
+  // Parse embedded JSON data
+  const contentDataEl = document.getElementById('garden-content-data');
+  const batesonQuotesEl = document.getElementById('bateson-quotes');
+
+  const contentData: {
+    specimens: { id: string; name: string; grown: string; series?: string }[];
+    journal: { slug: string; title: string; date: string; summary: string; language: string; type: string }[];
+    cultivations: { slug: string; name: string; status: string }[];
+    visitors: { id: string; nombre: string; mensaje: string; timestamp: string }[];
+    workerUrl: string;
+  } = contentDataEl ? JSON.parse(contentDataEl.textContent || '{}') : { specimens: [], journal: [], cultivations: [], visitors: [], workerUrl: '' };
+
+  const batesonQuotes: string[] = batesonQuotesEl ? JSON.parse(batesonQuotesEl.textContent || '[]') : [];
+
+  // DOM elements
+  const visitorsBook = document.getElementById('visitors-book');
+  const input = document.getElementById('console-input') as HTMLInputElement;
+  const output = document.getElementById('console-output') as HTMLDivElement;
+  const cursor = document.getElementById('cursor') as HTMLSpanElement;
+  const textMeasurer = document.getElementById('text-measurer') as HTMLSpanElement;
+
+  // Update cursor position based on input text
+  function updateCursorPosition(): void {
+    if (!input || !cursor || !textMeasurer) return;
+    // Use text up to selection/cursor position for accurate placement
+    const textBeforeCursor = input.value.substring(0, input.selectionStart ?? input.value.length);
+    textMeasurer.textContent = textBeforeCursor || '';
+    const width = textMeasurer.offsetWidth;
+    cursor.style.left = `${width}px`;
+  }
+
+  // Update cursor on input events
+  input?.addEventListener('input', updateCursorPosition);
+  input?.addEventListener('keyup', updateCursorPosition);
+  input?.addEventListener('click', updateCursorPosition);
+  input?.addEventListener('focus', updateCursorPosition);
+
+  // Initial position
+  updateCursorPosition();
+
+  // Visitor state (localStorage)
+  interface VisitorState {
+    version: 1;
+    visits: number;
+    lastVisit: string;
+    waterings: number;
+    seedPlanted: boolean;
+    seedCount: number;
+  }
+
+  const STORAGE_KEY = 'jardin-visitor';
+  const CURRENT_VERSION = 1;
+
+  function createDefaultState(): VisitorState {
+    return {
+      version: 1,
+      visits: 0,
+      lastVisit: '',
+      waterings: 0,
+      seedPlanted: false,
+      seedCount: 0,
+    };
+  }
+
+  function migrateState(stored: unknown): VisitorState {
+    // If unparseable or not an object, reinitialize
+    if (!stored || typeof stored !== 'object') {
+      return createDefaultState();
+    }
+
+    const state = stored as Record<string, unknown>;
+
+    // Version 0 (no version field) -> Version 1
+    if (!('version' in state) || state.version === undefined) {
+      return {
+        version: 1,
+        visits: typeof state.visits === 'number' ? state.visits : 0,
+        lastVisit: typeof state.lastVisit === 'string' ? state.lastVisit : '',
+        waterings: typeof state.waterings === 'number' ? state.waterings : 0,
+        seedPlanted: typeof state.seedPlanted === 'boolean' ? state.seedPlanted : false,
+        seedCount: typeof state.seedCount === 'number' ? state.seedCount : 0,
+      };
+    }
+
+    // Already current version
+    if (state.version === CURRENT_VERSION) {
+      return state as unknown as VisitorState;
+    }
+
+    // Unknown future version — reinitialize
+    return createDefaultState();
+  }
+
+  function getVisitorState(): VisitorState {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        return migrateState(parsed);
+      }
+    } catch {
+      // localStorage unavailable or corrupted
+    }
+    return createDefaultState();
+  }
+
+  function saveVisitorState(state: VisitorState): void {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    } catch {
+      // localStorage unavailable
+    }
+  }
+
+  function clearVisitorState(): void {
+    try {
+      localStorage.removeItem(STORAGE_KEY);
+    } catch {
+      // localStorage unavailable
+    }
+  }
+
+  // Track visit
+  let visitorState = getVisitorState();
+  visitorState.visits++;
+  visitorState.lastVisit = new Date().toISOString();
+  saveVisitorState(visitorState);
+
+  // Confirmation mode for olvidar/forget
+  let awaitingConfirmation: 'olvidar' | null = null;
+
+  // Command parsing
+  function parseCommand(input: string): { name: string; args: string } {
+    const trimmed = input.trim().toLowerCase();
+    const spaceIndex = trimmed.indexOf(' ');
+    if (spaceIndex === -1) {
+      return { name: trimmed, args: '' };
+    }
+    return {
+      name: trimmed.slice(0, spaceIndex),
+      args: trimmed.slice(spaceIndex + 1).trim(),
+    };
+  }
+
+  // Output helpers
+  function showOutput(html: string): void {
+    output.innerHTML = html + `
+      <div class="dismiss-row">
+        <button class="dismiss-btn" type="button">dismiss</button>
+      </div>
+    `;
+    output.classList.add('expanded');
+
+    // Wire up dismiss button
+    const dismissBtn = output.querySelector('.dismiss-btn');
+    dismissBtn?.addEventListener('click', dismissOutput);
+
+    // Wire up season headers for click-to-expand fallback
+    output.querySelectorAll('.season-header').forEach(header => {
+      header.addEventListener('click', () => {
+        const isExpanded = header.classList.toggle('expanded');
+        const chevron = header.querySelector('.season-chevron');
+        if (chevron) {
+          chevron.textContent = isExpanded ? 'v' : '>';
+        }
+        header.setAttribute('aria-expanded', String(isExpanded));
+        const items = header.nextElementSibling as HTMLElement;
+        if (items) {
+          items.style.display = isExpanded ? 'block' : '';
+        }
+      });
+    });
+  }
+
+  function dismissOutput(): void {
+    output.classList.remove('expanded');
+    output.innerHTML = '';
+    input.value = '';
+    input.focus();
+    updateCursorPosition();
+  }
+
+  // Helper: get season from date
+  function getSeason(dateStr: string): 'primavera' | 'verano' | 'otoño' | 'invierno' {
+    const date = new Date(dateStr);
+    const month = date.getMonth(); // 0-11
+    if (month >= 2 && month <= 4) return 'primavera';
+    if (month >= 5 && month <= 7) return 'verano';
+    if (month >= 8 && month <= 10) return 'otoño';
+    return 'invierno';
+  }
+
+  // Command handlers
+  const commands: Record<string, (args: string) => void | Promise<void>> = {
+    // Public commands
+    random() {
+      // Collect all navigable content
+      const items: { url: string; label: string; date: string }[] = [];
+
+      contentData.specimens.forEach(s => {
+        items.push({
+          url: `/#conservatory`,
+          label: `specimen: ${s.name}`,
+          date: s.grown,
+        });
+      });
+
+      contentData.journal.forEach(e => {
+        items.push({
+          url: `/cuaderno/${e.slug}`,
+          label: `journal: ${e.title}`,
+          date: e.date,
+        });
+      });
+
+      contentData.cultivations.forEach(c => {
+        items.push({
+          url: `/#cultivations`,
+          label: `cultivation: ${c.name}`,
+          date: new Date().toISOString(), // cultivations don't have dates, weight as recent
+        });
+      });
+
+      if (items.length === 0) {
+        showOutput('<p class="output-line output-muted">the garden is empty. spring is later than usual.</p>');
+        return;
+      }
+
+      // Weight toward recent items (simple approach: sort by date, pick from first half more often)
+      items.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+      const weightedIndex = Math.floor(Math.random() * Math.random() * items.length);
+      const chosen = items[weightedIndex];
+
+      showOutput(`
+        <p class="output-line">→ <a href="${chosen.url}">${chosen.label}</a></p>
+      `);
+    },
+
+    about(args) {
+      if (args === '--garden' || args === 'garden') {
+        showOutput(`
+          <p class="output-line output-fern">un jardín cibernético</p>
+          <p class="output-line">a place where feedback loops are tended, not optimized.</p>
+          <p class="output-line">where the map and the territory argue productively.</p>
+        `);
+      } else {
+        showOutput(`
+          <p class="output-line">nico. systems, interfaces, the gap between.</p>
+          <p class="output-line output-muted">based: montréal. from: bogotá.</p>
+          <p class="output-line output-muted">try: about --garden</p>
+        `);
+      }
+    },
+
+    qué() {
+      // Alias for about --garden
+      commands.about('--garden');
+    },
+
+    seasons(args) {
+      // Group all content by season
+      type SeasonKey = 'primavera' | 'verano' | 'otoño' | 'invierno';
+      const seasonOrder: SeasonKey[] = ['primavera', 'verano', 'otoño', 'invierno'];
+
+      interface SeasonItem {
+        label: string;
+        url: string;
+        date: string;
+        type: 'cuaderno' | 'specimen';
+      }
+
+      const seasons: Record<SeasonKey, SeasonItem[]> = {
+        primavera: [],
+        verano: [],
+        otoño: [],
+        invierno: [],
+      };
+
+      contentData.journal.forEach(e => {
+        const season = getSeason(e.date);
+        seasons[season].push({
+          label: e.title,
+          url: `/cuaderno/${e.slug}`,
+          date: e.date.slice(0, 10), // ISO date portion
+          type: 'cuaderno',
+        });
+      });
+
+      contentData.specimens.forEach(s => {
+        const season = getSeason(s.grown);
+        seasons[season].push({
+          label: s.name,
+          url: '/#conservatory',
+          date: s.grown.slice(0, 10),
+          type: 'specimen',
+        });
+      });
+
+      // Sort items within each season by date descending
+      for (const items of Object.values(seasons)) {
+        items.sort((a, b) => b.date.localeCompare(a.date));
+      }
+
+      // Determine which seasons to expand
+      const argLower = args.toLowerCase().trim();
+      const expandAll = argLower === 'all';
+      const expandOne = seasonOrder.includes(argLower as SeasonKey) ? argLower as SeasonKey : null;
+
+      function renderSeasonItems(items: SeasonItem[]): string {
+        if (items.length === 0) {
+          return '<div class="season-item output-muted">barbecho.</div>';
+        }
+        return items.map(item =>
+          `<div class="season-item"><span class="output-mono">${item.date}</span>  <a href="${item.url}">${item.type}: ${item.label}</a></div>`
+        ).join('');
+      }
+
+      let html = '';
+      for (const season of seasonOrder) {
+        const items = seasons[season];
+        const count = items.length;
+        const isExpanded = expandAll || expandOne === season;
+        const chevron = isExpanded ? 'v' : '>';
+        const expandedClass = isExpanded ? ' expanded' : '';
+
+        html += `
+          <div class="season-header${expandedClass}" role="button" tabindex="0" aria-expanded="${isExpanded}">
+            <span class="season-chevron">${chevron}</span>
+            <span>${season} (${count})</span>
+          </div>
+          <div class="season-items"${isExpanded ? ' style="display: block;"' : ''}>
+            ${renderSeasonItems(items)}
+          </div>
+        `;
+      }
+
+      showOutput(html);
+    },
+
+    buscar(args) {
+      commands.find(args);
+    },
+
+    find(args) {
+      if (!args) {
+        showOutput('<p class="output-line output-muted">buscar qué?</p>');
+        return;
+      }
+
+      const term = args.toLowerCase();
+      const results: { label: string; url: string; meta: string }[] = [];
+
+      contentData.journal.forEach(e => {
+        if (e.title.toLowerCase().includes(term) || e.summary.toLowerCase().includes(term)) {
+          results.push({
+            label: e.title,
+            url: `/cuaderno/${e.slug}`,
+            meta: e.summary,
+          });
+        }
+      });
+
+      contentData.specimens.forEach(s => {
+        if (s.name.toLowerCase().includes(term) || (s.series && s.series.toLowerCase().includes(term))) {
+          results.push({
+            label: s.name,
+            url: '/#conservatory',
+            meta: s.series ? `series: ${s.series}` : 'specimen',
+          });
+        }
+      });
+
+      contentData.cultivations.forEach(c => {
+        if (c.name.toLowerCase().includes(term)) {
+          results.push({
+            label: c.name,
+            url: '/#cultivations',
+            meta: c.status,
+          });
+        }
+      });
+
+      if (results.length === 0) {
+        showOutput(`<p class="output-line output-muted">nothing found for "${args}"</p>`);
+        return;
+      }
+
+      let html = `<p class="output-line output-muted">${results.length} result${results.length === 1 ? '' : 's'}:</p>`;
+      results.forEach(r => {
+        html += `
+          <div class="search-result">
+            <a href="${r.url}">${r.label}</a>
+            <div class="result-meta">${r.meta}</div>
+          </div>
+        `;
+      });
+
+      showOutput(html);
+    },
+
+    // Secret commands
+    bateson() {
+      const quote = batesonQuotes[Math.floor(Math.random() * batesonQuotes.length)];
+      showOutput(`<p class="output-line output-quote">"${quote}"</p>`);
+    },
+
+    regar() {
+      commands.water('');
+    },
+
+    water() {
+      visitorState.waterings++;
+      saveVisitorState(visitorState);
+
+      const responses = [
+        'the garden appreciates it.',
+        'water finds its way.',
+        'something stirs.',
+        'roots remember.',
+      ];
+      const response = visitorState.waterings === 1
+        ? responses[0]
+        : responses[Math.floor(Math.random() * responses.length)];
+
+      showOutput(`
+        <p class="output-line output-fern">${response}</p>
+        <p class="output-line output-muted">waterings: ${visitorState.waterings}</p>
+      `);
+    },
+
+    semilla() {
+      commands.seed('');
+    },
+
+    seed() {
+      if (!visitorState.seedPlanted) {
+        visitorState.seedPlanted = true;
+        visitorState.seedCount = 1;
+        saveVisitorState(visitorState);
+        showOutput('<p class="output-line output-ochre">a seed is planted. return to tend it.</p>');
+        return;
+      }
+
+      visitorState.seedCount++;
+      saveVisitorState(visitorState);
+
+      const stages = [
+        'the seed waits.',
+        'something stirs beneath.',
+        'a crack in the shell.',
+        'a pale tendril.',
+        'reaching toward light.',
+        'the first leaf unfurls.',
+        'patience.',
+      ];
+
+      if (visitorState.seedCount >= 7) {
+        showOutput(`
+          <p class="output-line output-fern">the seed has sprouted.</p>
+          <p class="output-line output-quote">"the pattern which connects."</p>
+          <p class="output-line output-sun">— you found it.</p>
+        `);
+      } else {
+        const stage = stages[Math.min(visitorState.seedCount - 1, stages.length - 1)];
+        showOutput(`<p class="output-line output-muted">${stage}</p>`);
+      }
+    },
+
+    ls() {
+      showOutput(`
+        <p class="output-line output-mono">conservatory/&nbsp;&nbsp;cuaderno/&nbsp;&nbsp;cultivations/&nbsp;&nbsp;library/</p>
+      `);
+    },
+
+    pwd() {
+      showOutput('<p class="output-line output-mono">you are in: el jardín</p>');
+    },
+
+    help() {
+      showOutput(`
+        <p class="output-line"><span class="output-fern">random</span> — go somewhere</p>
+        <p class="output-line"><span class="output-fern">about</span> — who tends this</p>
+        <p class="output-line"><span class="output-fern">seasons</span> — browse by season</p>
+        <p class="output-line"><span class="output-fern">buscar [term]</span> — search</p>
+        <p class="output-line"><span class="output-fern">dejar nombre="..." mensaje="..."</span> — leave a note</p>
+      `);
+    },
+
+    ayuda() {
+      commands.help('');
+    },
+
+    aide() {
+      commands.help('');
+    },
+
+    olvidar() {
+      awaitingConfirmation = 'olvidar';
+      showOutput('<p class="output-line">¿forget this garden? (y/n) <span class="cursor" aria-hidden="true">_</span></p>');
+    },
+
+    forget() {
+      commands.olvidar('');
+    },
+
+    cd(args) {
+      if (args === '..' || args === '../') {
+        showOutput('<p class="output-line output-muted">there is no outside.</p>');
+        return;
+      }
+
+      const sections: Record<string, string> = {
+        conservatory: '/#conservatory',
+        invernadero: '/#conservatory',
+        cuaderno: '/cuaderno',
+        journal: '/cuaderno',
+        cultivations: '/#cultivations',
+        cultivos: '/#cultivations',
+        library: '/#library',
+        biblioteca: '/#library',
+      };
+
+      const target = args.replace(/\/$/, '').toLowerCase();
+      if (sections[target]) {
+        window.location.href = sections[target];
+      } else if (target === '' || target === '~' || target === 'home') {
+        window.location.href = '/';
+      } else {
+        showOutput(`<p class="output-line output-muted">cd: ${args}: not a garden path</p>`);
+      }
+    },
+
+    clear() {
+      dismissOutput();
+    },
+
+    // Visitor message commands
+    async dejar(args) {
+      // Parse nombre="X" mensaje="Y"
+      const nombreMatch = args.match(/nombre\s*=\s*"([^"]+)"/i);
+      const mensajeMatch = args.match(/mensaje\s*=\s*"([^"]+)"/i);
+
+      if (!nombreMatch || !mensajeMatch) {
+        showOutput('<p class="output-line output-muted">dejar: missing nombre or mensaje</p><p class="output-line output-muted">syntax: dejar nombre="Ana" mensaje="el mapa no es el territorio"</p>');
+        return;
+      }
+
+      const nombre = nombreMatch[1].trim();
+      const mensaje = mensajeMatch[1].trim();
+
+      if (nombre.length > 40) {
+        showOutput('<p class="output-line output-muted">nombre: 40 chars max.</p>');
+        return;
+      }
+
+      if (mensaje.length > 280) {
+        showOutput('<p class="output-line output-muted">mensaje: 280 chars max. brevity is a gift.</p>');
+        return;
+      }
+
+      if (!contentData.workerUrl) {
+        showOutput('<p class="output-line output-muted">the garden is not yet ready to receive notes.</p>');
+        return;
+      }
+
+      showOutput('<p class="output-line output-muted">sending...</p>');
+
+      try {
+        const response = await fetch(`${contentData.workerUrl}/submit`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ nombre, mensaje }),
+        });
+
+        const data = await response.json() as { ok?: boolean; error?: string; message?: string };
+
+        if (response.ok && data.ok) {
+          showOutput('<p class="output-line output-fern">nota recibida. awaiting approval.</p>');
+        } else if (response.status === 429) {
+          showOutput('<p class="output-line output-muted">too many notes. wait an hour.</p>');
+        } else {
+          showOutput(`<p class="output-line output-muted">${data.error || 'something went wrong.'}</p>`);
+        }
+      } catch {
+        showOutput('<p class="output-line output-muted">the garden is unreachable. try again later.</p>');
+      }
+    },
+
+    voces() {
+      if (contentData.visitors.length === 0) {
+        showOutput('<p class="output-line output-muted">no voices yet. be the first: dejar nombre="you" mensaje="..."</p>');
+        return;
+      }
+
+      let html = `<p class="output-line output-muted">${contentData.visitors.length} voice${contentData.visitors.length === 1 ? '' : 's'}:</p>`;
+
+      contentData.visitors.slice(0, 10).forEach(v => {
+        html += `<p class="output-line"><span class="output-fern">${escapeHtml(v.nombre)}</span> — <span class="output-quote">"${escapeHtml(v.mensaje)}"</span></p>`;
+      });
+
+      if (contentData.visitors.length > 10) {
+        html += `<p class="output-line output-muted">...and ${contentData.visitors.length - 10} more</p>`;
+      }
+
+      showOutput(html);
+    },
+
+    voices() {
+      commands.voces('');
+    },
+  };
+
+  // Escape HTML for safe display
+  function escapeHtml(text: string): string {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
+  // Handle command execution
+  function executeCommand(rawInput: string): void {
+    const trimmed = rawInput.trim().toLowerCase();
+
+    // Handle confirmation mode for olvidar/forget
+    if (awaitingConfirmation === 'olvidar') {
+      awaitingConfirmation = null;
+      if (trimmed === 'y' || trimmed === 'yes' || trimmed === 'sí' || trimmed === 'si') {
+        clearVisitorState();
+        visitorState = createDefaultState();
+        showOutput('<p class="output-line output-muted">the garden has forgotten you. it will remember again.</p>');
+      } else {
+        showOutput('<p class="output-line output-muted">recordando.</p>');
+      }
+      return;
+    }
+
+    const { name, args } = parseCommand(rawInput);
+
+    if (!name) {
+      dismissOutput();
+      return;
+    }
+
+    const handler = commands[name];
+    if (handler) {
+      handler(args);
+    } else {
+      showOutput(`<p class="output-line output-muted">unknown command: ${name}</p>`);
+    }
+  }
+
+  // Event listeners
+  input?.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      executeCommand(input.value);
+    } else if (e.key === 'Escape') {
+      dismissOutput();
+    }
+  });
+
+  // Click anywhere in console to focus input
+  visitorsBook?.addEventListener('click', (e) => {
+    // Don't steal focus from buttons, links, etc.
+    const target = e.target as HTMLElement;
+    if (target.tagName === 'BUTTON' || target.tagName === 'A' || target.closest('.season-header')) {
+      return;
+    }
+    input?.focus();
+  });
+
+  // Keyboard accessibility for season headers
+  output?.addEventListener('keydown', (e) => {
+    const target = e.target as HTMLElement;
+    if (target.classList.contains('season-header') && (e.key === 'Enter' || e.key === ' ')) {
+      e.preventDefault();
+      target.click();
+    }
+  });
+</script>
