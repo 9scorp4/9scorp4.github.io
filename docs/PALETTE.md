@@ -70,11 +70,13 @@ The structural color. Most colored UI uses these.
 
 | Element | Size |
 |---|---|
-| Display (h1, garden title) | 26px italic |
-| Section banners (h2) | 11px small-caps with letter-spacing 3px |
-| Body | 14px |
-| Captions | 12–13px |
-| Quiet text | 11–12px italic |
+| Display (h1, garden title) | 34px italic |
+| Section banners (h2) | 15px small-caps with letter-spacing 3px |
+| Body | 18px |
+| Specimen title (h3) | 20px |
+| Specimen description | 17px |
+| Captions | 15–16px |
+| Quiet text | 13px |
 
 Line-height **1.75** for body. The type wants room to breathe.
 
