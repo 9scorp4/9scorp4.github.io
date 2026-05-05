@@ -1,0 +1,89 @@
+---
+import type { CollectionEntry } from 'astro:content';
+
+interface Props {
+  entry: CollectionEntry<'journal'>;
+  full?: boolean;
+}
+
+const { entry, full = false } = Astro.props;
+const { title, date, entry: entryNumber, language, summary, type } = entry.data;
+
+// French month names
+const frenchMonths = [
+  'janvier', 'février', 'mars', 'avril', 'mai', 'juin',
+  'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'
+];
+
+// Format date in French style: "21 avril" (using UTC to avoid timezone shifts)
+const day = date.getUTCDate();
+const month = frenchMonths[date.getUTCMonth()];
+const formattedDate = `${day} ${month}`;
+
+// Diptych marker
+const isDiptych = type === 'diptych';
+---
+
+<article class="journal-entry" lang={language}>
+  <p class="meta">
+    {isDiptych && <span class="diptych-marker" title="diptych">⁂</span>}
+    {formattedDate} · entry {entryNumber}
+  </p>
+  <h3><a href={`/cuaderno/${entry.slug}`}>{title}</a></h3>
+  <p class="summary">{summary}</p>
+</article>
+
+<style>
+  .journal-entry {
+    border-left: 2px solid var(--terracotta);
+    padding-left: 18px;
+    margin-bottom: 20px;
+  }
+
+  .journal-entry:last-child {
+    margin-bottom: 0;
+  }
+
+  .meta {
+    font-family: var(--font-serif);
+    font-size: 14px;
+    font-style: italic;
+    color: var(--ink-soft);
+    margin: 0;
+  }
+
+  .diptych-marker {
+    color: var(--ochre);
+    font-style: normal;
+    margin-right: 0.25em;
+  }
+
+  h3 {
+    font-family: var(--font-serif);
+    font-size: 20px;
+    font-weight: 400;
+    margin: 6px 0;
+  }
+
+  h3 a {
+    color: var(--ink);
+    text-decoration: none;
+  }
+
+  h3 a:hover {
+    color: var(--terracotta);
+  }
+
+  h3 a:focus-visible {
+    outline: 2px solid var(--sun);
+    outline-offset: 2px;
+  }
+
+  .summary {
+    font-family: var(--font-serif);
+    font-size: 16px;
+    color: var(--ink-soft);
+    margin: 0;
+    line-height: 1.5;
+  }
+</style>

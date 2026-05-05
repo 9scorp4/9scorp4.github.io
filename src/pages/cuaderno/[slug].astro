@@ -1,0 +1,104 @@
+---
+/**
+ * Dynamic route for journal entries at /cuaderno/[slug]
+ * Handles both regular articles and diptych entries.
+ */
+
+import { getCollection } from 'astro:content';
+import type { CollectionEntry } from 'astro:content';
+import DiptychPage from '../../components/DiptychPage.astro';
+import Garden from '../../layouts/Garden.astro';
+
+export async function getStaticPaths() {
+  const entries = await getCollection('journal', ({ data }) => !data.draft);
+
+  return entries.map((entry) => ({
+    params: { slug: entry.slug },
+    props: { entry },
+  }));
+}
+
+interface Props {
+  entry: CollectionEntry<'journal'>;
+}
+
+const { entry } = Astro.props;
+const { type } = entry.data;
+
+// For diptych entries, load the sibling markdown files
+let articleHtml = '';
+let metalogueHtml = '';
+
+if (type === 'diptych') {
+  // Import markdown files with Astro's built-in processing
+  // The glob returns modules with compiledContent() for HTML output
+  const articleModules = import.meta.glob<{ compiledContent: () => string }>(
+    '/src/content/journal/**/_article.md',
+    { eager: true }
+  );
+  const metalogueModules = import.meta.glob<{ compiledContent: () => string }>(
+    '/src/content/journal/**/_metalogue.md',
+    { eager: true }
+  );
+
+  // Find the files for this entry's slug
+  const articlePath = `/src/content/journal/${entry.slug}/_article.md`;
+  const metaloguePath = `/src/content/journal/${entry.slug}/_metalogue.md`;
+
+  const articleModule = articleModules[articlePath];
+  const metalogueModule = metalogueModules[metaloguePath];
+
+  if (articleModule) {
+    articleHtml = articleModule.compiledContent();
+  }
+  if (metalogueModule) {
+    metalogueHtml = metalogueModule.compiledContent();
+  }
+}
+
+// For regular articles, render the content directly
+const { Content } = await entry.render();
+---
+
+{type === 'diptych' ? (
+  <DiptychPage
+    entry={entry}
+    articleHtml={articleHtml}
+    metalogueHtml={metalogueHtml}
+  />
+) : (
+  <Garden title={`${entry.data.title} — un jardín cibernético`}>
+    <main class="article-page">
+      <article>
+        <header>
+          <h1>{entry.data.title}</h1>
+        </header>
+        <div class="content">
+          <Content />
+        </div>
+      </article>
+    </main>
+  </Garden>
+)}
+
+<style>
+  .article-page {
+    max-width: 700px;
+    margin: 0 auto;
+    padding: var(--rhythm-lg);
+  }
+
+  .article-page h1 {
+    font-family: var(--font-serif);
+    font-size: 28px;
+    font-weight: 400;
+    margin-bottom: var(--rhythm-lg);
+  }
+
+  .content :global(p) {
+    font-family: var(--font-serif);
+    font-size: 17px;
+    line-height: 1.75;
+    margin-bottom: var(--rhythm);
+  }
+</style>
