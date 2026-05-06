@@ -1146,6 +1146,14 @@ const batesonQuotes = [
       commands.olvidar('');
     },
 
+    micelio() {
+      window.location.href = '/micelio';
+    },
+
+    mycelium() {
+      commands.micelio('');
+    },
+
     cd(args) {
       if (args === '..' || args === '../') {
         showOutput('<p class="output-line output-muted">there is no outside.</p>');
@@ -1165,6 +1173,8 @@ const batesonQuotes = [
         ahora: '/#now',
         visitors: '/#visitors',
         visitas: '/#visitors',
+        micelio: '/micelio',
+        mycelium: '/micelio',
       };
 
       const target = args.replace(/\/$/, '').toLowerCase();

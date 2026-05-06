@@ -5,6 +5,7 @@ workers/*/node_modules/
 # build
 dist/
 .astro/
+public/mycelium-data.json
 
 # environment
 .env
@@ -41,3 +42,6 @@ coverage/
 
 # claude
 .claude/
+
+# private notes (never pushed)
+_private/

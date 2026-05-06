@@ -70,6 +70,17 @@ const olderRendered = renderedEntries.slice(1);
             <span class="date">{formatDate(entry.data.date)}</span>
             <div class="body">
               <Content />
+              {entry.data.escuchando && entry.data.escuchando.length > 0 && (
+                <p>
+                  <em>escuchando:</em>{' '}
+                  {entry.data.escuchando.map((track, i) => (
+                    <>
+                      <a href={track.url}>{track.artist} — {track.title}</a>
+                      {i < entry.data.escuchando!.length - 1 && ', '}
+                    </>
+                  ))}
+                </p>
+              )}
             </div>
           </div>
         ))}
@@ -81,6 +92,18 @@ const olderRendered = renderedEntries.slice(1);
         <p class="date">{formatDate(latestRendered.entry.data.date)}</p>
         <div class="body">
           <latestRendered.Content />
+          {latestRendered.entry.data.escuchando && latestRendered.entry.data.escuchando.length > 0 && (
+            <p>
+              <em>escuchando:</em>{' '}
+              {latestRendered.entry.data.escuchando.map((track, i) => (
+                <>
+                  <a href={track.url}>{track.artist} — {track.title}</a>
+                  {i < latestRendered.entry.data.escuchando!.length - 1 && ', '}
+                </>
+              ))}
+              {' '}<a href="/micelio" class="mycelium-link" title="el micelio">◉</a>
+            </p>
+          )}
         </div>
       </div>
       {olderRendered.length > 0 && (
@@ -90,6 +113,17 @@ const olderRendered = renderedEntries.slice(1);
               <span class="date">{formatDate(entry.data.date)}</span>
               <div class="body">
                 <Content />
+                {entry.data.escuchando && entry.data.escuchando.length > 0 && (
+                  <p>
+                    <em>escuchando:</em>{' '}
+                    {entry.data.escuchando.map((track, i) => (
+                      <>
+                        <a href={track.url}>{track.artist} — {track.title}</a>
+                        {i < entry.data.escuchando!.length - 1 && ', '}
+                      </>
+                    ))}
+                  </p>
+                )}
               </div>
             </div>
           ))}
@@ -196,5 +230,22 @@ const olderRendered = renderedEntries.slice(1);
     content: " ↗";
     font-size: 0.8em;
     opacity: 0.6;
+  }
+
+  .body :global(.mycelium-link) {
+    color: var(--ink-faint);
+    text-decoration: none;
+    opacity: 0.6;
+    font-size: 0.9em;
+    transition: opacity 0.2s, color 0.2s;
+  }
+
+  .body :global(.mycelium-link:hover) {
+    color: var(--fern);
+    opacity: 1;
+  }
+
+  .body :global(.mycelium-link)::after {
+    content: none;
   }
 </style>
