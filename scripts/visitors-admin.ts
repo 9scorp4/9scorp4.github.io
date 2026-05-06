@@ -115,19 +115,9 @@ async function approveAll(): Promise<void> {
   console.log('\nAll messages approved.');
 }
 
-interface AnalyticsRow {
-  blob1?: string;
-  blob2?: string;
-  blob3?: string;
-  blob4?: string;
-  blob5?: string;
-  double1?: number;
-  double2?: number;
-  count?: number;
-  sum_double1?: number;
-  avg_double1?: number;
-  avg_double2?: number;
-}
+// Analytics Engine returns aliased column names from SQL
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type AnalyticsRow = Record<string, any>;
 
 interface AnalyticsResponse {
   data: AnalyticsRow[];
@@ -190,7 +180,7 @@ async function showStats(days: number): Promise<void> {
       console.log('  (no data yet)');
     } else {
       for (const row of pages.data) {
-        console.log(`  ${row.count?.toString().padStart(4)} │ ${row.blob2}`);
+        console.log(`  ${String(row.views).padStart(4)} │ ${row.path}`);
       }
     }
   } catch (err) {
@@ -214,8 +204,8 @@ async function showStats(days: number): Promise<void> {
       console.log('  (no data yet)');
     } else {
       for (const row of commands.data) {
-        const secretMarker = row.blob5 === 'secret' ? ' *' : '';
-        console.log(`  ${row.count?.toString().padStart(4)} │ ${row.blob2}${secretMarker}`);
+        const secretMarker = row.is_secret === 'secret' ? ' *' : '';
+        console.log(`  ${String(row.uses).padStart(4)} │ ${row.command}${secretMarker}`);
       }
     }
   } catch (err) {
@@ -243,9 +233,9 @@ async function showStats(days: number): Promise<void> {
       console.log('  (no data yet)');
     } else {
       for (const row of articles.data) {
-        const avgTime = Math.round(row.avg_double1 || 0);
-        const avgDepth = Math.round(row.avg_double2 || 0);
-        console.log(`  ${row.count?.toString().padStart(3)} reads │ ${avgTime}s avg │ ${avgDepth}% scroll │ ${row.blob2}`);
+        const avgTime = Math.round(Number(row.avg_read_time) || 0);
+        const avgDepth = Math.round(Number(row.avg_scroll_depth) || 0);
+        console.log(`  ${String(row.reads).padStart(3)} reads │ ${avgTime}s avg │ ${avgDepth}% scroll │ ${row.path}`);
       }
     }
   } catch (err) {
@@ -270,7 +260,7 @@ async function showStats(days: number): Promise<void> {
       console.log('  (no data yet)');
     } else {
       for (const row of countries.data) {
-        console.log(`  ${row.count?.toString().padStart(4)} │ ${row.blob3}`);
+        console.log(`  ${String(row.events).padStart(4)} │ ${row.country}`);
       }
     }
   } catch (err) {
@@ -292,7 +282,7 @@ async function showStats(days: number): Promise<void> {
       console.log('  (no data yet)');
     } else {
       for (const row of submissions.data) {
-        console.log(`  ${row.count?.toString().padStart(4)} │ ${row.blob2}`);
+        console.log(`  ${String(row.total).padStart(4)} │ ${row.status}`);
       }
     }
   } catch (err) {
