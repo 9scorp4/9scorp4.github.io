@@ -22,6 +22,7 @@ const {
 
 const siteUrl = 'https://9scorp4.github.io';
 const fullUrl = canonicalUrl ? `${siteUrl}${canonicalUrl}` : siteUrl;
+const workerUrl = import.meta.env.PUBLIC_VISITORS_WORKER_URL || '';
 
 // Auto-construct OG image URL from slug, or use explicit ogImage, or fall back to default
 let ogImagePath: string;
@@ -69,5 +70,22 @@ const fullImageUrl = `${siteUrl}${ogImagePath}`;
   <body>
     <a href="#main" class="skip-link">Skip to content</a>
     <slot />
+    <script define:vars={{ workerUrl }}>
+      // Privacy-respecting pageview tracking
+      if (workerUrl && navigator.doNotTrack !== '1') {
+        try {
+          navigator.sendBeacon?.(
+            workerUrl + '/track',
+            JSON.stringify({
+              type: 'pageview',
+              path: location.pathname,
+              referrer: document.referrer || undefined,
+            })
+          );
+        } catch {
+          // Silently fail if tracking fails
+        }
+      }
+    </script>
   </body>
 </html>

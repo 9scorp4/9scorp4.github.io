@@ -1,8 +1,10 @@
 import { SubmissionSchema, type VisitorMessage, type RateLimitEntry } from './schema';
 import { sendNotification } from './email';
+import { trackEvent, parseEvent, type AnalyticsEngine } from './analytics';
 
 interface Env {
   VISITORS_KV: KVNamespace;
+  GARDEN_ANALYTICS?: AnalyticsEngine; // Optional until Analytics Engine is enabled
   ADMIN_TOKEN: string;
   RESEND_API_KEY: string;
   OWNER_EMAIL: string;
@@ -30,6 +32,10 @@ export default {
     // Route handling
     if (path === '/submit' && request.method === 'POST') {
       return handleSubmit(request, env);
+    }
+
+    if (path === '/track' && request.method === 'POST') {
+      return handleTrack(request, env);
     }
 
     // Admin routes - require auth
@@ -69,6 +75,12 @@ async function handleSubmit(request: Request, env: Env): Promise<Response> {
 
   const rateLimitResult = await checkRateLimit(ipHash, env);
   if (!rateLimitResult.allowed) {
+    // Track rate-limited submission
+    if (env.GARDEN_ANALYTICS) {
+      const cfRequest = request as Request & { cf?: { country?: string } };
+      const country = cfRequest.cf?.country || 'XX';
+      trackEvent(env.GARDEN_ANALYTICS, { type: 'submission', status: 'rate_limited' }, country);
+    }
     return json({ error: 'too many notes. wait an hour.' }, 429);
   }
 
@@ -121,7 +133,46 @@ async function handleSubmit(request: Request, env: Env): Promise<Response> {
   const workerUrl = new URL(request.url).origin;
   await sendNotification(message, env, workerUrl);
 
+  // Track successful submission
+  if (env.GARDEN_ANALYTICS) {
+    const cfRequest = request as Request & { cf?: { country?: string } };
+    const country = cfRequest.cf?.country || 'XX';
+    trackEvent(env.GARDEN_ANALYTICS, { type: 'submission', status: 'received' }, country);
+  }
+
   return json({ ok: true, message: 'nota recibida. awaiting approval.' });
+}
+
+async function handleTrack(request: Request, env: Env): Promise<Response> {
+  // Respect Do Not Track
+  const dnt = request.headers.get('DNT');
+  if (dnt === '1') {
+    return new Response(null, { status: 204, headers: corsHeaders });
+  }
+
+  // Parse and validate event
+  let body: unknown;
+  try {
+    body = await request.json();
+  } catch {
+    return new Response(null, { status: 400, headers: corsHeaders });
+  }
+
+  const event = parseEvent(body);
+  if (!event) {
+    return new Response(null, { status: 400, headers: corsHeaders });
+  }
+
+  // Extract country from Cloudflare headers
+  const cfRequest = request as Request & { cf?: { country?: string } };
+  const country = cfRequest.cf?.country || 'XX';
+
+  // Write to Analytics Engine (if available)
+  if (env.GARDEN_ANALYTICS) {
+    trackEvent(env.GARDEN_ANALYTICS, event, country);
+  }
+
+  return new Response(null, { status: 204, headers: corsHeaders });
 }
 
 async function handleListPending(env: Env): Promise<Response> {

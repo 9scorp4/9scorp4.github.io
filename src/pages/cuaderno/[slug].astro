@@ -24,6 +24,7 @@ interface Props {
 
 const { entry } = Astro.props;
 const { type } = entry.data;
+const workerUrl = import.meta.env.PUBLIC_VISITORS_WORKER_URL || '';
 
 // For diptych entries, load the sibling markdown files
 let articleHtml = '';
@@ -129,3 +130,71 @@ const jsonLd = JSON.stringify({
     margin-bottom: var(--rhythm);
   }
 </style>
+
+{type !== 'diptych' && (
+  <script define:vars={{ workerUrl, slug: entry.slug }}>
+    // Article read tracking - only for regular articles (diptych has its own)
+    (function() {
+      if (!workerUrl || navigator.doNotTrack === '1') return;
+
+      const startTime = Date.now();
+      let maxScrollDepth = 0;
+      let tracked = false;
+
+      // Track scroll depth
+      function updateScrollDepth() {
+        const scrollTop = window.scrollY;
+        const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+        if (docHeight > 0) {
+          const depth = Math.round((scrollTop / docHeight) * 100);
+          maxScrollDepth = Math.max(maxScrollDepth, depth);
+        }
+      }
+
+      window.addEventListener('scroll', updateScrollDepth, { passive: true });
+      updateScrollDepth(); // Initial
+
+      // Track on visibility change or unload
+      function trackRead() {
+        if (tracked) return;
+        const readTime = Math.round((Date.now() - startTime) / 1000);
+        if (readTime < 10) return; // Only track if >10s spent
+        tracked = true;
+
+        try {
+          navigator.sendBeacon?.(
+            workerUrl + '/track',
+            JSON.stringify({
+              type: 'article_read',
+              path: '/cuaderno/' + slug,
+              readTime,
+              scrollDepth: maxScrollDepth,
+            })
+          );
+
+          // Also update local storage for garden stats
+          const stored = localStorage.getItem('jardin-visitor');
+          if (stored) {
+            const state = JSON.parse(stored);
+            if (state.stats && !state.stats.articlesRead.includes(slug)) {
+              state.stats.articlesRead.push(slug);
+              localStorage.setItem('jardin-visitor', JSON.stringify(state));
+            }
+          }
+        } catch {
+          // Silently fail
+        }
+      }
+
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'hidden') {
+          trackRead();
+        }
+      });
+
+      // Fallback for page unload
+      window.addEventListener('pagehide', trackRead);
+    })();
+  </script>
+)}
+
