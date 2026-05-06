@@ -44,6 +44,10 @@ const cultivations = defineCollection({
     status: z.enum(['growing', 'dormant', 'wild', 'composted']),
     description: z.string(),
     repo: z.string().url().optional(),
+    links: z.array(z.object({
+      label: z.string(),
+      url: z.string().url(),
+    })).optional(),
   }),
 });
 
