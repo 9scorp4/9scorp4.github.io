@@ -226,7 +226,7 @@ const romanNumerals = ['i', 'ii', 'iii', 'iv', 'v', 'vi', 'vii', 'viii', 'ix', '
 <script>
   // Lazy-load sketch modules using Vite's glob import
   // Each sketch is code-split into its own chunk and loaded on demand
-  const sketchModules = import.meta.glob('../sketches/**/*.ts') as Record<
+  const sketchModules = import.meta.glob('../../sketches/**/*.ts') as Record<
     string,
     () => Promise<{ createSketch: (container: HTMLElement, options: any) => { remove: () => void } }>
   >;
