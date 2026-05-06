@@ -44,6 +44,9 @@ Before writing or editing any content, code, or copy:
 2. [`docs/PALETTE.md`](docs/PALETTE.md) — color tokens and type system
 3. [`docs/STACK.md`](docs/STACK.md) — framework conventions, file structure, deploy
 
+Additional reference:
+- [`docs/CONSOLE.md`](docs/CONSOLE.md) — devtools greeting and `window.garden` diagnostic API
+
 These exist so we don't re-litigate decisions every session. If a doc is missing something, update the doc — don't drift from it silently.
 
 ## Voice (one-line summary)
