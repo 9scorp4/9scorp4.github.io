@@ -299,7 +299,7 @@ Resist adding more until something concrete breaks. Specifically, avoid:
 
 - **Search**: corpus is small enough to scroll
 - **Comments**: visitors' book is the closest thing; cross-link to Threads/email otherwise
-- **Newsletter**: out of frame for this site; stays at AnthroposAI if it happens
+- **Newsletter**: out of frame for this site; lives elsewhere if it happens
 - **Analytics by default**: privacy-respecting only, and only when a signal is actually wanted
 - **A CMS**: markdown files + git is the CMS. Resist.
 
