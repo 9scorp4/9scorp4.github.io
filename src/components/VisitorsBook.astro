@@ -602,15 +602,17 @@ const batesonQuotes = [
   const CURRENT_VERSION = 2;
 
   // Commands that count as "secrets" for discovery tracking
-  const secretCommands = new Set([
-    'bateson',
-    'seed',
-    'semilla',
-    'water',
-    'regar',
-    'ls',
-    'pwd',
-  ]);
+  // Maps command -> canonical secret name (aliases map to same secret)
+  const secretCommands: Record<string, string> = {
+    'bateson': 'bateson',
+    'seed': 'seed',
+    'semilla': 'seed',      // alias
+    'water': 'water',
+    'regar': 'water',       // alias
+    'ls': 'ls',
+    'pwd': 'pwd',
+  };
+  const TOTAL_SECRETS = new Set(Object.values(secretCommands)).size; // 5 unique
 
   function createDefaultState(): VisitorState {
     return {
@@ -1089,7 +1091,7 @@ const batesonQuotes = [
         : 'none planted';
 
       // Secrets found count
-      const totalSecrets = secretCommands.size;
+      const totalSecrets = TOTAL_SECRETS;
       const foundSecrets = visitorState.stats.secretsFound.length;
 
       let html = `
@@ -1147,7 +1149,17 @@ const batesonQuotes = [
     },
 
     micelio() {
-      window.location.href = '/micelio';
+      const isFirstTime = !visitorState.stats.secretsFound.includes('micelio');
+      if (isFirstTime) {
+        visitorState.stats.secretsFound.push('micelio');
+        saveVisitorState(visitorState);
+        showOutput('<p class="output-line output-fern">the network reveals itself.</p>');
+        setTimeout(() => {
+          window.location.href = '/micelio';
+        }, 1200);
+      } else {
+        window.location.href = '/micelio';
+      }
     },
 
     mycelium() {
@@ -1292,11 +1304,12 @@ const batesonQuotes = [
     }
   }
 
-  // Track secret discovery (locally)
+  // Track secret discovery (locally, using canonical name)
   function trackSecretDiscovery(name: string): void {
-    if (!secretCommands.has(name)) return;
-    if (visitorState.stats.secretsFound.includes(name)) return;
-    visitorState.stats.secretsFound.push(name);
+    const canonical = secretCommands[name];
+    if (!canonical) return;
+    if (visitorState.stats.secretsFound.includes(canonical)) return;
+    visitorState.stats.secretsFound.push(canonical);
     saveVisitorState(visitorState);
   }
 
