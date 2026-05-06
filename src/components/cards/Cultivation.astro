@@ -6,7 +6,7 @@ interface Props {
 }
 
 const { cultivation } = Astro.props;
-const { name, status, description, repo } = cultivation.data;
+const { name, status, description, repo, links } = cultivation.data;
 
 const statusSymbols: Record<typeof status, string> = {
   growing: '▲',
@@ -22,7 +22,11 @@ const symbol = statusSymbols[status];
   <p class="status">{symbol} {status}</p>
   <h3>{name}</h3>
   <p class="description">{description}</p>
-  {repo ? <a href={repo} class="repo-link">repo →</a> : <span class="repo-link">seeds</span>}
+  <div class="links">
+    {repo && <a href={repo} class="link">repo →</a>}
+    {links?.map((link) => <a href={link.url} class="link">{link.label} →</a>)}
+    {!repo && !links?.length && <span class="link">seeds</span>}
+  </div>
 </article>
 
 <style>
@@ -80,17 +84,23 @@ const symbol = statusSymbols[status];
     line-height: 1.5;
   }
 
-  .repo-link {
+  .links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: auto;
+    padding-top: 12px;
+    justify-content: flex-end;
+  }
+
+  .link {
     font-family: var(--font-mono);
     font-size: 13px;
     color: var(--ink-soft);
-    margin-top: auto;
-    padding-top: 12px;
     text-decoration: none;
-    align-self: flex-end;
   }
 
-  .repo-link:hover {
+  .link:hover {
     color: var(--ink);
   }
 </style>
