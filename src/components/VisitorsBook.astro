@@ -1289,7 +1289,7 @@ const batesonQuotes = [
   // Track command usage via beacon (respects DNT)
   function trackCommand(name: string): void {
     if (!contentData.workerUrl || navigator.doNotTrack === '1') return;
-    const isSecret = secretCommands.has(name);
+    const isSecret = name in secretCommands;
     try {
       navigator.sendBeacon?.(
         contentData.workerUrl + '/track',
