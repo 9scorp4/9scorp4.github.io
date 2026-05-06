@@ -51,6 +51,34 @@ const ahora = defineCollection({
   type: 'content',
   schema: z.object({
     date: z.date(),
+    escuchando: z.array(z.object({
+      // === Required ===
+      artist: z.string(),
+      title: z.string(),
+      url: z.string().url(),              // YouTube Music, Spotify, etc.
+
+      // === Objective: from GetSongBPM ===
+      bpm: z.number().optional(),
+      key: z.string().optional(),         // "Em", "C#m", "F"
+      timeSignature: z.string().optional(), // "4/4", "3/4", "6/8"
+      openKey: z.string().optional(),     // Camelot/Open Key notation: "2m", "8d"
+      danceability: z.number().min(0).max(100).optional(),
+      acousticness: z.number().min(0).max(100).optional(),
+      songbpmId: z.string().optional(),   // for re-enrichment
+
+      // === Objective: general ===
+      year: z.number().optional(),        // release year
+      album: z.string().optional(),
+      duration: z.number().optional(),    // seconds
+      genre: z.array(z.string()).optional(),
+
+      // === Subjective: manual ===
+      energy: z.number().min(1).max(10).optional(),   // personal energy rating
+      mood: z.array(z.string()).optional(),           // e.g., ["melancholic", "driving"]
+      context: z.array(z.string()).optional(),        // e.g., ["gym", "focus", "cooking"]
+      discovered: z.string().optional(),              // e.g., "algorithm", "friend:Ana", "radio"
+      notes: z.string().optional(),                   // free-form
+    })).optional(),
   }),
 });
 

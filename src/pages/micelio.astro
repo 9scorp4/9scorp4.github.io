@@ -1,0 +1,130 @@
+---
+/**
+ * /micelio - The mycelium map
+ *
+ * A force-directed graph visualization of music connections from ahora dispatches.
+ * Songs connect where they touched: same dispatch, same tempo, same artist.
+ */
+
+import Garden from '../layouts/Garden.astro';
+import MyceliumCanvas from '../components/MyceliumCanvas.astro';
+---
+
+<Garden
+  title="el micelio | un jardín cibernético"
+  description="the invisible network beneath the garden — songs connected by dispatch, tempo, and artist"
+  canonicalUrl="/micelio"
+>
+  <main id="main" class="micelio-page">
+    <header class="micelio-header">
+      <h1 class="trilingual-title">
+        <span class="primary">EL MICELIO</span>
+        <span class="separator">·</span>
+        <span class="secondary">LE MYCÉLIUM</span>
+        <span class="separator">·</span>
+        <span class="secondary">THE MYCELIUM</span>
+      </h1>
+      <p class="intro">
+        the invisible network beneath the garden.<br>
+        songs connect where they touched.<br>
+        drag to explore.
+      </p>
+    </header>
+
+    <MyceliumCanvas />
+
+    <footer class="micelio-footer">
+      <p class="attribution">
+        tempo data via <a href="https://getsongbpm.com" target="_blank" rel="noopener">GetSongBPM</a>
+      </p>
+      <p class="back-link">
+        <a href="/#now">← el jardín</a>
+      </p>
+    </footer>
+  </main>
+</Garden>
+
+<style>
+  .micelio-page {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: var(--rhythm-lg);
+  }
+
+  .micelio-header {
+    text-align: center;
+    margin-bottom: var(--rhythm-lg);
+  }
+
+  .trilingual-title {
+    font-family: var(--font-serif);
+    font-size: 14px;
+    font-weight: normal;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--ink-soft);
+    margin: 0 0 var(--rhythm) 0;
+  }
+
+  .trilingual-title .primary {
+    color: var(--ink);
+  }
+
+  .trilingual-title .separator {
+    color: var(--ink-faint);
+    padding: 0 0.5em;
+  }
+
+  .trilingual-title .secondary {
+    color: var(--ink-faint);
+  }
+
+  .intro {
+    font-family: var(--font-serif);
+    font-size: 16px;
+    font-style: italic;
+    color: var(--ink-soft);
+    line-height: 1.6;
+    margin: 0;
+  }
+
+  .micelio-footer {
+    text-align: center;
+    margin-top: var(--rhythm-lg);
+    padding-top: var(--rhythm);
+    border-top: 1px solid var(--paper-line);
+  }
+
+  .attribution {
+    font-family: var(--font-serif);
+    font-size: 13px;
+    color: var(--ink-faint);
+    margin: 0 0 var(--rhythm) 0;
+  }
+
+  .attribution a {
+    color: var(--ink-faint);
+    text-decoration: none;
+  }
+
+  .attribution a:hover {
+    color: var(--fern);
+    text-decoration: underline;
+  }
+
+  .back-link {
+    font-family: var(--font-serif);
+    font-size: 14px;
+    font-style: italic;
+    margin: 0;
+  }
+
+  .back-link a {
+    color: var(--fern);
+    text-decoration: none;
+  }
+
+  .back-link a:hover {
+    text-decoration: underline;
+  }
+</style>
