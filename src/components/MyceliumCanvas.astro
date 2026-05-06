@@ -2,8 +2,7 @@
 /**
  * MyceliumCanvas - Force-directed graph visualization
  *
- * Custom canvas + minimal force simulation (~100 lines vanilla JS).
- * No dependencies. Upgradable to d3-force later if needed.
+ * Uses d3-force for physics simulation, canvas for rendering.
  */
 ---
 
@@ -13,30 +12,33 @@
 </div>
 
 <script>
-  interface MyceliumNode {
+  import {
+    forceSimulation,
+    forceLink,
+    forceManyBody,
+    forceCenter,
+    forceCollide,
+    type Simulation,
+    type SimulationNodeDatum,
+    type SimulationLinkDatum,
+  } from 'd3-force';
+
+  interface MyceliumNodeData {
     id: string;
     artist: string;
     title: string;
     url: string;
-    // Objective (GetSongBPM)
     bpm?: number;
     key?: string;
     openKey?: string;
     timeSignature?: string;
     danceability?: number;
-    // Subjective
     energy?: number;
-    // Meta
     firstHeard: string;
     appearances: number;
-    // Simulation state
-    x: number;
-    y: number;
-    vx: number;
-    vy: number;
   }
 
-  interface MyceliumEdge {
+  interface MyceliumEdgeData {
     source: string;
     target: string;
     weight: number;
@@ -44,9 +46,25 @@
   }
 
   interface MyceliumGraph {
-    nodes: MyceliumNode[];
-    edges: MyceliumEdge[];
+    nodes: MyceliumNodeData[];
+    edges: MyceliumEdgeData[];
     generated: string;
+  }
+
+  // Simulation node with d3 position data
+  interface SimNode extends SimulationNodeDatum, MyceliumNodeData {
+    x: number;
+    y: number;
+    fx?: number | null;
+    fy?: number | null;
+  }
+
+  // Simulation link with resolved node references
+  interface SimLink extends SimulationLinkDatum<SimNode> {
+    source: SimNode;
+    target: SimNode;
+    weight: number;
+    reasons: string[];
   }
 
   const canvas = document.getElementById('mycelium-canvas') as HTMLCanvasElement;
@@ -64,22 +82,14 @@
     inkFaint: '#8a7350',
   };
 
-  let nodes: MyceliumNode[] = [];
-  let edges: MyceliumEdge[] = [];
-  let selectedNode: MyceliumNode | null = null;
-  let hoveredNode: MyceliumNode | null = null;
-  let isDragging = false;
-  let draggedNode: MyceliumNode | null = null;
-  let simulationRunning = true;
+  let nodes: SimNode[] = [];
+  let links: SimLink[] = [];
+  let simulation: Simulation<SimNode, SimLink> | null = null;
+  let selectedNode: SimNode | null = null;
+  let hoveredNode: SimNode | null = null;
+  let draggedNode: SimNode | null = null;
 
-  // Check for reduced motion preference
   const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-  // Force simulation parameters
-  const REPULSION = 800;
-  const ATTRACTION = 0.02;
-  const DAMPING = 0.92;
-  const MIN_DISTANCE = 60;
 
   function resize() {
     const container = canvas.parentElement!;
@@ -92,114 +102,18 @@
     canvas.style.height = `${rect.height}px`;
 
     ctx.scale(dpr, dpr);
+
+    // Update force center
+    if (simulation) {
+      const w = rect.width;
+      const h = rect.height;
+      simulation.force('center', forceCenter(w / 2, h / 2));
+      simulation.alpha(0.3).restart();
+    }
   }
 
-  function initializePositions() {
-    const w = canvas.width / (window.devicePixelRatio || 1);
-    const h = canvas.height / (window.devicePixelRatio || 1);
-    const cx = w / 2;
-    const cy = h / 2;
-
-    nodes.forEach((node, i) => {
-      // Arrange in a circle initially
-      const angle = (i / nodes.length) * Math.PI * 2;
-      const radius = Math.min(w, h) * 0.3;
-      node.x = cx + Math.cos(angle) * radius + (Math.random() - 0.5) * 20;
-      node.y = cy + Math.sin(angle) * radius + (Math.random() - 0.5) * 20;
-      node.vx = 0;
-      node.vy = 0;
-    });
-  }
-
-  function applyForces() {
-    if (!simulationRunning) return;
-
-    const w = canvas.width / (window.devicePixelRatio || 1);
-    const h = canvas.height / (window.devicePixelRatio || 1);
-
-    // Repulsion between all nodes
-    for (let i = 0; i < nodes.length; i++) {
-      for (let j = i + 1; j < nodes.length; j++) {
-        const a = nodes[i];
-        const b = nodes[j];
-        const dx = b.x - a.x;
-        const dy = b.y - a.y;
-        const dist = Math.sqrt(dx * dx + dy * dy) || 1;
-        const force = REPULSION / (dist * dist);
-
-        const fx = (dx / dist) * force;
-        const fy = (dy / dist) * force;
-
-        if (a !== draggedNode) {
-          a.vx -= fx;
-          a.vy -= fy;
-        }
-        if (b !== draggedNode) {
-          b.vx += fx;
-          b.vy += fy;
-        }
-      }
-    }
-
-    // Attraction along edges
-    const nodeMap = new Map(nodes.map(n => [n.id, n]));
-    for (const edge of edges) {
-      const a = nodeMap.get(edge.source);
-      const b = nodeMap.get(edge.target);
-      if (!a || !b) continue;
-
-      const dx = b.x - a.x;
-      const dy = b.y - a.y;
-      const dist = Math.sqrt(dx * dx + dy * dy) || 1;
-
-      // Stronger attraction for higher weight edges
-      const force = ATTRACTION * edge.weight * dist;
-
-      const fx = (dx / dist) * force;
-      const fy = (dy / dist) * force;
-
-      if (a !== draggedNode) {
-        a.vx += fx;
-        a.vy += fy;
-      }
-      if (b !== draggedNode) {
-        b.vx -= fx;
-        b.vy -= fy;
-      }
-    }
-
-    // Center gravity
-    const cx = w / 2;
-    const cy = h / 2;
-    for (const node of nodes) {
-      if (node === draggedNode) continue;
-      node.vx += (cx - node.x) * 0.001;
-      node.vy += (cy - node.y) * 0.001;
-    }
-
-    // Apply velocity and damping
-    let totalMotion = 0;
-    for (const node of nodes) {
-      if (node === draggedNode) continue;
-
-      node.vx *= DAMPING;
-      node.vy *= DAMPING;
-
-      node.x += node.vx;
-      node.y += node.vy;
-
-      // Bounds
-      const margin = 30;
-      node.x = Math.max(margin, Math.min(w - margin, node.x));
-      node.y = Math.max(margin, Math.min(h - margin, node.y));
-
-      totalMotion += Math.abs(node.vx) + Math.abs(node.vy);
-    }
-
-    // Stop simulation when settled
-    if (totalMotion < 0.5 && !isDragging) {
-      simulationRunning = false;
-    }
+  function getNodeRadius(node: SimNode): number {
+    return 6 + Math.min(node.appearances * 2, 8);
   }
 
   function draw() {
@@ -208,39 +122,29 @@
 
     ctx.clearRect(0, 0, w, h);
 
-    // Build node lookup
-    const nodeMap = new Map(nodes.map(n => [n.id, n]));
-
     // Draw edges
-    for (const edge of edges) {
-      const a = nodeMap.get(edge.source);
-      const b = nodeMap.get(edge.target);
-      if (!a || !b) continue;
+    ctx.strokeStyle = COLORS.paperLine;
+    for (const link of links) {
+      if (link.source.x == null || link.target.x == null) continue;
 
       ctx.beginPath();
-      ctx.moveTo(a.x, a.y);
-      ctx.lineTo(b.x, b.y);
-      ctx.strokeStyle = COLORS.paperLine;
-      ctx.lineWidth = Math.min(edge.weight, 2);
+      ctx.moveTo(link.source.x, link.source.y);
+      ctx.lineTo(link.target.x, link.target.y);
+      ctx.lineWidth = Math.min(link.weight, 2);
       ctx.stroke();
     }
 
     // Draw nodes
     for (const node of nodes) {
+      if (node.x == null) continue;
+
       const isHovered = node === hoveredNode;
       const isSelected = node === selectedNode;
-      const radius = 6 + Math.min(node.appearances * 2, 8);
+      const radius = getNodeRadius(node);
 
       ctx.beginPath();
       ctx.arc(node.x, node.y, radius, 0, Math.PI * 2);
-
-      if (isSelected) {
-        ctx.fillStyle = COLORS.sun;
-      } else if (isHovered) {
-        ctx.fillStyle = COLORS.sun;
-      } else {
-        ctx.fillStyle = COLORS.fern;
-      }
+      ctx.fillStyle = (isSelected || isHovered) ? COLORS.sun : COLORS.fern;
       ctx.fill();
 
       // Draw label on hover/select
@@ -256,9 +160,12 @@
     }
   }
 
-  function findNodeAt(x: number, y: number): MyceliumNode | null {
-    for (const node of nodes) {
-      const radius = 6 + Math.min(node.appearances * 2, 8);
+  function findNodeAt(x: number, y: number): SimNode | null {
+    // Search in reverse order (top nodes first)
+    for (let i = nodes.length - 1; i >= 0; i--) {
+      const node = nodes[i];
+      if (node.x == null) continue;
+      const radius = getNodeRadius(node);
       const dx = node.x - x;
       const dy = node.y - y;
       if (dx * dx + dy * dy <= radius * radius) {
@@ -268,7 +175,7 @@
     return null;
   }
 
-  function showDetail(node: MyceliumNode) {
+  function showDetail(node: SimNode) {
     const hasBpm = node.bpm !== undefined;
     const hasKey = node.key !== undefined;
     const hasOpenKey = node.openKey !== undefined;
@@ -313,11 +220,10 @@
   canvas.addEventListener('mousemove', (e) => {
     const { x, y } = getCanvasCoords(e);
 
-    if (isDragging && draggedNode) {
-      draggedNode.x = x;
-      draggedNode.y = y;
-      draggedNode.vx = 0;
-      draggedNode.vy = 0;
+    if (draggedNode) {
+      draggedNode.fx = x;
+      draggedNode.fy = y;
+      simulation?.alpha(0.3).restart();
       return;
     }
 
@@ -325,6 +231,7 @@
     if (node !== hoveredNode) {
       hoveredNode = node;
       canvas.style.cursor = node ? 'pointer' : 'grab';
+      draw();
     }
   });
 
@@ -333,25 +240,35 @@
     const node = findNodeAt(x, y);
 
     if (node) {
-      isDragging = true;
       draggedNode = node;
       selectedNode = node;
+      node.fx = x;
+      node.fy = y;
       showDetail(node);
-      simulationRunning = true;
+      simulation?.alphaTarget(0.3).restart();
       canvas.style.cursor = 'grabbing';
     }
   });
 
   canvas.addEventListener('mouseup', () => {
-    isDragging = false;
-    draggedNode = null;
+    if (draggedNode) {
+      draggedNode.fx = null;
+      draggedNode.fy = null;
+      draggedNode = null;
+      simulation?.alphaTarget(0);
+    }
     canvas.style.cursor = hoveredNode ? 'pointer' : 'grab';
   });
 
   canvas.addEventListener('mouseleave', () => {
+    if (draggedNode) {
+      draggedNode.fx = null;
+      draggedNode.fy = null;
+      draggedNode = null;
+      simulation?.alphaTarget(0);
+    }
     hoveredNode = null;
-    isDragging = false;
-    draggedNode = null;
+    draw();
   });
 
   canvas.addEventListener('click', (e) => {
@@ -365,6 +282,7 @@
       selectedNode = null;
       hideDetail();
     }
+    draw();
   });
 
   // Touch support
@@ -375,79 +293,93 @@
     const node = findNodeAt(x, y);
 
     if (node) {
-      isDragging = true;
       draggedNode = node;
       selectedNode = node;
+      node.fx = x;
+      node.fy = y;
       showDetail(node);
-      simulationRunning = true;
+      simulation?.alphaTarget(0.3).restart();
     }
   }, { passive: false });
 
   canvas.addEventListener('touchmove', (e) => {
     e.preventDefault();
-    if (isDragging && draggedNode) {
+    if (draggedNode) {
       const touch = e.touches[0];
       const { x, y } = getCanvasCoords(touch);
-      draggedNode.x = x;
-      draggedNode.y = y;
-      draggedNode.vx = 0;
-      draggedNode.vy = 0;
+      draggedNode.fx = x;
+      draggedNode.fy = y;
     }
   }, { passive: false });
 
   canvas.addEventListener('touchend', () => {
-    isDragging = false;
-    draggedNode = null;
-  });
-
-  // Animation loop
-  function animate() {
-    if (!prefersReducedMotion && simulationRunning) {
-      applyForces();
+    if (draggedNode) {
+      draggedNode.fx = null;
+      draggedNode.fy = null;
+      draggedNode = null;
+      simulation?.alphaTarget(0);
     }
-    draw();
-    requestAnimationFrame(animate);
-  }
+  });
 
   // Initialize
   async function init() {
     resize();
-    window.addEventListener('resize', () => {
-      resize();
-      initializePositions();
-      simulationRunning = true;
-    });
+    window.addEventListener('resize', resize);
 
     try {
       const response = await fetch('/mycelium-data.json');
       const data: MyceliumGraph = await response.json();
 
-      nodes = data.nodes.map(n => ({
-        ...n,
-        x: 0,
-        y: 0,
-        vx: 0,
-        vy: 0,
-      }));
-      edges = data.edges;
-
-      if (nodes.length === 0) {
-        // Empty state
+      if (data.nodes.length === 0) {
         detailPanel.innerHTML = '<p class="detail-meta">the network is quiet. songs will appear as dispatches accumulate.</p>';
         detailPanel.classList.add('visible');
+        return;
       }
 
-      initializePositions();
+      const w = canvas.width / (window.devicePixelRatio || 1);
+      const h = canvas.height / (window.devicePixelRatio || 1);
 
+      // Create simulation nodes
+      nodes = data.nodes.map(n => ({
+        ...n,
+        x: w / 2 + (Math.random() - 0.5) * 100,
+        y: h / 2 + (Math.random() - 0.5) * 100,
+      }));
+
+      // Create node lookup for link resolution
+      const nodeById = new Map(nodes.map(n => [n.id, n]));
+
+      // Create simulation links
+      links = data.edges
+        .map(e => ({
+          source: nodeById.get(e.source)!,
+          target: nodeById.get(e.target)!,
+          weight: e.weight,
+          reasons: e.reasons,
+        }))
+        .filter(l => l.source && l.target);
+
+      // Create simulation
+      simulation = forceSimulation<SimNode>(nodes)
+        .force('link', forceLink<SimNode, SimLink>(links)
+          .id(d => d.id)
+          .distance(80)
+          .strength(l => l.weight * 0.3))
+        .force('charge', forceManyBody<SimNode>()
+          .strength(-200))
+        .force('center', forceCenter(w / 2, h / 2))
+        .force('collide', forceCollide<SimNode>()
+          .radius(d => getNodeRadius(d) + 4))
+        .on('tick', draw);
+
+      // For reduced motion, run simulation silently then stop
       if (prefersReducedMotion) {
-        // Skip animation, just run simulation to settle
-        for (let i = 0; i < 100; i++) {
-          applyForces();
+        simulation.stop();
+        for (let i = 0; i < 300; i++) {
+          simulation.tick();
         }
-        simulationRunning = false;
+        draw();
       }
-
-      animate();
     } catch (error) {
       console.error('[mycelium] Failed to load data:', error);
       detailPanel.innerHTML = '<p class="detail-meta">failed to load the network.</p>';
@@ -539,7 +471,6 @@
     text-decoration: underline;
   }
 
-  /* Reduced motion */
   @media (prefers-reduced-motion: reduce) {
     .detail-panel {
       transition: none;
