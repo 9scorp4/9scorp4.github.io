@@ -105,7 +105,7 @@ const batesonQuotes = [
       <span class="cursor" id="cursor" aria-hidden="true">_</span>
     </div>
   </div>
-  <p class="help" id="console-help">try: random · about · seasons · dejar</p>
+  <p class="help" id="console-help">try: random · about · seasons · dejar · ...</p>
   <div class="console-output" id="console-output" role="log" aria-live="polite"></div>
 </div>
 
@@ -487,6 +487,7 @@ const batesonQuotes = [
     'about',
     'seasons',
     'dejar nombre="Ana" mensaje="hola"',
+    'garden',
   ];
 
   // Check for reduced motion preference
@@ -1154,12 +1155,16 @@ const batesonQuotes = [
       const sections: Record<string, string> = {
         conservatory: '/#conservatory',
         invernadero: '/#conservatory',
-        cuaderno: '/cuaderno',
-        journal: '/cuaderno',
+        cuaderno: '/#journal',
+        journal: '/#journal',
         cultivations: '/#cultivations',
         cultivos: '/#cultivations',
         library: '/#library',
         biblioteca: '/#library',
+        now: '/#now',
+        ahora: '/#now',
+        visitors: '/#visitors',
+        visitas: '/#visitors',
       };
 
       const target = args.replace(/\/$/, '').toLowerCase();
