@@ -572,7 +572,7 @@ const batesonQuotes = [
   startTypingAnimation();
 
   // Visitor state (localStorage)
-  interface VisitorState {
+  interface VisitorStateV1 {
     version: 1;
     visits: number;
     lastVisit: string;
@@ -581,17 +581,51 @@ const batesonQuotes = [
     seedCount: number;
   }
 
+  interface VisitorState {
+    version: 2;
+    visits: number;
+    lastVisit: string;
+    waterings: number;
+    seedPlanted: boolean;
+    seedCount: number;
+    stats: {
+      pagesViewed: number;
+      articlesRead: string[];
+      commandsUsed: number;
+      secretsFound: string[];
+      firstVisit: string;
+    };
+  }
+
   const STORAGE_KEY = 'jardin-visitor';
-  const CURRENT_VERSION = 1;
+  const CURRENT_VERSION = 2;
+
+  // Commands that count as "secrets" for discovery tracking
+  const secretCommands = new Set([
+    'bateson',
+    'seed',
+    'semilla',
+    'water',
+    'regar',
+    'ls',
+    'pwd',
+  ]);
 
   function createDefaultState(): VisitorState {
     return {
-      version: 1,
+      version: 2,
       visits: 0,
       lastVisit: '',
       waterings: 0,
       seedPlanted: false,
       seedCount: 0,
+      stats: {
+        pagesViewed: 0,
+        articlesRead: [],
+        commandsUsed: 0,
+        secretsFound: [],
+        firstVisit: new Date().toISOString(),
+      },
     };
   }
 
@@ -603,15 +637,42 @@ const batesonQuotes = [
 
     const state = stored as Record<string, unknown>;
 
-    // Version 0 (no version field) -> Version 1
+    // Version 0 (no version field) -> Version 2
     if (!('version' in state) || state.version === undefined) {
       return {
-        version: 1,
+        version: 2,
         visits: typeof state.visits === 'number' ? state.visits : 0,
         lastVisit: typeof state.lastVisit === 'string' ? state.lastVisit : '',
         waterings: typeof state.waterings === 'number' ? state.waterings : 0,
         seedPlanted: typeof state.seedPlanted === 'boolean' ? state.seedPlanted : false,
         seedCount: typeof state.seedCount === 'number' ? state.seedCount : 0,
+        stats: {
+          pagesViewed: 0,
+          articlesRead: [],
+          commandsUsed: 0,
+          secretsFound: [],
+          firstVisit: new Date().toISOString(),
+        },
+      };
+    }
+
+    // Version 1 -> Version 2
+    if (state.version === 1) {
+      const v1 = state as unknown as VisitorStateV1;
+      return {
+        version: 2,
+        visits: v1.visits,
+        lastVisit: v1.lastVisit,
+        waterings: v1.waterings,
+        seedPlanted: v1.seedPlanted,
+        seedCount: v1.seedCount,
+        stats: {
+          pagesViewed: v1.visits, // Approximate from visits
+          articlesRead: [],
+          commandsUsed: 0,
+          secretsFound: v1.seedPlanted ? ['seed'] : [], // Infer from seedPlanted
+          firstVisit: v1.lastVisit || new Date().toISOString(),
+        },
       };
     }
 
@@ -1014,6 +1075,49 @@ const batesonQuotes = [
       showOutput('<p class="output-line output-mono">you are in: el jardín</p>');
     },
 
+    garden() {
+      // Calculate days since first visit
+      const firstVisit = new Date(visitorState.stats.firstVisit);
+      const now = new Date();
+      const daysTending = Math.floor((now.getTime() - firstVisit.getTime()) / (1000 * 60 * 60 * 24));
+
+      // Seed growth stage
+      const seedStages = ['dormant', 'stirring', 'cracked', 'sprouting', 'reaching', 'leafing', 'blooming'];
+      const seedStage = visitorState.seedPlanted
+        ? seedStages[Math.min(visitorState.seedCount, seedStages.length - 1)]
+        : 'none planted';
+
+      // Secrets found count
+      const totalSecrets = secretCommands.size;
+      const foundSecrets = visitorState.stats.secretsFound.length;
+
+      let html = `
+        <p class="output-line output-fern">your garden</p>
+        <p class="output-line">visits: ${visitorState.visits}</p>
+        <p class="output-line">days tending: ${daysTending}</p>
+        <p class="output-line">waterings: ${visitorState.waterings}</p>
+      `;
+
+      if (visitorState.stats.articlesRead.length > 0) {
+        html += `<p class="output-line">articles read: ${visitorState.stats.articlesRead.length}</p>`;
+      }
+
+      html += `
+        <p class="output-line">secrets found: ${foundSecrets}/${totalSecrets}</p>
+        <p class="output-line">seed: ${seedStage}</p>
+      `;
+
+      if (foundSecrets === totalSecrets) {
+        html += `<p class="output-line output-sun">you've found all the secrets. the garden knows you.</p>`;
+      }
+
+      showOutput(html);
+    },
+
+    jardin() {
+      commands.garden('');
+    },
+
     help() {
       showOutput(`
         <p class="output-line"><span class="output-fern">random</span> — go somewhere</p>
@@ -1155,6 +1259,32 @@ const batesonQuotes = [
     return div.innerHTML;
   }
 
+  // Track command usage via beacon (respects DNT)
+  function trackCommand(name: string): void {
+    if (!contentData.workerUrl || navigator.doNotTrack === '1') return;
+    const isSecret = secretCommands.has(name);
+    try {
+      navigator.sendBeacon?.(
+        contentData.workerUrl + '/track',
+        JSON.stringify({
+          type: 'command',
+          command: name,
+          isSecret,
+        })
+      );
+    } catch {
+      // Silently fail
+    }
+  }
+
+  // Track secret discovery (locally)
+  function trackSecretDiscovery(name: string): void {
+    if (!secretCommands.has(name)) return;
+    if (visitorState.stats.secretsFound.includes(name)) return;
+    visitorState.stats.secretsFound.push(name);
+    saveVisitorState(visitorState);
+  }
+
   // Handle command execution
   function executeCommand(rawInput: string): void {
     const trimmed = rawInput.trim().toLowerCase();
@@ -1181,6 +1311,12 @@ const batesonQuotes = [
 
     const handler = commands[name];
     if (handler) {
+      // Track command usage
+      trackCommand(name);
+      visitorState.stats.commandsUsed++;
+      trackSecretDiscovery(name);
+      saveVisitorState(visitorState);
+
       handler(args);
     } else {
       showOutput(`<p class="output-line output-muted">unknown command: ${name}</p>`);

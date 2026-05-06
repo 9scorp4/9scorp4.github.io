@@ -21,6 +21,8 @@ interface Props {
 
 const { entry, articleHtml, metalogueHtml } = Astro.props;
 const { title, title_secondary, date, entry: entryNumber, preamble, metalogue_title, metalogue_epigraph, colophon, summary } = entry.data;
+const workerUrl = import.meta.env.PUBLIC_VISITORS_WORKER_URL || '';
+const slug = entry.slug;
 
 const pageTitle = `${title}${title_secondary ? ` · ${title_secondary}` : ''} — un jardín cibernético`;
 const canonicalUrl = `/cuaderno/${entry.slug}/`;
@@ -150,3 +152,68 @@ const jsonLd = JSON.stringify({
     }
   }
 </style>
+
+<script define:vars={{ workerUrl, slug }}>
+  // Article read tracking for diptych entries
+  (function() {
+    if (!workerUrl || navigator.doNotTrack === '1') return;
+
+    const startTime = Date.now();
+    let maxScrollDepth = 0;
+    let tracked = false;
+
+    // Track scroll depth
+    function updateScrollDepth() {
+      const scrollTop = window.scrollY;
+      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+      if (docHeight > 0) {
+        const depth = Math.round((scrollTop / docHeight) * 100);
+        maxScrollDepth = Math.max(maxScrollDepth, depth);
+      }
+    }
+
+    window.addEventListener('scroll', updateScrollDepth, { passive: true });
+    updateScrollDepth(); // Initial
+
+    // Track on visibility change or unload
+    function trackRead() {
+      if (tracked) return;
+      const readTime = Math.round((Date.now() - startTime) / 1000);
+      if (readTime < 10) return; // Only track if >10s spent
+      tracked = true;
+
+      try {
+        navigator.sendBeacon?.(
+          workerUrl + '/track',
+          JSON.stringify({
+            type: 'article_read',
+            path: '/cuaderno/' + slug,
+            readTime,
+            scrollDepth: maxScrollDepth,
+          })
+        );
+
+        // Also update local storage for garden stats
+        const stored = localStorage.getItem('jardin-visitor');
+        if (stored) {
+          const state = JSON.parse(stored);
+          if (state.stats && !state.stats.articlesRead.includes(slug)) {
+            state.stats.articlesRead.push(slug);
+            localStorage.setItem('jardin-visitor', JSON.stringify(state));
+          }
+        }
+      } catch {
+        // Silently fail
+      }
+    }
+
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'hidden') {
+        trackRead();
+      }
+    });
+
+    // Fallback for page unload
+    window.addEventListener('pagehide', trackRead);
+  })();
+</script>

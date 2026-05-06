@@ -1,16 +1,19 @@
 #!/usr/bin/env npx tsx
 /**
- * Admin CLI for managing visitor messages
+ * Admin CLI for managing visitor messages and analytics
  *
  * Usage:
  *   npx tsx scripts/visitors-admin.ts list
  *   npx tsx scripts/visitors-admin.ts approve msg:01HXY...
  *   npx tsx scripts/visitors-admin.ts reject msg:01HXY...
  *   npx tsx scripts/visitors-admin.ts approve-all
+ *   npx tsx scripts/visitors-admin.ts stats [--days=7]
  *
  * Environment:
  *   VISITORS_WORKER_URL - Worker URL (e.g., https://visitors.xxx.workers.dev)
  *   VISITORS_ADMIN_TOKEN - Admin bearer token
+ *   CF_API_TOKEN - Cloudflare API token (for stats command)
+ *   CF_ACCOUNT_ID - Cloudflare account ID (for stats command)
  */
 
 import { config } from 'dotenv';
@@ -24,12 +27,14 @@ interface VisitorMessage {
   status: 'pending' | 'approved' | 'rejected';
 }
 
-const WORKER_URL = process.env.VISITORS_WORKER_URL;
+const WORKER_URL = process.env.PUBLIC_VISITORS_WORKER_URL;
 const ADMIN_TOKEN = process.env.VISITORS_ADMIN_TOKEN;
+const CF_API_TOKEN = process.env.CLOUDFLARE_API_TOKEN;
+const CF_ACCOUNT_ID = process.env.CF_ACCOUNT_ID;
 
 if (!WORKER_URL || !ADMIN_TOKEN) {
   console.error('Missing environment variables.');
-  console.error('Set VISITORS_WORKER_URL and VISITORS_ADMIN_TOKEN in .env');
+  console.error('Set PUBLIC_VISITORS_WORKER_URL and VISITORS_ADMIN_TOKEN in .env');
   process.exit(1);
 }
 
@@ -110,6 +115,193 @@ async function approveAll(): Promise<void> {
   console.log('\nAll messages approved.');
 }
 
+interface AnalyticsRow {
+  blob1?: string;
+  blob2?: string;
+  blob3?: string;
+  blob4?: string;
+  blob5?: string;
+  double1?: number;
+  double2?: number;
+  count?: number;
+  sum_double1?: number;
+  avg_double1?: number;
+  avg_double2?: number;
+}
+
+interface AnalyticsResponse {
+  data: AnalyticsRow[];
+  meta: {
+    name: string;
+    type: string;
+  }[];
+  rows: number;
+}
+
+async function queryAnalytics(sql: string): Promise<AnalyticsResponse> {
+  if (!CF_API_TOKEN || !CF_ACCOUNT_ID) {
+    throw new Error('CF_API_TOKEN and CF_ACCOUNT_ID required for stats');
+  }
+
+  const response = await fetch(
+    `https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID}/analytics_engine/sql`,
+    {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${CF_API_TOKEN}`,
+        'Content-Type': 'text/plain',
+      },
+      body: sql,
+    }
+  );
+
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(`Analytics API error ${response.status}: ${text}`);
+  }
+
+  return response.json() as Promise<AnalyticsResponse>;
+}
+
+async function showStats(days: number): Promise<void> {
+  if (!CF_API_TOKEN || !CF_ACCOUNT_ID) {
+    console.error('Stats requires CF_API_TOKEN and CF_ACCOUNT_ID in .env');
+    console.error('Get these from Cloudflare dashboard → Analytics Engine');
+    return;
+  }
+
+  console.log(`\nGarden metrics (last ${days} days)\n`);
+  console.log('─'.repeat(50));
+
+  // Top pages
+  try {
+    const pages = await queryAnalytics(`
+      SELECT blob2 as path, count() as views
+      FROM garden_metrics
+      WHERE blob1 = 'pageview'
+        AND timestamp > NOW() - INTERVAL '${days}' DAY
+      GROUP BY blob2
+      ORDER BY views DESC
+      LIMIT 10
+    `);
+
+    console.log('\nTop pages:');
+    if (pages.data.length === 0) {
+      console.log('  (no data yet)');
+    } else {
+      for (const row of pages.data) {
+        console.log(`  ${row.count?.toString().padStart(4)} │ ${row.blob2}`);
+      }
+    }
+  } catch (err) {
+    console.log('\nTop pages: (query failed)');
+  }
+
+  // Command usage
+  try {
+    const commands = await queryAnalytics(`
+      SELECT blob2 as command, count() as uses, blob5 as is_secret
+      FROM garden_metrics
+      WHERE blob1 = 'command'
+        AND timestamp > NOW() - INTERVAL '${days}' DAY
+      GROUP BY blob2, blob5
+      ORDER BY uses DESC
+      LIMIT 10
+    `);
+
+    console.log('\nCommand usage:');
+    if (commands.data.length === 0) {
+      console.log('  (no data yet)');
+    } else {
+      for (const row of commands.data) {
+        const secretMarker = row.blob5 === 'secret' ? ' *' : '';
+        console.log(`  ${row.count?.toString().padStart(4)} │ ${row.blob2}${secretMarker}`);
+      }
+    }
+  } catch (err) {
+    console.log('\nCommand usage: (query failed)');
+  }
+
+  // Article engagement
+  try {
+    const articles = await queryAnalytics(`
+      SELECT
+        blob2 as path,
+        count() as reads,
+        avg(double1) as avg_read_time,
+        avg(double2) as avg_scroll_depth
+      FROM garden_metrics
+      WHERE blob1 = 'article_read'
+        AND timestamp > NOW() - INTERVAL '${days}' DAY
+      GROUP BY blob2
+      ORDER BY reads DESC
+      LIMIT 10
+    `);
+
+    console.log('\nArticle engagement:');
+    if (articles.data.length === 0) {
+      console.log('  (no data yet)');
+    } else {
+      for (const row of articles.data) {
+        const avgTime = Math.round(row.avg_double1 || 0);
+        const avgDepth = Math.round(row.avg_double2 || 0);
+        console.log(`  ${row.count?.toString().padStart(3)} reads │ ${avgTime}s avg │ ${avgDepth}% scroll │ ${row.blob2}`);
+      }
+    }
+  } catch (err) {
+    console.log('\nArticle engagement: (query failed)');
+  }
+
+  // Country distribution
+  try {
+    const countries = await queryAnalytics(`
+      SELECT blob3 as country, count() as events
+      FROM garden_metrics
+      WHERE blob1 = 'pageview'
+        AND timestamp > NOW() - INTERVAL '${days}' DAY
+        AND blob3 != ''
+      GROUP BY blob3
+      ORDER BY events DESC
+      LIMIT 10
+    `);
+
+    console.log('\nCountry distribution:');
+    if (countries.data.length === 0) {
+      console.log('  (no data yet)');
+    } else {
+      for (const row of countries.data) {
+        console.log(`  ${row.count?.toString().padStart(4)} │ ${row.blob3}`);
+      }
+    }
+  } catch (err) {
+    console.log('\nCountry distribution: (query failed)');
+  }
+
+  // Submissions
+  try {
+    const submissions = await queryAnalytics(`
+      SELECT blob2 as status, count() as total
+      FROM garden_metrics
+      WHERE blob1 = 'submission'
+        AND timestamp > NOW() - INTERVAL '${days}' DAY
+      GROUP BY blob2
+    `);
+
+    console.log('\nSubmissions:');
+    if (submissions.data.length === 0) {
+      console.log('  (no data yet)');
+    } else {
+      for (const row of submissions.data) {
+        console.log(`  ${row.count?.toString().padStart(4)} │ ${row.blob2}`);
+      }
+    }
+  } catch (err) {
+    console.log('\nSubmissions: (query failed)');
+  }
+
+  console.log('\n' + '─'.repeat(50));
+}
+
 // CLI entry point
 const [, , command, ...args] = process.argv;
 
@@ -140,14 +332,26 @@ async function main(): Promise<void> {
       await approveAll();
       break;
 
+    case 'stats': {
+      // Parse --days=N flag
+      const daysArg = args.find(a => a.startsWith('--days='));
+      const days = daysArg ? parseInt(daysArg.split('=')[1], 10) : 7;
+      await showStats(isNaN(days) ? 7 : days);
+      break;
+    }
+
     default:
       console.log('Visitors Admin CLI');
       console.log('');
       console.log('Commands:');
-      console.log('  list          List pending messages');
-      console.log('  approve <id>  Approve a message');
-      console.log('  reject <id>   Reject a message');
-      console.log('  approve-all   Approve all pending messages');
+      console.log('  list           List pending messages');
+      console.log('  approve <id>   Approve a message');
+      console.log('  reject <id>    Reject a message');
+      console.log('  approve-all    Approve all pending messages');
+      console.log('  stats          Show garden analytics (requires CF_API_TOKEN, CF_ACCOUNT_ID)');
+      console.log('');
+      console.log('Options:');
+      console.log('  --days=N       Number of days for stats (default: 7)');
       break;
   }
 }
