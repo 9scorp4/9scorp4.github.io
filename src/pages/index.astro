@@ -1,16 +1,16 @@
 ---
 import { getCollection } from 'astro:content';
 import Garden from '../layouts/Garden.astro';
-import StationHeader from '../components/StationHeader.astro';
-import SectionHeader from '../components/SectionHeader.astro';
-import Ahora from '../components/Ahora.astro';
-import JournalEntry from '../components/JournalEntry.astro';
-import Cultivation from '../components/Cultivation.astro';
-import Specimen from '../components/Specimen.astro';
-import SpecimenModal from '../components/SpecimenModal.astro';
-import Library from '../components/Library.astro';
-import VisitorsBook from '../components/VisitorsBook.astro';
-import Footer from '../components/Footer.astro';
+import StationHeader from '../components/chrome/StationHeader.astro';
+import SectionHeader from '../components/chrome/SectionHeader.astro';
+import Footer from '../components/chrome/Footer.astro';
+import Ahora from '../components/cards/Ahora.astro';
+import JournalEntry from '../components/cards/JournalEntry.astro';
+import Cultivation from '../components/cards/Cultivation.astro';
+import Specimen from '../components/cards/Specimen.astro';
+import SpecimenModal from '../components/interactive/SpecimenModal.astro';
+import Library from '../components/interactive/Library.astro';
+import VisitorsBook from '../components/interactive/VisitorsBook.astro';
 
 // Fetch collections
 const ahoraEntries = (await getCollection('ahora'))

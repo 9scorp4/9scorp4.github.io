@@ -50,13 +50,29 @@ Tech choices, file structure, build, deploy.
     ├── layouts/
     │   └── Garden.astro           # base layout with palette + type imports
     ├── components/
-    │   ├── StationHeader.astro    # the trilingual title + sun mandala
-    │   ├── SectionHeader.astro    # the small-caps trilingual section banners
-    │   ├── Specimen.astro         # conservatory tile
-    │   ├── JournalEntry.astro     # field journal teaser
-    │   ├── Cultivation.astro      # project card
-    │   ├── Library.astro          # the dedication block
-    │   └── VisitorsBook.astro     # the console garnish
+    │   ├── chrome/                 # section UI chrome
+    │   │   ├── StationHeader.astro # the trilingual title + sun mandala
+    │   │   ├── SectionHeader.astro # the small-caps trilingual section banners
+    │   │   ├── SectionIcon.astro   # SVG icons for section headers
+    │   │   └── Footer.astro        # page footer
+    │   ├── cards/                  # content display cards
+    │   │   ├── Ahora.astro         # now/dispatch entries
+    │   │   ├── JournalEntry.astro  # field journal teaser
+    │   │   ├── Cultivation.astro   # project card
+    │   │   └── Specimen.astro      # conservatory tile
+    │   ├── diptych/                # diptych journal layout
+    │   │   ├── DiptychPage.astro   # main diptych wrapper
+    │   │   ├── DiptychHeader.astro
+    │   │   ├── DiptychNav.astro
+    │   │   ├── Seam.astro
+    │   │   ├── MetalogueBody.astro
+    │   │   ├── DiptychColophon.astro
+    │   │   └── ReturnMarker.astro
+    │   └── interactive/            # client-side interactive
+    │       ├── SpecimenModal.astro # full-size sketch viewer
+    │       ├── MyceliumCanvas.astro # force-directed music graph
+    │       ├── Library.astro       # the dedication block
+    │       └── VisitorsBook.astro  # the console garnish
     ├── content/
     │   ├── config.ts              # collection schemas
     │   ├── journal/               # markdown entries
@@ -294,6 +310,12 @@ Resist adding more until something concrete breaks. Specifically, avoid:
 - Focus rings: 2px `--fern`, never removed
 - The visitors' book console is fully keyboard-navigable but is **not** primary navigation — it's a garnish, an opt-in
 - Section navigation works without JS; the console requires JS but the rest of the site doesn't
+
+## Console features
+
+The browser console includes time-based greetings and a diagnostic tool (`window.garden`) for exploring the site's interactive surfaces.
+
+See [`CONSOLE.md`](CONSOLE.md) for full documentation.
 
 ## What's deliberately not in scope
 
