@@ -34,7 +34,7 @@ const entryId = `FR-${String(entry).padStart(3, '0')}`;
   <nav class="back-link">
     <a href="/">← jardín</a>
   </nav>
-  <p class="breadcrumb">cuaderno de campo · carnet de terrain · {formattedDate}</p>
+  <p class="breadcrumb">cuaderno de campo · carnet de terrain · <time datetime={date.toISOString().slice(0, 10)}>{formattedDate}</time></p>
   <h1 class="title">
     {title}
     {title_secondary && <span class="title-secondary"> · {title_secondary}</span>}

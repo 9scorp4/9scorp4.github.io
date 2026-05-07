@@ -79,7 +79,7 @@ const batesonQuotes = [
             <div class="visitor-message">
               <span class="visitor-meta">
                 <span class="visitor-nombre">{v.data.nombre}</span>
-                <span class="visitor-date">{formatted}</span>
+                <time class="visitor-date" datetime={v.data.timestamp}>{formatted}</time>
               </span>
               <span class="visitor-texto">"{v.data.mensaje}"</span>
             </div>

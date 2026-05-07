@@ -67,7 +67,7 @@ const olderRendered = renderedEntries.slice(1);
       <div class="archive dimmed">
         {renderedEntries.map(({ entry, Content }) => (
           <div class="ahora-entry older">
-            <span class="date">{formatDate(entry.data.date)}</span>
+            <time class="date" datetime={entry.data.date.toISOString().slice(0, 10)}>{formatDate(entry.data.date)}</time>
             <div class="body">
               <Content />
               {entry.data.escuchando && entry.data.escuchando.length > 0 && (
@@ -89,7 +89,7 @@ const olderRendered = renderedEntries.slice(1);
   ) : (
     <>
       <div class="ahora-entry latest">
-        <p class="date">{formatDate(latestRendered.entry.data.date)}</p>
+        <p class="date"><time datetime={latestRendered.entry.data.date.toISOString().slice(0, 10)}>{formatDate(latestRendered.entry.data.date)}</time></p>
         <div class="body">
           <latestRendered.Content />
           {latestRendered.entry.data.escuchando && latestRendered.entry.data.escuchando.length > 0 && (
@@ -110,7 +110,7 @@ const olderRendered = renderedEntries.slice(1);
         <div class="older-entries">
           {olderRendered.map(({ entry, Content }) => (
             <div class="ahora-entry older">
-              <span class="date">{formatDate(entry.data.date)}</span>
+              <time class="date" datetime={entry.data.date.toISOString().slice(0, 10)}>{formatDate(entry.data.date)}</time>
               <div class="body">
                 <Content />
                 {entry.data.escuchando && entry.data.escuchando.length > 0 && (
