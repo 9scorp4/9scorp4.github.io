@@ -7,7 +7,7 @@
 
 <nav class="return-marker" aria-label="Return to top">
   <a href="#top">↑ regresar · revenir · back to top</a>
-  <a href="#visitors-book" class="leave-note" id="leave-note-link">deja una nota →</a>
+  <a href="/#visitors-book" class="leave-note" id="leave-note-link">deja una nota →</a>
 </nav>
 
 <style>
@@ -42,11 +42,13 @@
 <script>
   const link = document.getElementById('leave-note-link');
   link?.addEventListener('click', (e) => {
-    e.preventDefault();
     const input = document.getElementById('console-input') as HTMLInputElement;
     const book = document.getElementById('visitors-book');
+
+    // If not on main page, let the link navigate normally
     if (!input || !book) return;
 
+    e.preventDefault();
     book.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
     // Delay focus until scroll settles
