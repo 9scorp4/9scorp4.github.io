@@ -3,59 +3,20 @@
  * Called from the Astro integration after build.
  */
 
-import satori from 'satori';
-import { Resvg } from '@resvg/resvg-js';
 import { readFile, mkdir, writeFile, readdir, stat } from 'node:fs/promises';
 import { join, basename } from 'node:path';
 import * as yaml from 'yaml';
 import { DefaultOGImage, ArticleOGImage } from './og-image.tsx';
+import { loadFonts, generatePng } from './shared-image-utils.ts';
 
 const OG_WIDTH = 1200;
 const OG_HEIGHT = 630;
-
-interface FontData {
-  name: string;
-  data: ArrayBuffer;
-  weight: 400;
-  style: 'normal' | 'italic';
-}
 
 interface JournalEntry {
   slug: string;
   title: string;
   date: Date;
   draft: boolean;
-}
-
-async function loadFonts(projectRoot: string): Promise<FontData[]> {
-  // Use fontsource woff files (satori doesn't support woff2)
-  const fontsourceDir = join(projectRoot, 'node_modules', '@fontsource', 'im-fell-dw-pica', 'files');
-
-  const [regularBuffer, italicBuffer] = await Promise.all([
-    readFile(join(fontsourceDir, 'im-fell-dw-pica-latin-400-normal.woff')),
-    readFile(join(fontsourceDir, 'im-fell-dw-pica-latin-400-italic.woff')),
-  ]);
-
-  return [
-    {
-      name: 'IM Fell DW Pica',
-      data: regularBuffer.buffer.slice(
-        regularBuffer.byteOffset,
-        regularBuffer.byteOffset + regularBuffer.byteLength
-      ),
-      weight: 400 as const,
-      style: 'normal' as const,
-    },
-    {
-      name: 'IM Fell DW Pica',
-      data: italicBuffer.buffer.slice(
-        italicBuffer.byteOffset,
-        italicBuffer.byteOffset + italicBuffer.byteLength
-      ),
-      weight: 400 as const,
-      style: 'italic' as const,
-    },
-  ];
 }
 
 /**
@@ -118,26 +79,7 @@ async function loadJournalEntries(srcDir: string): Promise<JournalEntry[]> {
   return entries;
 }
 
-async function generatePng(
-  element: React.ReactElement,
-  fonts: FontData[]
-): Promise<Buffer> {
-  const svg = await satori(element, {
-    width: OG_WIDTH,
-    height: OG_HEIGHT,
-    fonts,
-  });
-
-  const resvg = new Resvg(svg, {
-    fitTo: {
-      mode: 'width',
-      value: OG_WIDTH,
-    },
-  });
-
-  const pngData = resvg.render();
-  return pngData.asPng();
-}
+const OG_DIMENSIONS = { width: OG_WIDTH, height: OG_HEIGHT };
 
 export interface GenerateOGImagesOptions {
   distDir: string;
@@ -158,7 +100,7 @@ export async function generateOGImages({
 
   // Generate default/homepage image
   console.log('[og-images] Generating default.png...');
-  const defaultPng = await generatePng(DefaultOGImage(), fonts);
+  const defaultPng = await generatePng(DefaultOGImage(), fonts, OG_DIMENSIONS);
   await writeFile(join(outputDir, 'default.png'), defaultPng);
 
   // Generate images for each journal entry
@@ -174,7 +116,8 @@ export async function generateOGImages({
         title: entry.title,
         date: entry.date,
       }),
-      fonts
+      fonts,
+      OG_DIMENSIONS
     );
 
     await writeFile(join(outputDir, filename), png);
