@@ -35,6 +35,8 @@
     timeSignature?: string;
     danceability?: number;
     songbpmId?: string;
+    sourceVerified?: boolean;
+    corrections?: string;
     energy?: number;
     firstHeard: string;
     appearances: number;
@@ -202,7 +204,12 @@
     }
 
     if (node.songbpmId) {
-      html += `<p class="detail-attribution">via <a href="https://getsongbpm.com/song/${node.songbpmId}" target="_blank" rel="noopener">getsongbpm.com</a></p>`;
+      html += `<p class="detail-attribution">via <a href="https://getsongbpm.com/song/${node.songbpmId}" target="_blank" rel="noopener">getsongbpm.com</a>`;
+      if (node.sourceVerified) html += ` · verified`;
+      html += `</p>`;
+      if (node.corrections) {
+        html += `<p class="detail-attribution">corrections: ${node.corrections}</p>`;
+      }
     } else if (hasEnriched) {
       // manually sourced (Beatport, tap-tempo, etc.)
       html += `<p class="detail-attribution">metadata harvested manually</p>`;
