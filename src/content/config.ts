@@ -70,6 +70,10 @@ const ahora = defineCollection({
       acousticness: z.number().min(0).max(100).optional(),
       songbpmId: z.string().optional(),   // for re-enrichment
 
+      // === Source verification ===
+      sourceVerified: z.boolean().optional(),  // true = human-checked, skip on re-enrichment
+      corrections: z.string().optional(),      // what was wrong, e.g. "openKey was 9m"
+
       // === Objective: general ===
       year: z.number().optional(),        // release year
       album: z.string().optional(),
