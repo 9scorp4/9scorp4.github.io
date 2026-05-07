@@ -611,8 +611,11 @@ const batesonQuotes = [
     'regar': 'water',       // alias
     'ls': 'ls',
     'pwd': 'pwd',
+    'bonjour': 'bonjour',
+    'hola': 'hola',
+    'hello': 'hello',
   };
-  const TOTAL_SECRETS = new Set(Object.values(secretCommands)).size; // 5 unique
+  const TOTAL_SECRETS = new Set(Object.values(secretCommands)).size; // 8 unique
 
   function createDefaultState(): VisitorState {
     return {
@@ -790,6 +793,11 @@ const batesonQuotes = [
     if (month >= 5 && month <= 7) return 'verano';
     if (month >= 8 && month <= 10) return 'otoño';
     return 'invierno';
+  }
+
+  // Helper: redirect prose-like input to dejar
+  function proseRedirect(): void {
+    showOutput('<p class="output-line output-muted">parece una nota — prueba <span class="output-mono">dejar</span></p>');
   }
 
   // Command handlers
@@ -1078,6 +1086,138 @@ const batesonQuotes = [
       showOutput('<p class="output-line output-mono">you are in: el jardín</p>');
     },
 
+    hola(args) {
+      if (args.trim() !== '') {
+        proseRedirect();
+        return;
+      }
+
+      const LONG_TIME_THRESHOLD = 7;
+      const visits = visitorState.visits;
+
+      const firstVisit = [
+        'hola, te veo.',
+        'bienvenidx al jardín.',
+      ];
+      const returning = [
+        'de nuevo. la maceta te reconoce.',
+        'otra vez por aquí.',
+        'bienvenidx de vuelta.',
+      ];
+      const longtime = [
+        'otra vez. ya sabes el camino.',
+        'casi parte del jardín ya.',
+      ];
+
+      let pool: string[];
+      if (visits <= 1) {
+        pool = firstVisit;
+      } else if (visits < LONG_TIME_THRESHOLD) {
+        pool = returning;
+      } else {
+        pool = longtime;
+      }
+
+      const response = pool[Math.floor(Math.random() * pool.length)];
+      showOutput(`<p class="output-line output-fern">${response}</p>`);
+    },
+
+    hello(args) {
+      if (args.trim() !== '') {
+        proseRedirect();
+        return;
+      }
+
+      const LONG_TIME_THRESHOLD = 7;
+      const visits = visitorState.visits;
+
+      const firstVisit = [
+        'hello there. mind the ferns.',
+        'welcome. quietly.',
+      ];
+      const returning = [
+        'back again. the ferns noticed.',
+        'you again. good.',
+      ];
+      const longtime = [
+        'familiar steps.',
+        'part of the garden by now.',
+      ];
+
+      let pool: string[];
+      if (visits <= 1) {
+        pool = firstVisit;
+      } else if (visits < LONG_TIME_THRESHOLD) {
+        pool = returning;
+      } else {
+        pool = longtime;
+      }
+
+      const response = pool[Math.floor(Math.random() * pool.length)];
+      showOutput(`<p class="output-line output-fern">${response}</p>`);
+    },
+
+    async bonjour(args) {
+      if (args.trim() !== '') {
+        proseRedirect();
+        return;
+      }
+      if (!contentData.workerUrl) {
+        showOutput('<p class="output-line output-muted">le jardin regarde dehors. le ciel est là.</p>');
+        return;
+      }
+
+      showOutput('<p class="output-line output-muted">...</p>');
+
+      try {
+        const response = await fetch(`${contentData.workerUrl}/bonjour`);
+        const data = await response.json() as {
+          ok?: boolean;
+          weather?: {
+            temperature: number;
+            condition: string;
+            phrase: string;
+          } | null;
+          encounter?: string;
+          poem?: string;
+        };
+
+        if (!response.ok || !data.ok) {
+          showOutput('<p class="output-line output-muted">le jardin regarde dehors. le ciel est là.</p>');
+          return;
+        }
+
+        let html = '';
+
+        // Weather line
+        if (data.weather) {
+          html += `<p class="output-line output-mono">montréal · ${data.weather.temperature}°c — ${data.weather.phrase}</p>`;
+        } else {
+          html += '<p class="output-line output-muted">(les chiffres se sont perdus en chemin.)</p>';
+        }
+
+        // Encounter location
+        if (data.encounter) {
+          html += `<p class="output-line output-muted">trouvé · ${data.encounter}</p>`;
+        }
+
+        // Poem
+        if (data.poem) {
+          // Split poem into lines and format each
+          const poemLines = data.poem.split('\n').filter((l: string) => l.trim());
+          html += '<div class="output-quote" style="margin-top: 8px;">';
+          poemLines.forEach((line: string) => {
+            html += `<p class="output-line">${escapeHtml(line)}</p>`;
+          });
+          html += '</div>';
+        }
+
+        showOutput(html);
+      } catch {
+        showOutput('<p class="output-line output-muted">le jardin regarde dehors. le ciel est là.</p>');
+      }
+    },
+
     garden() {
       // Calculate days since first visit
       const firstVisit = new Date(visitorState.stats.firstVisit);
@@ -1105,10 +1245,14 @@ const batesonQuotes = [
         html += `<p class="output-line">articles read: ${visitorState.stats.articlesRead.length}</p>`;
       }
 
-      html += `
-        <p class="output-line">secrets found: ${foundSecrets}/${totalSecrets}</p>
-        <p class="output-line">seed: ${seedStage}</p>
-      `;
+      html += `<p class="output-line">secrets found: ${foundSecrets}/${totalSecrets}</p>`;
+
+      if (foundSecrets > 0) {
+        const secretsList = visitorState.stats.secretsFound.join(', ');
+        html += `<p class="output-line output-muted"><span class="output-mono">${secretsList}</span></p>`;
+      }
+
+      html += `<p class="output-line">seed: ${seedStage}</p>`;
 
       if (foundSecrets === totalSecrets) {
         html += `<p class="output-line output-sun">you've found all the secrets. the garden knows you.</p>`;
@@ -1210,7 +1354,7 @@ const batesonQuotes = [
       const mensajeMatch = args.match(/mensaje\s*=\s*"([^"]+)"/i);
 
       if (!nombreMatch || !mensajeMatch) {
-        showOutput('<p class="output-line output-muted">dejar: missing nombre or mensaje</p><p class="output-line output-muted">syntax: dejar nombre="Ana" mensaje="el mapa no es el territorio"</p>');
+        showOutput('<p class="output-line output-muted">dejar: missing nombre or mensaje</p><p class="output-line output-muted">así: <span class="output-mono">dejar nombre="..." mensaje="..."</span></p>');
         return;
       }
 
@@ -1313,6 +1457,46 @@ const batesonQuotes = [
     saveVisitorState(visitorState);
   }
 
+  // Detect prose vs. command-like input
+  function looksLikeProse(input: string): boolean {
+    const trimmed = input.trim();
+    if (!trimmed) return false;
+
+    const lower = trimmed.toLowerCase();
+    const tokens = trimmed.split(/\s+/);
+
+    // Contains ? anywhere
+    if (trimmed.includes('?')) return true;
+
+    // Contains . or ! in non-final position
+    const midPunctuation = /[.!](?!$)/;
+    if (midPunctuation.test(trimmed)) return true;
+
+    // Contains comma (casual speech: "cool page, bro")
+    if (trimmed.includes(',')) return true;
+
+    // More than 4 whitespace-separated tokens (lowered threshold)
+    if (tokens.length > 4) return true;
+
+    // First token is a greeting (excludes hola/hello/bonjour which are commands)
+    const greetings = ['hi', 'hey', 'salut', 'yo', 'ey'];
+    const firstToken = tokens[0].toLowerCase().replace(/[!,]$/, '');
+    if (greetings.includes(firstToken)) return true;
+
+    // Contains evaluative/complimentary words (not commands)
+    const evaluative = ['cool', 'nice', 'great', 'awesome', 'good', 'bad', 'love', 'like', 'beautiful', 'amazing', 'genial', 'bueno', 'bonito', 'increíble', 'thanks', 'gracias', 'merci', 'cheers'];
+    if (evaluative.some(word => lower.includes(word))) return true;
+
+    // Contains informal address
+    const addresses = ['bro', 'dude', 'man', 'mate', 'amigo', 'tío', 'compa'];
+    if (addresses.some(addr => lower.includes(addr))) return true;
+
+    // Multiple tokens without = suggests prose, not command args
+    if (tokens.length >= 3 && !trimmed.includes('=')) return true;
+
+    return false;
+  }
+
   // Handle command execution
   function executeCommand(rawInput: string): void {
     const trimmed = rawInput.trim().toLowerCase();
@@ -1347,7 +1531,11 @@ const batesonQuotes = [
 
       handler(args);
     } else {
-      showOutput(`<p class="output-line output-muted">unknown command: ${name}</p>`);
+      if (looksLikeProse(rawInput)) {
+        proseRedirect();
+      } else {
+        showOutput(`<p class="output-line output-muted">unknown command: ${name}</p>`);
+      }
     }
   }
 

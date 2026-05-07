@@ -10,7 +10,12 @@ kv_namespaces = [
 binding = "GARDEN_ANALYTICS"
 dataset = "garden_metrics"
 
+# Cron triggers for daily poem generation (DST workaround: run twice)
+[triggers]
+crons = ["5 4 * * *", "5 5 * * *"]
+
 # Secrets (set via wrangler secret put):
 # - ADMIN_TOKEN
 # - RESEND_API_KEY
 # - OWNER_EMAIL
+# - GROQ_API_KEY

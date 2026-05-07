@@ -40,6 +40,19 @@ Not in the hint, not in `help`. Reward exploration; carry voice without aiding n
 | `cd ..` | *"there is no outside."* |
 | `clear` | Dismiss output |
 | `olvidar` / `forget` | Reset visitor state (with confirmation) |
+| `garden` / `jardin` | Visitor stats (visits, waterings, secrets found, seed stage) |
+| `bonjour` | Montréal weather + surrealist poem (daily-generated) |
+| `hola` | Visit-aware Spanish greeting (tiered by visit count) |
+| `hello` | Visit-aware English greeting (tiered by visit count) |
+
+### Visit-aware greetings
+
+`hola` and `hello` recognize returning visitors with three tiers of response:
+- **First visit** (`visits === 1`): opening acknowledgment
+- **Returning** (2–6 visits): recognition
+- **Long-time** (≥7 visits): familiarity
+
+The threshold (7) matches the `seed` bloom threshold.
 
 ### Public vs. secret
 
@@ -122,6 +135,8 @@ Stored in the `batesonQuotes` array in component frontmatter. Add quotes there. 
 
 Inherits from [`ONTOLOGY.md`](ONTOLOGY.md). CLI-specific overrides:
 
+The unknown-command handler distinguishes orders from utterances: prose-like input (greetings, questions, long text) nudges toward `dejar` instead of showing "unknown command".
+
 - **Terse:** one line preferred, three max.
 - **Lowercase:** the parser doesn't shout.
 - **Parser-flavored:** *"cd: not a garden path"*, not *"Directory not found"*.
@@ -202,6 +217,90 @@ npx tsx scripts/visitors-admin.ts approve-all
 ```
 
 Requires `.env` with `VISITORS_WORKER_URL` and `VISITORS_ADMIN_TOKEN`.
+
+---
+
+## Bonjour Pipeline
+
+The `bonjour` command returns Montréal weather and a surrealist poem.
+
+### Generation
+
+- **Cron triggers** at 04:05 and 05:05 UTC (DST workaround: runs twice, no-ops if poem exists)
+- **Groq API** generates poems using `llama-3.1-8b-instant` with temperature 0.95
+- **Prompt**: French surrealist style (Desnos, Éluard, Péret), 4–8 lines, lowercase, no title
+- **TTL**: Daily poems expire after 26 hours
+
+### Request Flow
+
+```
+bonjour
+    │
+    ▼
+┌─────────────────────────────┐
+│  GET /bonjour               │
+│  - fetch weather (15m cache)│
+│  - select phrase            │
+│  - select poem (70/30)      │
+│  - pick encounter location  │
+└─────────────────────────────┘
+    │
+    ▼
+┌─────────────────────────────┐
+│  Response                   │
+│  { weather, encounter, poem }│
+└─────────────────────────────┘
+```
+
+### Poem Selection
+
+- **70%**: Today's daily poem
+- **30%**: Random from favorites pool (if any)
+- **Fallback**: *"le jardin regarde dehors. le ciel est là."*
+
+### Weather
+
+- **Source**: Open-Meteo (free, no API key)
+- **Cache**: 15 minutes in KV
+- **Failure mode**: Poem shows + "(les chiffres se sont perdus en chemin.)"
+
+### Curation
+
+To manually trigger poem generation (useful after first deploy or to regenerate):
+
+```bash
+npx tsx scripts/visitors-admin.ts bonjour generate
+```
+
+Good poems can be promoted to the favorites pool for longevity:
+
+```bash
+# List recent poems
+npx tsx scripts/visitors-admin.ts bonjour list
+
+# Show specific day's poem
+npx tsx scripts/visitors-admin.ts bonjour show 2026-05-01
+
+# Promote to favorites
+npx tsx scripts/visitors-admin.ts bonjour favorite 2026-05-01
+
+# List favorites
+npx tsx scripts/visitors-admin.ts bonjour favorites
+
+# Remove from favorites
+npx tsx scripts/visitors-admin.ts bonjour favorites remove fav:XXXXX
+
+# Delete a bad poem (prune)
+npx tsx scripts/visitors-admin.ts bonjour prune 2026-05-01
+```
+
+### KV Keys
+
+| Key | Content | TTL |
+|-----|---------|-----|
+| `bonjour:weather:current` | Cached Open-Meteo JSON | 15 min |
+| `bonjour:daily:YYYY-MM-DD` | Poem text | 26 hours |
+| `bonjour:favorites` | JSON array of favorites | None |
 
 ---
 
