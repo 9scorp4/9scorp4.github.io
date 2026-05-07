@@ -25,6 +25,9 @@ interface AhoraFrontmatter {
     timeSignature?: string;
     danceability?: number;
     songbpmId?: string;
+    // Source verification
+    sourceVerified?: boolean;
+    corrections?: string;
     // Subjective
     energy?: number;
     // Other
@@ -60,6 +63,8 @@ export default function myceliumDataIntegration(): AstroIntegration {
             timeSignature?: string;
             danceability?: number;
             songbpmId?: string;
+            sourceVerified?: boolean;
+            corrections?: string;
             energy?: number;
             genre?: string[];
             date: string;
@@ -93,6 +98,8 @@ export default function myceliumDataIntegration(): AstroIntegration {
                 timeSignature: track.timeSignature,
                 danceability: track.danceability,
                 songbpmId: track.songbpmId,
+                sourceVerified: track.sourceVerified,
+                corrections: track.corrections,
                 energy: track.energy,
                 genre: track.genre,
                 date: dateStr,

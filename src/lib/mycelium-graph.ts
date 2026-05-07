@@ -17,6 +17,9 @@ export interface MyceliumNode {
   timeSignature?: string;
   danceability?: number;
   songbpmId?: string;   // provenance marker
+  // Source verification
+  sourceVerified?: boolean;
+  corrections?: string;
   // Subjective
   energy?: number;
   // Meta
@@ -50,6 +53,8 @@ interface TrackData {
   timeSignature?: string;
   danceability?: number;
   songbpmId?: string;
+  sourceVerified?: boolean;
+  corrections?: string;
   energy?: number;
   genre?: string[];
   date: string;
@@ -139,6 +144,8 @@ export function buildGraph(tracks: TrackData[]): MyceliumGraph {
       if (track.timeSignature !== undefined) existing.timeSignature = track.timeSignature;
       if (track.danceability !== undefined) existing.danceability = track.danceability;
       if (track.songbpmId !== undefined) existing.songbpmId = track.songbpmId;
+      if (track.sourceVerified !== undefined) existing.sourceVerified = track.sourceVerified;
+      if (track.corrections !== undefined) existing.corrections = track.corrections;
       if (track.energy !== undefined) existing.energy = track.energy;
     } else {
       nodeMap.set(id, {
@@ -152,6 +159,8 @@ export function buildGraph(tracks: TrackData[]): MyceliumGraph {
         timeSignature: track.timeSignature,
         danceability: track.danceability,
         songbpmId: track.songbpmId,
+        sourceVerified: track.sourceVerified,
+        corrections: track.corrections,
         energy: track.energy,
         firstHeard: track.date,
         appearances: 1,
