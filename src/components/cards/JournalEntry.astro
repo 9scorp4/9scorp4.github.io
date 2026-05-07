@@ -27,7 +27,7 @@ const isDiptych = type === 'diptych';
 <article class="journal-entry" id={entry.slug} lang={language}>
   <p class="meta">
     {isDiptych && <span class="diptych-marker" title="diptych">⁂</span>}
-    {formattedDate} · entry {entryNumber}
+    <time datetime={date.toISOString().slice(0, 10)}>{formattedDate}</time> · entry {entryNumber}
   </p>
   <h3><a href={`/cuaderno/${entry.slug}`}>{title}</a></h3>
   <p class="summary">{summary}</p>
