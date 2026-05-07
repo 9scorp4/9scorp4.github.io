@@ -83,6 +83,24 @@ const ahora = defineCollection({
       discovered: z.string().optional(),              // e.g., "algorithm", "friend:Ana", "radio"
       notes: z.string().optional(),                   // free-form
     })).optional(),
+
+    // New article announcement
+    articuloNuevo: z.array(z.object({
+      article: z.string(),        // journal entry slug
+      note: z.string().optional(),
+    })).optional(),
+
+    // New specimen announcement
+    specimenNuevo: z.array(z.object({
+      specimen: z.string(),       // specimen id (e.g., 'sig-001')
+      note: z.string().optional(),
+    })).optional(),
+
+    // Cultivation updates
+    cultivando: z.array(z.object({
+      cultivation: z.string(),    // cultivation slug
+      note: z.string().optional(),
+    })).optional(),
   }),
 });
 

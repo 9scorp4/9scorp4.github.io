@@ -1,6 +1,17 @@
 ---
 import type { CollectionEntry } from 'astro:content';
+import { getCollection } from 'astro:content';
 import { getSeason } from '../../lib/season';
+
+// Fetch collections for lookups
+const journalEntries = await getCollection('journal');
+const specimensData = await getCollection('specimens');
+const cultivationsData = await getCollection('cultivations');
+
+// Create lookup maps
+const journalBySlug = new Map(journalEntries.map(e => [e.slug, e]));
+const specimensById = new Map(specimensData.map(s => [s.data.id, s]));
+const cultivationsBySlug = new Map(cultivationsData.map(c => [c.data.slug, c]));
 
 interface Props {
   entries: CollectionEntry<'ahora'>[];
@@ -81,6 +92,36 @@ const olderRendered = renderedEntries.slice(1);
                   ))}
                 </p>
               )}
+              {entry.data.articuloNuevo?.map(item => {
+                const journal = journalBySlug.get(item.article);
+                return journal && (
+                  <p>
+                    <em>articulo nuevo:</em>{' '}
+                    <a href={`/cuaderno/${item.article}`}>{journal.data.title}</a>
+                    {item.note && ` — ${item.note}`}
+                  </p>
+                );
+              })}
+              {entry.data.specimenNuevo?.map(item => {
+                const specimen = specimensById.get(item.specimen);
+                return specimen && (
+                  <p>
+                    <em>specimen nuevo:</em>{' '}
+                    <a href="/#conservatorio">{specimen.data.name}</a>
+                    {item.note && ` — ${item.note}`}
+                  </p>
+                );
+              })}
+              {entry.data.cultivando?.map(item => {
+                const cultivation = cultivationsBySlug.get(item.cultivation);
+                return cultivation && (
+                  <p>
+                    <em>cultivando:</em>{' '}
+                    <a href="/#cultivos">{cultivation.data.name}</a>
+                    {item.note && ` — ${item.note}`}
+                  </p>
+                );
+              })}
             </div>
           </div>
         ))}
@@ -104,6 +145,36 @@ const olderRendered = renderedEntries.slice(1);
               {' '}<a href="/micelio" class="mycelium-link" title="el micelio">◉</a>
             </p>
           )}
+          {latestRendered.entry.data.articuloNuevo?.map(item => {
+            const journal = journalBySlug.get(item.article);
+            return journal && (
+              <p>
+                <em>articulo nuevo:</em>{' '}
+                <a href={`/cuaderno/${item.article}`}>{journal.data.title}</a>
+                {item.note && ` — ${item.note}`}
+              </p>
+            );
+          })}
+          {latestRendered.entry.data.specimenNuevo?.map(item => {
+            const specimen = specimensById.get(item.specimen);
+            return specimen && (
+              <p>
+                <em>specimen nuevo:</em>{' '}
+                <a href="/#conservatorio">{specimen.data.name}</a>
+                {item.note && ` — ${item.note}`}
+              </p>
+            );
+          })}
+          {latestRendered.entry.data.cultivando?.map(item => {
+            const cultivation = cultivationsBySlug.get(item.cultivation);
+            return cultivation && (
+              <p>
+                <em>cultivando:</em>{' '}
+                <a href="/#cultivos">{cultivation.data.name}</a>
+                {item.note && ` — ${item.note}`}
+              </p>
+            );
+          })}
         </div>
       </div>
       {olderRendered.length > 0 && (
@@ -124,6 +195,36 @@ const olderRendered = renderedEntries.slice(1);
                     ))}
                   </p>
                 )}
+                {entry.data.articuloNuevo?.map(item => {
+                  const journal = journalBySlug.get(item.article);
+                  return journal && (
+                    <p>
+                      <em>articulo nuevo:</em>{' '}
+                      <a href={`/cuaderno/${item.article}`}>{journal.data.title}</a>
+                      {item.note && ` — ${item.note}`}
+                    </p>
+                  );
+                })}
+                {entry.data.specimenNuevo?.map(item => {
+                  const specimen = specimensById.get(item.specimen);
+                  return specimen && (
+                    <p>
+                      <em>specimen nuevo:</em>{' '}
+                      <a href="/#conservatorio">{specimen.data.name}</a>
+                      {item.note && ` — ${item.note}`}
+                    </p>
+                  );
+                })}
+                {entry.data.cultivando?.map(item => {
+                  const cultivation = cultivationsBySlug.get(item.cultivation);
+                  return cultivation && (
+                    <p>
+                      <em>cultivando:</em>{' '}
+                      <a href="/#cultivos">{cultivation.data.name}</a>
+                      {item.note && ` — ${item.note}`}
+                    </p>
+                  );
+                })}
               </div>
             </div>
           ))}

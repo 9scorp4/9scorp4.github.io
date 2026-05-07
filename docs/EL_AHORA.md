@@ -28,8 +28,12 @@ Slots are written in Spanish, lowercase, with no parenthetical translation — t
 | **leyendo** | current reading. books, papers, the occasional Threads spiral. |
 | **escuchando** | current listening. music, podcasts, the upstairs neighbors. |
 | **specimen nuevo** | when something new lands in the conservatory. linked. |
+| **articulo nuevo** | when a new article is added to the field journal. may be a diptych or not. linked. |
+| **cultivando** | everything cultivation-related (new, updates, whatever is load-bearing). clicking leads to the cultivation entry on site. |
 
-Six is the ceiling. If a seventh is being seriously considered, first ask whether one of the existing six can absorb it. Vocabulary creep is how this section dies.
+The terms *artículo nuevo* and *cultivando* were recently added against previous advice to do so. The rationale gives justice of this change: now it will be possible to annouce new content on page load and to associate `el ahora` entries with content from `conservatorio` and `cultivos`. Articles, specimens and cultivations could be mapped to `micelio` through `ahora` dispatches containing songs. Possibilities are endless.
+
+That being said, we may consider refraining from adding more terms going forward, unless we discover an uncovered edge case, which would be honestly surprising. Vocabulary creep is how this section dies.
 
 ---
 
