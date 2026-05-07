@@ -16,6 +16,7 @@ export interface MyceliumNode {
   openKey?: string;     // Camelot notation
   timeSignature?: string;
   danceability?: number;
+  songbpmId?: string;   // provenance marker
   // Subjective
   energy?: number;
   // Meta
@@ -34,6 +35,9 @@ export interface MyceliumGraph {
   nodes: MyceliumNode[];
   edges: MyceliumEdge[];
   generated: string;    // ISO timestamp
+  meta: {
+    tracksFromSongbpm: number;
+  };
 }
 
 interface TrackData {
@@ -45,6 +49,7 @@ interface TrackData {
   openKey?: string;
   timeSignature?: string;
   danceability?: number;
+  songbpmId?: string;
   energy?: number;
   genre?: string[];
   date: string;
@@ -133,6 +138,7 @@ export function buildGraph(tracks: TrackData[]): MyceliumGraph {
       if (track.openKey !== undefined) existing.openKey = track.openKey;
       if (track.timeSignature !== undefined) existing.timeSignature = track.timeSignature;
       if (track.danceability !== undefined) existing.danceability = track.danceability;
+      if (track.songbpmId !== undefined) existing.songbpmId = track.songbpmId;
       if (track.energy !== undefined) existing.energy = track.energy;
     } else {
       nodeMap.set(id, {
@@ -145,6 +151,7 @@ export function buildGraph(tracks: TrackData[]): MyceliumGraph {
         openKey: track.openKey,
         timeSignature: track.timeSignature,
         danceability: track.danceability,
+        songbpmId: track.songbpmId,
         energy: track.energy,
         firstHeard: track.date,
         appearances: 1,
@@ -262,9 +269,15 @@ export function buildGraph(tracks: TrackData[]): MyceliumGraph {
     }
   }
 
+  const nodesArray = Array.from(nodeMap.values());
+  const tracksFromSongbpm = nodesArray.filter(n => n.songbpmId).length;
+
   return {
-    nodes: Array.from(nodeMap.values()),
+    nodes: nodesArray,
     edges,
     generated: new Date().toISOString(),
+    meta: {
+      tracksFromSongbpm,
+    },
   };
 }

@@ -24,6 +24,7 @@ interface AhoraFrontmatter {
     openKey?: string;
     timeSignature?: string;
     danceability?: number;
+    songbpmId?: string;
     // Subjective
     energy?: number;
     // Other
@@ -58,6 +59,7 @@ export default function myceliumDataIntegration(): AstroIntegration {
             openKey?: string;
             timeSignature?: string;
             danceability?: number;
+            songbpmId?: string;
             energy?: number;
             genre?: string[];
             date: string;
@@ -90,6 +92,7 @@ export default function myceliumDataIntegration(): AstroIntegration {
                 openKey: track.openKey,
                 timeSignature: track.timeSignature,
                 danceability: track.danceability,
+                songbpmId: track.songbpmId,
                 energy: track.energy,
                 genre: track.genre,
                 date: dateStr,
@@ -115,6 +118,9 @@ export default function myceliumDataIntegration(): AstroIntegration {
             nodes: [],
             edges: [],
             generated: new Date().toISOString(),
+            meta: {
+              tracksFromSongbpm: 0,
+            },
           };
           const outputPath = join(projectRoot, 'public', 'mycelium-data.json');
           await writeFile(outputPath, JSON.stringify(emptyGraph, null, 2));

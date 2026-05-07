@@ -10,6 +10,7 @@
   <canvas id="mycelium-canvas" aria-label="Network visualization of connected songs"></canvas>
   <div id="mycelium-detail" class="detail-panel" aria-live="polite"></div>
 </div>
+<div id="mycelium-attribution" class="mycelium-footer-attribution"></div>
 
 <script>
   import {
@@ -33,6 +34,7 @@
     openKey?: string;
     timeSignature?: string;
     danceability?: number;
+    songbpmId?: string;
     energy?: number;
     firstHeard: string;
     appearances: number;
@@ -49,6 +51,9 @@
     nodes: MyceliumNodeData[];
     edges: MyceliumEdgeData[];
     generated: string;
+    meta?: {
+      tracksFromSongbpm: number;
+    };
   }
 
   // Simulation node with d3 position data
@@ -196,8 +201,11 @@
       html += `<p class="detail-meta">${parts.join(' · ')}</p>`;
     }
 
-    if (hasEnriched) {
-      html += `<p class="detail-attribution">via <a href="https://getsongbpm.com" target="_blank" rel="noopener">getsongbpm.com</a></p>`;
+    if (node.songbpmId) {
+      html += `<p class="detail-attribution">via <a href="https://getsongbpm.com/song/${node.songbpmId}" target="_blank" rel="noopener">getsongbpm.com</a></p>`;
+    } else if (hasEnriched) {
+      // manually sourced (Beatport, tap-tempo, etc.)
+      html += `<p class="detail-attribution">metadata harvested manually</p>`;
     }
 
     detailPanel.innerHTML = html;
@@ -334,6 +342,14 @@
         detailPanel.innerHTML = '<p class="detail-meta">the network is quiet. songs will appear as dispatches accumulate.</p>';
         detailPanel.classList.add('visible');
         return;
+      }
+
+      // Show footer attribution if any tracks came from songbpm
+      const songbpmCount = data.nodes.filter(n => n.songbpmId).length;
+      const attrEl = document.getElementById('mycelium-attribution');
+      if (songbpmCount > 0 && attrEl) {
+        attrEl.innerHTML = `some tempo data via <a href="https://getsongbpm.com" target="_blank" rel="noopener">GetSongBPM</a>`;
+        attrEl.classList.add('visible');
       }
 
       const w = canvas.width / (window.devicePixelRatio || 1);
@@ -473,6 +489,36 @@
 
   @media (prefers-reduced-motion: reduce) {
     .detail-panel {
+      transition: none;
+    }
+  }
+
+  .mycelium-footer-attribution {
+    text-align: center;
+    margin-top: var(--rhythm);
+    font-family: var(--font-serif);
+    font-size: 13px;
+    color: var(--ink-faint);
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+
+  .mycelium-footer-attribution.visible {
+    opacity: 1;
+  }
+
+  .mycelium-footer-attribution a {
+    color: var(--ink-faint);
+    text-decoration: none;
+  }
+
+  .mycelium-footer-attribution a:hover {
+    color: var(--fern);
+    text-decoration: underline;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .mycelium-footer-attribution {
       transition: none;
     }
   }
