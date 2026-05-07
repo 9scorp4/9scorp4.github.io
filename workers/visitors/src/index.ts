@@ -1,6 +1,22 @@
 import { SubmissionSchema, type VisitorMessage, type RateLimitEntry } from './schema';
 import { sendNotification } from './email';
 import { trackEvent, parseEvent, type AnalyticsEngine } from './analytics';
+import { composeBonjour } from './bonjour';
+import {
+  getDailyPoem,
+  getDailyPoemWithMeta,
+  listRecentPoems,
+  listPoemsByVersion,
+  prunePoem,
+  addToFavorites,
+  getFavorites,
+  removeFromFavorites,
+  runDailyCron,
+  generatePoem,
+  storeDailyPoem,
+  getCurrentPromptVersion,
+} from './poem';
+import { interpolatePrompt, getPromptConfig } from './prompt';
 
 interface Env {
   VISITORS_KV: KVNamespace;
@@ -8,6 +24,7 @@ interface Env {
   ADMIN_TOKEN: string;
   RESEND_API_KEY: string;
   OWNER_EMAIL: string;
+  GROQ_API_KEY: string;
 }
 
 const RATE_LIMIT_WINDOW = 60 * 60 * 1000; // 1 hour
@@ -20,6 +37,13 @@ const corsHeaders = {
 };
 
 export default {
+  async scheduled(_event: ScheduledEvent, env: Env, _ctx: ExecutionContext): Promise<void> {
+    const today = new Date().toISOString().slice(0, 10);
+    const existing = await env.VISITORS_KV.get(`bonjour:daily:${today}`);
+    if (existing) return; // DST workaround: no-op if exists
+    await runDailyCron({ VISITORS_KV: env.VISITORS_KV, GROQ_API_KEY: env.GROQ_API_KEY });
+  },
+
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
     const path = url.pathname;
@@ -36,6 +60,11 @@ export default {
 
     if (path === '/track' && request.method === 'POST') {
       return handleTrack(request, env);
+    }
+
+    // Bonjour: public endpoint
+    if (path === '/bonjour' && request.method === 'GET') {
+      return handleBonjour(env);
     }
 
     // Admin routes - require auth
@@ -61,6 +90,56 @@ export default {
       const rejectMatch = path.match(/^\/admin\/reject\/(.+)$/);
       if (rejectMatch && request.method === 'POST') {
         return handleReject(rejectMatch[1], env);
+      }
+
+      // Bonjour admin routes
+      if (path === '/admin/bonjour/generate' && request.method === 'POST') {
+        return handleBonjourGenerate(env);
+      }
+
+      if (path === '/admin/bonjour/list' && request.method === 'GET') {
+        const daysParam = url.searchParams.get('days');
+        const days = daysParam ? parseInt(daysParam, 10) : 7;
+        return handleBonjourList(env, isNaN(days) ? 7 : days);
+      }
+
+      const showMatch = path.match(/^\/admin\/bonjour\/show\/(\d{4}-\d{2}-\d{2})$/);
+      if (showMatch && request.method === 'GET') {
+        return handleBonjourShow(env, showMatch[1]);
+      }
+
+      const favoriteMatch = path.match(/^\/admin\/bonjour\/favorite\/(\d{4}-\d{2}-\d{2})$/);
+      if (favoriteMatch && request.method === 'POST') {
+        return handleBonjourFavorite(env, favoriteMatch[1]);
+      }
+
+      const pruneMatch = path.match(/^\/admin\/bonjour\/prune\/(\d{4}-\d{2}-\d{2})$/);
+      if (pruneMatch && request.method === 'DELETE') {
+        return handleBonjourPrune(env, pruneMatch[1]);
+      }
+
+      if (path === '/admin/bonjour/favorites' && request.method === 'GET') {
+        return handleBonjourFavorites(env);
+      }
+
+      const removeFavoriteMatch = path.match(/^\/admin\/bonjour\/favorites\/(.+)$/);
+      if (removeFavoriteMatch && request.method === 'DELETE') {
+        return handleBonjourRemoveFavorite(env, removeFavoriteMatch[1]);
+      }
+
+      // Prompt admin routes
+      if (path === '/admin/bonjour/prompt' && request.method === 'GET') {
+        return handleBonjourPrompt();
+      }
+
+      if (path === '/admin/bonjour/prompt/test' && request.method === 'POST') {
+        return handleBonjourPromptTest();
+      }
+
+      if (path === '/admin/bonjour/prompt/history' && request.method === 'GET') {
+        const daysParam = url.searchParams.get('days');
+        const days = daysParam ? parseInt(daysParam, 10) : 30;
+        return handleBonjourPromptHistory(env, isNaN(days) ? 30 : days);
       }
     }
 
@@ -216,6 +295,122 @@ async function handleReject(id: string, env: Env): Promise<Response> {
   await env.VISITORS_KV.put(id, JSON.stringify(message));
 
   return json({ ok: true, message });
+}
+
+// Bonjour handlers
+
+async function handleBonjour(env: Env): Promise<Response> {
+  const response = await composeBonjour({ VISITORS_KV: env.VISITORS_KV });
+  return json(response);
+}
+
+async function handleBonjourGenerate(env: Env): Promise<Response> {
+  const result = await generatePoem({ VISITORS_KV: env.VISITORS_KV, GROQ_API_KEY: env.GROQ_API_KEY });
+  if (!result) {
+    return json({ error: 'poem generation failed' }, 500);
+  }
+  await storeDailyPoem(env.VISITORS_KV, result);
+  return json({
+    ok: true,
+    poem: result.poem,
+    promptVersion: result.promptVersion,
+    context: result.context,
+  });
+}
+
+async function handleBonjourList(env: Env, days: number): Promise<Response> {
+  const poems = await listRecentPoems(env.VISITORS_KV, days);
+  return json({ poems });
+}
+
+async function handleBonjourShow(env: Env, date: string): Promise<Response> {
+  const poem = await getDailyPoemWithMeta(env.VISITORS_KV, date);
+  if (!poem) {
+    return json({ error: 'poem not found' }, 404);
+  }
+  return json(poem);
+}
+
+async function handleBonjourFavorite(env: Env, date: string): Promise<Response> {
+  const poem = await getDailyPoem(env.VISITORS_KV, date);
+  if (!poem) {
+    return json({ error: 'poem not found' }, 404);
+  }
+  const id = await addToFavorites(env.VISITORS_KV, date, poem);
+  return json({ ok: true, id });
+}
+
+async function handleBonjourPrune(env: Env, date: string): Promise<Response> {
+  const deleted = await prunePoem(env.VISITORS_KV, date);
+  if (!deleted) {
+    return json({ error: 'poem not found' }, 404);
+  }
+  return json({ ok: true });
+}
+
+async function handleBonjourFavorites(env: Env): Promise<Response> {
+  const favorites = await getFavorites(env.VISITORS_KV);
+  return json({ favorites });
+}
+
+async function handleBonjourRemoveFavorite(env: Env, id: string): Promise<Response> {
+  const removed = await removeFromFavorites(env.VISITORS_KV, id);
+  if (!removed) {
+    return json({ error: 'favorite not found' }, 404);
+  }
+  return json({ ok: true });
+}
+
+async function handleBonjourPrompt(): Promise<Response> {
+  const config = getPromptConfig();
+  return json({
+    version: config.version,
+    description: config.description,
+    template: config.template,
+    dictionaries: {
+      objects: config.dictionaries.objects.length,
+      subjects: config.dictionaries.subjects.length,
+      events: config.dictionaries.events.length,
+      metrics: config.dictionaries.metrics.length,
+      cadences: config.dictionaries.cadences.length,
+      minimal_pairs: config.dictionaries.minimal_pairs.length,
+    },
+    model: config.model,
+  });
+}
+
+async function handleBonjourPromptTest(): Promise<Response> {
+  const result = interpolatePrompt();
+  return json({
+    version: result.version,
+    prompt: result.prompt,
+    context: result.context,
+  });
+}
+
+async function handleBonjourPromptHistory(env: Env, days: number): Promise<Response> {
+  const byVersion = await listPoemsByVersion(env.VISITORS_KV, days);
+  const history: { version: string; count: number; dates: string[] }[] = [];
+
+  for (const [version, poems] of byVersion) {
+    history.push({
+      version,
+      count: poems.length,
+      dates: poems.map(p => p.date),
+    });
+  }
+
+  // Sort by version (most recent first, legacy last)
+  history.sort((a, b) => {
+    if (a.version === 'legacy') return 1;
+    if (b.version === 'legacy') return -1;
+    return b.version.localeCompare(a.version);
+  });
+
+  return json({
+    currentVersion: getCurrentPromptVersion(),
+    history,
+  });
 }
 
 // TODO: N+1 query pattern — fine at current scale, batch if messages exceed ~50
