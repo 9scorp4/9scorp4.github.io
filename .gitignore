@@ -45,3 +45,6 @@ coverage/
 
 # private notes (never pushed)
 _private/
+
+# instagram generator output
+insta-output/

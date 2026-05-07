@@ -5,6 +5,10 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
+    "insta": "tsx scripts/insta-gen.ts",
+    "insta:publish": "tsx scripts/insta-gen.ts --publish",
+    "buffer": "tsx scripts/buffer-publish.ts --interactive",
+    "buffer:channels": "tsx scripts/buffer-publish.ts --channels",
     "test": "vitest run",
     "test:watch": "vitest"
   },
@@ -12,11 +16,14 @@
     "@astrojs/mdx": "^4",
     "@astrojs/rss": "^4",
     "@astrojs/sitemap": "^3.7.2",
+    "@aws-sdk/client-s3": "^3.1044.0",
+    "@inquirer/prompts": "^8.4.2",
     "@resvg/resvg-js": "^2.6.2",
     "astro": "^5",
     "d3-force": "^3.0.0",
     "markdown-it": "^14.1.1",
     "p5": "^1.11",
+    "qrcode": "^1.5.4",
     "sanitize-html": "^2.17.3",
     "satori": "^0.26.0",
     "yaml": "^2.8.4"
@@ -24,6 +31,7 @@
   "devDependencies": {
     "@fontsource/im-fell-dw-pica": "^5.2.6",
     "@types/d3-force": "^3.0.10",
+    "@types/qrcode": "^1.5.6",
     "@types/react": "^19.2.14",
     "dotenv": "^16.3.1",
     "react": "^19.2.5",
