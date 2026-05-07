@@ -325,12 +325,6 @@ See [`CONSOLE.md`](CONSOLE.md) for full documentation.
 - **Analytics by default**: privacy-respecting only, and only when a signal is actually wanted
 - **A CMS**: markdown files + git is the CMS. Resist.
 
-## In scope but not yet built
-
-- **RSS feed** for the field journal — high signal, low cost. Add when there are 5+ entries.
-- **OpenGraph / social previews** for individual journal entries
-- **Sitemap.xml** — Astro generates this automatically with the `@astrojs/sitemap` integration
-
 ## Migration paths
 
 If Astro becomes the wrong tool:
