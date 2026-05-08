@@ -2,7 +2,8 @@
  * Bonjour command: Montréal weather + surrealist poem
  */
 
-import { getDailyPoem, getFavorites, type FavoritePoem } from './poem';
+import { getDailyPoem, getFavorites, getPoemHash, type FavoritePoem } from './poem';
+import { initRatingsRecord, getRatings } from './ratings';
 
 const MONTREAL_COORDS = { lat: 45.5017, lon: -73.5673 };
 const WEATHER_CACHE_TTL = 900; // 15 minutes
@@ -139,6 +140,13 @@ interface WeatherData {
   isDay: boolean;
 }
 
+interface SelectedPoem {
+  text: string;
+  hash: string;
+  source: 'daily' | 'favorite';
+  sourceDate?: string;
+}
+
 interface BonjourResponse {
   ok: true;
   weather: {
@@ -149,6 +157,13 @@ interface BonjourResponse {
   } | null;
   encounter: string;
   poem: string;
+  poemId: string;
+  engagement: {
+    bien: number;
+    bof: number;
+    nul: number;
+    total: number;
+  } | null;
 }
 
 export interface BonjourEnv {
@@ -243,8 +258,11 @@ function getEncounterLocation(): string {
 
 /**
  * Select a poem: 70% daily, 30% favorites (if available)
+ * Returns poem text with metadata for rating system
  */
-async function selectPoem(kv: KVNamespace): Promise<string> {
+async function selectPoem(kv: KVNamespace): Promise<SelectedPoem> {
+  const today = new Date().toISOString().slice(0, 10);
+
   // Get today's poem
   const dailyPoem = await getDailyPoem(kv);
 
@@ -253,26 +271,32 @@ async function selectPoem(kv: KVNamespace): Promise<string> {
 
   // If no daily and no favorites, use fallback
   if (!dailyPoem && favorites.length === 0) {
-    return FALLBACK_POEM;
+    const hash = await getPoemHash(FALLBACK_POEM);
+    return { text: FALLBACK_POEM, hash, source: 'daily', sourceDate: today };
   }
 
   // If no favorites, use daily (or fallback)
   if (favorites.length === 0) {
-    return dailyPoem || FALLBACK_POEM;
+    const text = dailyPoem || FALLBACK_POEM;
+    const hash = await getPoemHash(text);
+    return { text, hash, source: 'daily', sourceDate: today };
   }
 
   // If no daily, use favorite
   if (!dailyPoem) {
     const favorite = favorites[Math.floor(Math.random() * favorites.length)];
-    return favorite.text;
+    const hash = await getPoemHash(favorite.text);
+    return { text: favorite.text, hash, source: 'favorite', sourceDate: favorite.date };
   }
 
   // 70/30 weighted selection
   if (Math.random() < 0.7) {
-    return dailyPoem;
+    const hash = await getPoemHash(dailyPoem);
+    return { text: dailyPoem, hash, source: 'daily', sourceDate: today };
   } else {
     const favorite = favorites[Math.floor(Math.random() * favorites.length)];
-    return favorite.text;
+    const hash = await getPoemHash(favorite.text);
+    return { text: favorite.text, hash, source: 'favorite', sourceDate: favorite.date };
   }
 }
 
@@ -297,13 +321,32 @@ export async function composeBonjour(env: BonjourEnv): Promise<BonjourResponse> 
   // Get encounter location
   const encounter = getEncounterLocation();
 
-  // Select poem
-  const poem = await selectPoem(env.VISITORS_KV);
+  // Select poem with metadata
+  const selectedPoem = await selectPoem(env.VISITORS_KV);
+
+  // Initialize ratings record for this poem (no-op if already exists)
+  await initRatingsRecord(
+    env.VISITORS_KV,
+    selectedPoem.hash,
+    selectedPoem.text,
+    selectedPoem.source,
+    selectedPoem.sourceDate
+  );
+
+  // Fetch engagement counts
+  const ratings = await getRatings(env.VISITORS_KV, selectedPoem.hash);
+  let engagement: BonjourResponse['engagement'] = null;
+  if (ratings) {
+    const { bien, bof, nul } = ratings.ratings;
+    engagement = { bien, bof, nul, total: bien + bof + nul };
+  }
 
   return {
     ok: true,
     weather: weatherResponse,
     encounter,
-    poem,
+    poem: selectedPoem.text,
+    poemId: selectedPoem.hash,
+    engagement,
   };
 }

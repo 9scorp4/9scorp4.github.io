@@ -430,6 +430,56 @@ const batesonQuotes = [
     outline-offset: 2px;
   }
 
+  /* Engagement counts */
+  .console-output :global(.engagement-line) {
+    margin-top: 10px;
+    font-size: 13px;
+    font-family: var(--font-mono);
+  }
+
+  /* Poem rating row */
+  .console-output :global(.rating-row) {
+    margin-top: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .console-output :global(.rating-btn) {
+    font-family: var(--font-serif);
+    font-size: 13px;
+    font-style: italic;
+    color: var(--ink-faint);
+    background: none;
+    border: none;
+    padding: 2px 6px;
+    cursor: pointer;
+  }
+
+  .console-output :global(.rating-btn[data-rating="bien"]:hover) {
+    color: var(--fern);
+  }
+
+  .console-output :global(.rating-btn[data-rating="bof"]:hover) {
+    color: var(--ink);
+  }
+
+  .console-output :global(.rating-btn[data-rating="nul"]:hover) {
+    color: var(--terracotta);
+  }
+
+  .console-output :global(.rating-sep) {
+    color: var(--ink-faint);
+    font-size: 13px;
+  }
+
+  .console-output :global(.rating-confirmed) {
+    font-family: var(--font-serif);
+    font-size: 13px;
+    font-style: italic;
+    color: var(--ink-faint);
+  }
+
   /* Reduced motion */
   @media (prefers-reduced-motion: reduce) {
     .cursor {
@@ -1180,6 +1230,13 @@ const batesonQuotes = [
           } | null;
           encounter?: string;
           poem?: string;
+          poemId?: string;
+          engagement?: {
+            bien: number;
+            bof: number;
+            nul: number;
+            total: number;
+          } | null;
         };
 
         if (!response.ok || !data.ok) {
@@ -1210,9 +1267,50 @@ const batesonQuotes = [
             html += `<p class="output-line">${escapeHtml(line)}</p>`;
           });
           html += '</div>';
+
+          // Engagement counts (if any votes exist)
+          if (data.engagement && data.engagement.total > 0) {
+            const { bien, bof, nul, total } = data.engagement;
+            html += `<p class="output-line output-muted engagement-line">${total} avis · ${bien} bien · ${bof} bof · ${nul} nul</p>`;
+          }
+
+          // Rating row
+          if (data.poemId) {
+            html += `
+              <div class="rating-row" data-poem-id="${data.poemId}">
+                <button class="rating-btn" data-rating="bien">+ bien</button>
+                <span class="rating-sep">·</span>
+                <button class="rating-btn" data-rating="bof">· bof</button>
+                <span class="rating-sep">·</span>
+                <button class="rating-btn" data-rating="nul">− nul</button>
+              </div>
+            `;
+          }
         }
 
         showOutput(html);
+
+        // Wire up rating buttons
+        const ratingRow = output.querySelector('.rating-row') as HTMLElement | null;
+        if (ratingRow) {
+          const poemId = ratingRow.dataset.poemId;
+          ratingRow.querySelectorAll('.rating-btn').forEach(btn => {
+            btn.addEventListener('click', async () => {
+              const rating = (btn as HTMLElement).dataset.rating;
+              try {
+                const resp = await fetch(`${contentData.workerUrl}/bonjour/rate`, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ poemHash: poemId, rating }),
+                });
+                const rateData = await resp.json() as { ok?: boolean; error?: string };
+                ratingRow.innerHTML = `<span class="rating-confirmed">${rateData.ok ? 'noté.' : rateData.error}</span>`;
+              } catch {
+                ratingRow.innerHTML = '<span class="rating-confirmed">erreur.</span>';
+              }
+            });
+          });
+        }
       } catch {
         showOutput('<p class="output-line output-muted">le jardin regarde dehors. le ciel est là.</p>');
       }
