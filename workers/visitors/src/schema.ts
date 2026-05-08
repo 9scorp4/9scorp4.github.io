@@ -20,3 +20,21 @@ export interface RateLimitEntry {
   count: number;
   window_start: number;
 }
+
+// Poem rating schema
+export const RatingSchema = z.object({
+  poemHash: z.string().length(12),
+  rating: z.enum(['bien', 'bof', 'nul']),
+});
+
+export type Rating = z.infer<typeof RatingSchema>;
+
+export interface PoemRatings {
+  poemText: string;
+  ratings: { bien: number; bof: number; nul: number };
+  raters: string[];  // IP hashes (rate limit)
+  firstRated: string;
+  lastRated: string;
+  source: 'daily' | 'favorite';
+  sourceDate?: string;
+}

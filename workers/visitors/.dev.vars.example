@@ -1,0 +1,4 @@
+GROQ_API_KEY=your-groq-api-key-here
+ADMIN_TOKEN=local-admin-token
+RESEND_API_KEY=not-needed-locally
+OWNER_EMAIL=not-needed-locally

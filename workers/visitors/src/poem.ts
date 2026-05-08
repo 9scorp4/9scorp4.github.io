@@ -12,6 +12,15 @@ import {
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
 const DAILY_POEM_TTL = 93600; // 26 hours
 
+/**
+ * Generate a 12-character hash from poem text for identification
+ */
+export async function getPoemHash(text: string): Promise<string> {
+  const data = new TextEncoder().encode(text.trim().toLowerCase());
+  const hash = await crypto.subtle.digest('SHA-256', data);
+  return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('').slice(0, 12);
+}
+
 export interface FavoritePoem {
   id: string;
   date: string;
@@ -25,6 +34,7 @@ export interface FavoritePoem {
 export interface StoredPoem {
   text: string;
   promptVersion: string;
+  promptText: string;
   context: InterpolationContext;
   generatedAt: string;
 }
@@ -35,6 +45,7 @@ export interface StoredPoem {
 export interface GeneratedPoem {
   poem: string;
   promptVersion: string;
+  promptText: string;
   context: InterpolationContext;
 }
 
@@ -45,6 +56,7 @@ export interface PoemWithMeta {
   date: string;
   text: string;
   promptVersion?: string;
+  promptText?: string;
   context?: InterpolationContext;
   generatedAt?: string;
 }
@@ -93,6 +105,7 @@ export async function generatePoem(env: PoemEnv): Promise<GeneratedPoem | null> 
     return {
       poem: content,
       promptVersion: version,
+      promptText: prompt,
       context,
     };
   } catch (error) {
@@ -114,6 +127,7 @@ export async function storeDailyPoem(
   const stored: StoredPoem = {
     text: poem.poem,
     promptVersion: poem.promptVersion,
+    promptText: poem.promptText,
     context: poem.context,
     generatedAt: new Date().toISOString(),
   };
@@ -135,6 +149,7 @@ function parseStoredPoem(data: string, date: string): PoemWithMeta {
         date,
         text: parsed.text,
         promptVersion: parsed.promptVersion,
+        promptText: parsed.promptText,
         context: parsed.context,
         generatedAt: parsed.generatedAt,
       };

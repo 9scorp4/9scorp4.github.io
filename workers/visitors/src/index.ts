@@ -1,4 +1,5 @@
-import { SubmissionSchema, type VisitorMessage, type RateLimitEntry } from './schema';
+import { SubmissionSchema, RatingSchema, type VisitorMessage, type RateLimitEntry } from './schema';
+import { submitRating } from './ratings';
 import { sendNotification } from './email';
 import { trackEvent, parseEvent, type AnalyticsEngine } from './analytics';
 import { composeBonjour } from './bonjour';
@@ -65,6 +66,11 @@ export default {
     // Bonjour: public endpoint
     if (path === '/bonjour' && request.method === 'GET') {
       return handleBonjour(env);
+    }
+
+    // Bonjour rate: public endpoint
+    if (path === '/bonjour/rate' && request.method === 'POST') {
+      return handleBonjourRate(request, env);
     }
 
     // Admin routes - require auth
@@ -304,6 +310,39 @@ async function handleBonjour(env: Env): Promise<Response> {
   return json(response);
 }
 
+async function handleBonjourRate(request: Request, env: Env): Promise<Response> {
+  // Parse and validate body
+  let body: unknown;
+  try {
+    body = await request.json();
+  } catch {
+    return json({ ok: false, error: 'invalid request body' }, 400);
+  }
+
+  const parsed = RatingSchema.safeParse(body);
+  if (!parsed.success) {
+    return json({ ok: false, error: 'invalid rating' }, 400);
+  }
+
+  // Hash client IP
+  const clientIp = request.headers.get('CF-Connecting-IP') || 'unknown';
+  const ipHash = await hashString(clientIp);
+
+  // Submit rating
+  const result = await submitRating(
+    env.VISITORS_KV,
+    parsed.data.poemHash,
+    parsed.data.rating,
+    ipHash
+  );
+
+  if (!result.ok) {
+    return json({ ok: false, error: result.error });
+  }
+
+  return json({ ok: true, message: 'note.' });
+}
+
 async function handleBonjourGenerate(env: Env): Promise<Response> {
   const result = await generatePoem({ VISITORS_KV: env.VISITORS_KV, GROQ_API_KEY: env.GROQ_API_KEY });
   if (!result) {
@@ -314,6 +353,7 @@ async function handleBonjourGenerate(env: Env): Promise<Response> {
     ok: true,
     poem: result.poem,
     promptVersion: result.promptVersion,
+    promptText: result.promptText,
     context: result.context,
   });
 }
