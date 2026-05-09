@@ -4,6 +4,7 @@
  *
  * Uses d3-force for physics simulation, canvas for rendering.
  */
+const workerUrl = import.meta.env.PUBLIC_VISITORS_WORKER_URL || '';
 ---
 
 <div class="mycelium-container">
@@ -35,6 +36,10 @@
 </div>
 <div id="mycelium-attribution" class="mycelium-footer-attribution"></div>
 
+<script define:vars={{ workerUrl }}>
+  // workerUrl is injected via define:vars from the frontmatter
+  const _workerUrl = workerUrl;
+</script>
 <script>
   import {
     forceSimulation,
@@ -49,6 +54,32 @@
     type SimulationNodeDatum,
     type SimulationLinkDatum,
   } from 'd3-force';
+
+  // Get workerUrl from the inline script above
+  declare const _workerUrl: string;
+
+  /**
+   * Track node click for analytics
+   */
+  function trackNodeClick(node: SimNode) {
+    if (!_workerUrl || navigator.doNotTrack === '1') return;
+    try {
+      const label = node.type === 'track'
+        ? `${node.artist} — ${node.title}`
+        : node.articleTitle || node.cultivationName || node.slug || node.id;
+
+      navigator.sendBeacon?.(
+        _workerUrl + '/track',
+        JSON.stringify({
+          type: 'node_click',
+          nodeType: node.type,
+          nodeLabel: label,
+        })
+      );
+    } catch {
+      // Silently fail
+    }
+  }
 
   type NodeType = 'track' | 'article' | 'cultivation';
   type EdgeType = 'musical' | 'wikilink' | 'announced' | 'context';
@@ -554,6 +585,7 @@
     if (node) {
       selectedNode = node;
       showDetail(node);
+      trackNodeClick(node);
     } else {
       selectedNode = null;
       hideDetail();
