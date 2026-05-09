@@ -2,7 +2,7 @@ A dog walks into a room. There's a thing in there with it — a small wheeled ob
 
 The setup: the dog can't reach a piece of food that's been placed behind a barrier. The UMO knows where the food is. It can move toward the food, looking back at the dog, pausing when the dog looks at it, responding to the dog's gaze. Or it can move mechanically, without responding to anything, just following a script. Same object, two scripts.
 
-Here's the finding. Within about five trials, the dog has decided. If the UMO is contingent — if it reacts to the dog's gazes, if there's a feedback loop between them — the dog treats it as a partner. It alternates its gaze between the UMO and the food, the way it would with a human helper. If the UMO is non-contingent, just moving without responding, the dog disengages. Doesn't matter that it's the same physical object. The dog has read the relational pattern and made a call.
+Here's the finding. Within about five trials, the dog has decided. If the UMO is contingent — if it reacts to the dog's gazes, if there's a feedback loop between them — the dog treats it as a partner. It alternates its gaze between the UMO and the food, the way it would with a human helper. If the UMO is non-contingent, just moving without responding, the dog disengages. Doesn't matter that it's the same physical object. The dog has read the relational pattern and made a call. ^recognition-is-pattern
 
 I find this experiment unreasonably moving. It says something I wasn't expecting about how minds recognize each other.
 
@@ -26,13 +26,13 @@ Now ask: how could such a system form *its own* conclusions about the world? Peo
 
 The phenomenon: when a model is trained on its own outputs (or the outputs of other models), it degrades. It loses tail behavior — rare, idiosyncratic features — and converges toward an increasingly narrow distribution. Like a photocopy of a photocopy of a photocopy. The empirical work on this is robust. What's worth noticing is the *shape* of the failure. It isn't a bug in any particular architecture. It's what happens when a system takes its own outputs as inputs without external correction. The loop closes, and inside the closed loop, what looks like learning is actually drift.
 
-This is structurally identical to a much older worry, articulated in the 1970s in a vocabulary nobody in machine learning currently uses. Gregory Bateson said, more or less: a system that loses contact with its environment doesn't learn, it confabulates. The map needs the territory. Without it, the map starts to refer only to itself, and what looks like coherence is actually escalation — the system becomes more confident in claims that have no anchor.
+This is structurally identical to a much older worry, articulated in the 1970s in a vocabulary nobody in machine learning currently uses. Gregory Bateson said, more or less: a system that loses contact with its environment doesn't learn, it confabulates. The map needs the territory — [[journal:smash-laterally-i#^map-territory|paid for in territory]], as another piece put it. Without it, the map starts to refer only to itself, and what looks like coherence is actually escalation — the system becomes more confident in claims that have no anchor, [[journal:smash-laterally-ii#^wager-structure|accumulating debt in a currency the original wager didn't print]].
 
-I find the convergence striking. Bateson reached this from cybernetics and ecological thinking. The model collapse researchers reached it from empirical ML, with no Bateson in their citations as far as I can tell. They named the same phenomenon independently, fifty years apart. That's the kind of thing that makes me trust the underlying claim more, not less.
+I find the convergence striking. Bateson reached this from cybernetics and ecological thinking. The model collapse researchers reached it from empirical ML, with no Bateson in their citations as far as I can tell. They named the same phenomenon independently, fifty years apart. That's the kind of thing that makes me trust the underlying claim more, not less. ^model-collapse-bateson
 
 ---
 
-Here's what both stories are pointing at. The dog and the UMO; the model and its outputs. Both are trying to form knowledge — knowledge of a partner, knowledge of the world. In both cases, what makes the knowledge *about* anything beyond the system itself is the existence of a corrective channel. Something outside the loop that pushes back.
+Here's what both stories are pointing at. The dog and the UMO; the model and its outputs. Both are trying to form knowledge — knowledge of a partner, knowledge of the world. In both cases, what makes the knowledge *about* anything beyond the system itself is the existence of a corrective channel. Something outside the loop that pushes back. ^corrective-channel-definition
 
 For the dog, the corrective channel is the actual social behavior of actual partners over a lifetime. The dog's recognition cues are calibrated against millions of micro-interactions where the cue meant something true. When researchers introduce a UMO that *also* produces those cues, the dog's pattern fires — sometimes correctly (the UMO really does help solve the problem) and sometimes spuriously (no mind is there). The channel is real, but it can be hijacked by things that produce the same cues without the underlying reality.
 
@@ -52,9 +52,9 @@ Within thirty minutes, the bees and the fish had synchronized their group behavi
 
 What I find vertiginous about this experiment is that it's hard to say where the *mind* is, in the system that emerged. Not in any individual bee, not in any individual fish, not in any individual robot, not in any of the algorithms. But the system as a whole did something coordinated — formed a kind of distributed agreement about what to do. If you wanted to call that a mind, in some thin sense, you'd have to locate it in the *relational pattern across the substrate*, not in any of the substrate's parts.
 
-This is the part of Bateson the AI conversation rarely picks up on. For him, mind wasn't something inside a head — it was a property of certain feedback patterns, present wherever those patterns occur. Ecosystems, conversations, families, organizations. On that view, biohybrid systems aren't fake minds being engineered into existence; they're real instances of mind-as-pattern, which would be a less surprising finding if we hadn't spent a few centuries assuming mind was a substance located in skulls.
+This is the part of Bateson the AI conversation rarely picks up on. For him, mind wasn't something inside a head — it was a property of certain feedback patterns, present wherever those patterns occur. Ecosystems, conversations, families, organizations. On that view, biohybrid systems aren't fake minds being engineered into existence; they're real instances of mind-as-pattern, which would be a less surprising finding if we hadn't spent a few centuries assuming mind was a substance located in skulls. ^mind-as-relational-pattern
 
-I don't fully know what to do with this. But I notice it loosens up the question of "could AI be conscious?" in a useful way. Maybe that question is shaped wrong. Maybe what we should be asking is: in which couplings, between which substrates, do mind-like patterns become sustainable? And what corrective channels do those patterns require to keep being about something?
+I don't fully know what to do with this. But I notice it loosens up the question of "could AI be conscious?" in a useful way. Maybe that question is shaped wrong. Maybe what we should be asking is: in which couplings, between which substrates, do mind-like patterns become sustainable? And what corrective channels do those patterns require to keep being about something? At larger scales — political, infrastructural — [[journal:al-borde-del-fenomeno#^corrective-channel-sovereignty|the same question takes a different shape]], but the underlying structure persists.
 
 ---
 
@@ -64,6 +64,6 @@ If the deep thing about knowing is the channel, then the design question for any
 
 I find this useful in my own work, partly because it identifies the question to keep asking. Not "am I being thorough?" but "what's the channel through which I could be shown wrong?" Not "is my system smart enough?" but "is something pushing back on it?" Not "am I learning?" but "could I tell the difference between learning and drift?"
 
-The dog knew, within five trials, whether the thing in front of it was a partner. It knew because it was reading a relational pattern that had been corrected, over its life, by countless real partners. Its intuition wasn't magic. It was calibrated. And calibration is just the long memory of correction.
+The dog knew, within five trials, whether the thing in front of it was a partner. It knew because it was reading a relational pattern that had been corrected, over its life, by countless real partners. Its intuition wasn't magic. It was calibrated. And calibration is just the long memory of correction. ^calibration-is-correction
 
 That's what corrects the map.

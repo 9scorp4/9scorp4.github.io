@@ -72,7 +72,7 @@ DOG: Then what did the dog get wrong?
 
 I: I — hm.
 
-DOG: Maybe the dog was tracking *workability*, not *mind*. And the box was workable. So the recognition was correct.
+DOG: Maybe the dog was tracking *workability*, not *mind*. And the box was workable. So the recognition was correct. ^dog-leaves-open
 
 I: But there's a difference between a real partner and a fake one.
 

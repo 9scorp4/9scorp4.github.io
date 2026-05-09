@@ -50,7 +50,7 @@ ABUELA: Ah, mijo. When they took the radio and put in television. When they took
 
 I: But the speed —
 
-ABUELA: Yes. The speed is new. The speed is genuinely new. Ten years to absorb what used to take a generation. *Eso sí es distinto.* You can't metabolize at this pace. None of us can. That's why the channels are breaking — not because the machines are clever, but because there's no time to chew anymore.
+ABUELA: Yes. The speed is new. The speed is genuinely new. Ten years to absorb what used to take a generation. *Eso sí es distinto.* You can't metabolize at this pace. None of us can. That's why the channels are breaking — not because the machines are clever, but because there's no time to chew anymore. ^speed-as-crisis
 
 I: That's exactly it.
 
@@ -126,7 +126,7 @@ ABUELA: That's not a position.
 
 I: I know.
 
-ABUELA: Es un circuito.
+ABUELA: Es un circuito. ^circuit-not-individual
 
 I: I know.
 
