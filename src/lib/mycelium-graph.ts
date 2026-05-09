@@ -5,8 +5,8 @@
  * wikilinks, announcements, same artist, similar BPM, harmonic compatibility.
  */
 
-export type NodeType = 'track' | 'article' | 'cultivation';
-export type EdgeType = 'musical' | 'wikilink' | 'announced' | 'context';
+export type NodeType = 'track' | 'article' | 'cultivation' | 'dispatch' | 'exit';
+export type EdgeType = 'musical' | 'wikilink' | 'announced' | 'context' | 'exit';
 
 export interface MyceliumNode {
   id: string;
@@ -34,6 +34,13 @@ export interface MyceliumNode {
   // Cultivation-specific
   cultivationName?: string;
   status?: 'growing' | 'dormant' | 'wild' | 'composted';
+  // Dispatch-specific
+  date?: string;
+  announcements?: number;
+  hasProseLinks?: boolean;
+  // Exit-specific
+  platform?: 'spotify' | 'youtube' | 'bandcamp' | 'soundcloud' | 'github' | 'external';
+  label?: string;
 }
 
 export interface MyceliumEdge {
@@ -52,6 +59,8 @@ export interface MyceliumGraph {
     tracksFromSongbpm: number;
     articleCount: number;
     cultivationCount: number;
+    dispatchCount?: number;
+    exitCount?: number;
   };
 }
 
@@ -92,11 +101,64 @@ export interface AhoraLink {
   articleSlug: string; // article announced
 }
 
+export interface DispatchData {
+  date: string;                    // ISO date
+  announcements: number;           // count of articuloNuevo + specimenNuevo + cultivando
+  hasProseLinks: boolean;          // has wikilinks or external links in prose
+  proseWikilinks: string[];        // wikilink targets in prose
+  proseExternalLinks: string[];    // external URLs in prose
+}
+
 export interface GraphInput {
   tracks: TrackData[];
   articles: ArticleData[];
   cultivations: CultivationData[];
   ahoraLinks: AhoraLink[]; // articuloNuevo announcements
+  dispatches?: DispatchData[]; // notable dispatches
+}
+
+/**
+ * Detect platform from URL
+ */
+function detectPlatform(url: string): 'spotify' | 'youtube' | 'bandcamp' | 'soundcloud' | 'github' | 'external' {
+  try {
+    const hostname = new URL(url).hostname.toLowerCase();
+    if (hostname.includes('spotify.com')) return 'spotify';
+    if (hostname.includes('youtube.com') || hostname.includes('youtu.be')) return 'youtube';
+    if (hostname.includes('bandcamp.com')) return 'bandcamp';
+    if (hostname.includes('soundcloud.com')) return 'soundcloud';
+    if (hostname.includes('github.com')) return 'github';
+    return 'external';
+  } catch {
+    return 'external';
+  }
+}
+
+/**
+ * Get display label for a platform
+ */
+function getPlatformLabel(platform: string): string {
+  const labels: Record<string, string> = {
+    spotify: 'Spotify',
+    youtube: 'YouTube',
+    bandcamp: 'Bandcamp',
+    soundcloud: 'SoundCloud',
+    github: 'GitHub',
+    external: 'external',
+  };
+  return labels[platform] || 'external';
+}
+
+/**
+ * Create a stable ID for an exit node from URL
+ */
+function createExitNodeId(url: string): string {
+  // Simple hash - djb2 algorithm
+  let hash = 5381;
+  for (let i = 0; i < url.length; i++) {
+    hash = ((hash << 5) + hash) ^ url.charCodeAt(i);
+  }
+  return `x${Math.abs(hash).toString(36)}`;
 }
 
 /**
@@ -171,7 +233,7 @@ export function buildGraph(input: GraphInput): MyceliumGraph {
   const nodeMap = new Map<string, MyceliumNode>();
   const edgeMap = new Map<string, EdgeData>();
 
-  const { tracks, articles, cultivations, ahoraLinks } = input;
+  const { tracks, articles, cultivations, ahoraLinks, dispatches = [] } = input;
 
   // === Build track nodes ===
   for (const track of tracks) {
@@ -239,6 +301,49 @@ export function buildGraph(input: GraphInput): MyceliumGraph {
       cultivationName: cult.name,
       status: cult.status,
       firstSeen: new Date().toISOString().slice(0, 10), // no date for cultivations
+      appearances: 1,
+    });
+  }
+
+  // === Build exit nodes from track URLs ===
+  const exitNodesByUrl = new Map<string, { id: string; appearances: number; firstSeen: string }>();
+  for (const track of tracks) {
+    if (!track.url) continue;
+    const exitId = createExitNodeId(track.url);
+    const existing = exitNodesByUrl.get(track.url);
+    if (existing) {
+      existing.appearances++;
+      if (track.date < existing.firstSeen) {
+        existing.firstSeen = track.date;
+      }
+    } else {
+      exitNodesByUrl.set(track.url, { id: exitId, appearances: 1, firstSeen: track.date });
+    }
+  }
+
+  for (const [url, data] of exitNodesByUrl) {
+    const platform = detectPlatform(url);
+    nodeMap.set(data.id, {
+      id: data.id,
+      type: 'exit',
+      url,
+      platform,
+      label: getPlatformLabel(platform),
+      firstSeen: data.firstSeen,
+      appearances: data.appearances,
+    });
+  }
+
+  // === Build dispatch nodes (only notable dispatches) ===
+  for (const dispatch of dispatches) {
+    const id = `d:${dispatch.date}`;
+    nodeMap.set(id, {
+      id,
+      type: 'dispatch',
+      date: dispatch.date,
+      announcements: dispatch.announcements,
+      hasProseLinks: dispatch.hasProseLinks,
+      firstSeen: dispatch.date,
       appearances: 1,
     });
   }
@@ -391,6 +496,88 @@ export function buildGraph(input: GraphInput): MyceliumGraph {
     }
   }
 
+  // === Build track↔exit edges ===
+  for (const track of tracks) {
+    if (!track.url) continue;
+    const trackId = createNodeId(track.artist, track.title);
+    const exitId = createExitNodeId(track.url);
+    if (!nodeMap.has(exitId)) continue;
+
+    const edgeKey = [trackId, exitId].sort().join('|');
+    if (!edgeMap.has(edgeKey)) {
+      edgeMap.set(edgeKey, { weight: 0.6, reasons: new Set(['links to']), edgeType: 'exit' });
+    }
+  }
+
+  // === Build dispatch edges ===
+  for (const dispatch of dispatches) {
+    const dispatchId = `d:${dispatch.date}`;
+    if (!nodeMap.has(dispatchId)) continue;
+
+    const dateKey = dispatch.date.slice(0, 10);
+
+    // Dispatch → tracks (context): weight 0.5
+    const trackIds = tracksByDate.get(dateKey) || [];
+    for (const trackId of trackIds) {
+      const edgeKey = [dispatchId, trackId].sort().join('|');
+      if (!edgeMap.has(edgeKey)) {
+        edgeMap.set(edgeKey, { weight: 0.5, reasons: new Set(['context']), edgeType: 'context' });
+      }
+    }
+
+    // Dispatch → articles (announced): weight 1.0 via ahoraLinks
+    for (const link of ahoraLinks) {
+      if (link.date.slice(0, 10) === dateKey) {
+        const articleId = `a:${link.articleSlug}`;
+        if (nodeMap.has(articleId)) {
+          const edgeKey = [dispatchId, articleId].sort().join('|');
+          if (!edgeMap.has(edgeKey)) {
+            edgeMap.set(edgeKey, { weight: 1.0, reasons: new Set(['announces']), edgeType: 'announced' });
+          }
+        }
+      }
+    }
+
+    // Dispatch → articles (prose wikilinks): weight 0.8
+    for (const wikilink of dispatch.proseWikilinks) {
+      if (wikilink.startsWith('journal:')) {
+        const slug = wikilink.replace('journal:', '');
+        const articleId = `a:${slug}`;
+        if (nodeMap.has(articleId)) {
+          const edgeKey = [dispatchId, articleId].sort().join('|');
+          const existing = edgeMap.get(edgeKey);
+          if (existing) {
+            existing.reasons.add('cites');
+          } else {
+            edgeMap.set(edgeKey, { weight: 0.8, reasons: new Set(['cites']), edgeType: 'wikilink' });
+          }
+        }
+      }
+    }
+
+    // Dispatch → exit nodes (prose external links): weight 0.6
+    for (const url of dispatch.proseExternalLinks) {
+      const exitId = createExitNodeId(url);
+      // Create exit node if it doesn't exist
+      if (!nodeMap.has(exitId)) {
+        const platform = detectPlatform(url);
+        nodeMap.set(exitId, {
+          id: exitId,
+          type: 'exit',
+          url,
+          platform,
+          label: getPlatformLabel(platform),
+          firstSeen: dispatch.date,
+          appearances: 1,
+        });
+      }
+      const edgeKey = [dispatchId, exitId].sort().join('|');
+      if (!edgeMap.has(edgeKey)) {
+        edgeMap.set(edgeKey, { weight: 0.6, reasons: new Set(['links to']), edgeType: 'exit' });
+      }
+    }
+  }
+
   // === Convert and filter edges ===
   const edges: MyceliumEdge[] = [];
   for (const [key, data] of edgeMap) {
@@ -409,6 +596,8 @@ export function buildGraph(input: GraphInput): MyceliumGraph {
   const nodesArray = Array.from(nodeMap.values());
   const trackNodes = nodesArray.filter(n => n.type === 'track');
   const tracksFromSongbpm = trackNodes.filter(n => n.songbpmId).length;
+  const dispatchCount = nodesArray.filter(n => n.type === 'dispatch').length;
+  const exitCount = nodesArray.filter(n => n.type === 'exit').length;
 
   return {
     nodes: nodesArray,
@@ -418,6 +607,8 @@ export function buildGraph(input: GraphInput): MyceliumGraph {
       tracksFromSongbpm,
       articleCount: articles.length,
       cultivationCount: cultivations.length,
+      dispatchCount,
+      exitCount,
     },
   };
 }
