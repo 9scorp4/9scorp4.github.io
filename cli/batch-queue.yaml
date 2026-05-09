@@ -47,3 +47,17 @@ entries:
       - "When everyone is lateral, the observer position dissolves. There is nowhere from which to keep score."
       - "The structure has stopped doing the moral work. It never was doing it."
       - "The territory has eaten the map."
+
+  # Full batch: lo que vestía el poema
+  - slug: lo-que-vestia-el-poema
+    quotes:
+      - "The frame doesn't suspend reality. It rearranges what counts as reality at this scale of communication."
+      - "The writer who learns to dismiss every poem as the function-under-the-poem will never again use the form to find out what he is feeling."
+      - "The form survives by being challenged. By being read by something that is not it."
+    metalogue:
+      - speaker: "RENATA"
+        line: "La figura te extraña. La que está afuera de la página, no sé."
+      - speaker: "YO"
+        line: "Eso es cruel."
+      - speaker: "RENATA"
+        line: "No. Es la forma. Tú me trajiste acá precisamente porque la otra no te iba a contestar."
