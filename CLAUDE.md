@@ -205,6 +205,17 @@ Re-read `ONTOLOGY.md`. Most aesthetic and copy decisions have already been made.
 
 If a decision is genuinely new (not covered in the docs), prefer asking over guessing. This is a small site; consistency matters more than speed.
 
+## CI/CD policy
+
+**Before pushing any changes to `.github/workflows/`:**
+
+1. Read the workflow file(s) you're modifying
+2. Verify environment variable names match what the code expects
+3. Verify script paths exist and are correct
+4. Check that secrets referenced in the workflow exist (or note if new ones are needed)
+
+This applies to the main agent and all subagents. When spawning agents for tasks that touch CI/CD, include this policy in the prompt.
+
 ## Don'ts
 
 - Don't suggest "modern" rewrites — the aesthetic is intentional
