@@ -109,6 +109,63 @@ export async function getChannels(apiKey: string): Promise<BufferChannel[]> {
 }
 
 /**
+ * Get the organization ID for a channel.
+ * Queries all channels and finds the matching one.
+ */
+export async function getOrganizationId(apiKey: string, channelId: string): Promise<string> {
+  const query = `
+    query GetChannelsWithOrg {
+      account {
+        channels {
+          id
+          organizationId
+        }
+      }
+    }
+  `;
+  const data = await graphql<{ account: { channels: Array<{ id: string; organizationId: string }> } }>(
+    apiKey, query
+  );
+  const channel = data.account.channels.find(c => c.id === channelId);
+  if (!channel) {
+    throw new Error(`Channel ${channelId} not found in account`);
+  }
+  return channel.organizationId;
+}
+
+export interface ScheduledPost {
+  id: string;
+  dueAt: string;
+}
+
+/**
+ * Fetch scheduled posts from Buffer queue for a channel.
+ */
+export async function getScheduledPosts(
+  apiKey: string,
+  organizationId: string,
+  channelId: string
+): Promise<ScheduledPost[]> {
+  const query = `
+    query GetScheduledPosts($orgId: OrganizationId!, $channelId: ChannelId!) {
+      posts(
+        first: 100,
+        input: {
+          organizationId: $orgId,
+          filter: { status: [scheduled], channelIds: [$channelId] }
+        }
+      ) {
+        edges { node { id, dueAt } }
+      }
+    }
+  `;
+  const data = await graphql<{ posts: { edges: Array<{ node: ScheduledPost }> } }>(
+    apiKey, query, { orgId: organizationId, channelId }
+  );
+  return data.posts.edges.map(e => e.node);
+}
+
+/**
  * Create a scheduled post on Buffer.
  *
  * @param apiKey - Buffer API key
