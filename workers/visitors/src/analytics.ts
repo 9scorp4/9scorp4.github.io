@@ -3,21 +3,32 @@
  *
  * Writes privacy-respecting events to Cloudflare Analytics Engine.
  * Schema:
- *   blob1: event type (pageview, command, article_read, submission)
- *   blob2: path or command name
+ *   blob1: event type (pageview, command, article_read, submission, node_click, specimen_open, outbound_click)
+ *   blob2: path or command name or node_type or specimen_name or domain
  *   blob3: country code (from CF-IPCountry)
- *   blob4: referrer domain (pageview only)
- *   blob5: extra metadata (isSecret for commands, etc.)
- *   double1: read time in seconds (article_read only)
- *   double2: scroll depth percentage (article_read only)
+ *   blob4: referrer domain (pageview), series (specimen_open), context (outbound_click)
+ *   blob5: device_type (pageview), node_label (node_click)
+ *   double1: read time (article_read), viewport_width (pageview)
+ *   double2: scroll depth (article_read)
+ *   double3: hour_local (pageview, 0-23)
  */
 
-export type EventType = 'pageview' | 'command' | 'article_read' | 'submission';
+export type EventType =
+  | 'pageview'
+  | 'command'
+  | 'article_read'
+  | 'submission'
+  | 'node_click'
+  | 'specimen_open'
+  | 'outbound_click';
 
 export interface PageviewEvent {
   type: 'pageview';
   path: string;
   referrer?: string;
+  deviceType?: 'mobile' | 'tablet' | 'desktop';
+  viewportWidth?: number;
+  hourLocal?: number; // 0-23
 }
 
 export interface CommandEvent {
@@ -38,11 +49,32 @@ export interface SubmissionEvent {
   status: 'received' | 'rate_limited';
 }
 
+export interface NodeClickEvent {
+  type: 'node_click';
+  nodeType: 'track' | 'article' | 'cultivation';
+  nodeLabel: string;
+}
+
+export interface SpecimenOpenEvent {
+  type: 'specimen_open';
+  specimenName: string;
+  series?: string;
+}
+
+export interface OutboundClickEvent {
+  type: 'outbound_click';
+  domain: string;
+  context: string; // page path where click occurred
+}
+
 export type AnalyticsEvent =
   | PageviewEvent
   | CommandEvent
   | ArticleReadEvent
-  | SubmissionEvent;
+  | SubmissionEvent
+  | NodeClickEvent
+  | SpecimenOpenEvent
+  | OutboundClickEvent;
 
 export interface AnalyticsEngine {
   writeDataPoint(data: {
@@ -81,10 +113,18 @@ export function trackEvent(
 
   switch (event.type) {
     case 'pageview':
-      // blob2: path, blob3: country, blob4: referrer domain
+      // blob2: path, blob3: country, blob4: referrer domain, blob5: device_type
+      // double1: viewport_width, double3: hour_local
       blobs[1] = event.path;
       blobs[2] = country;
       blobs[3] = extractReferrerDomain(event.referrer);
+      blobs[4] = event.deviceType || '';
+      if (event.viewportWidth !== undefined) {
+        doubles[0] = event.viewportWidth;
+      }
+      if (event.hourLocal !== undefined) {
+        doubles[2] = event.hourLocal;
+      }
       break;
 
     case 'command':
@@ -106,6 +146,27 @@ export function trackEvent(
       // blob2: status, blob3: country
       blobs[1] = event.status;
       blobs[2] = country;
+      break;
+
+    case 'node_click':
+      // blob2: node_type, blob3: country, blob5: node_label
+      blobs[1] = event.nodeType;
+      blobs[2] = country;
+      blobs[4] = event.nodeLabel;
+      break;
+
+    case 'specimen_open':
+      // blob2: specimen_name, blob3: country, blob4: series
+      blobs[1] = event.specimenName;
+      blobs[2] = country;
+      blobs[3] = event.series || '';
+      break;
+
+    case 'outbound_click':
+      // blob2: domain, blob3: country, blob4: context (page path)
+      blobs[1] = event.domain;
+      blobs[2] = country;
+      blobs[3] = event.context;
       break;
   }
 
@@ -137,10 +198,30 @@ export function parseEvent(body: unknown): AnalyticsEvent | null {
       }
       // Sanitize path: remove query params and fragments
       const sanitizedPath = path.split('?')[0].split('#')[0];
+
+      // Validate optional enhanced fields
+      let deviceType: 'mobile' | 'tablet' | 'desktop' | undefined;
+      if (data.deviceType === 'mobile' || data.deviceType === 'tablet' || data.deviceType === 'desktop') {
+        deviceType = data.deviceType;
+      }
+
+      let viewportWidth: number | undefined;
+      if (typeof data.viewportWidth === 'number' && data.viewportWidth > 0 && data.viewportWidth < 10000) {
+        viewportWidth = Math.round(data.viewportWidth);
+      }
+
+      let hourLocal: number | undefined;
+      if (typeof data.hourLocal === 'number' && data.hourLocal >= 0 && data.hourLocal < 24) {
+        hourLocal = Math.round(data.hourLocal);
+      }
+
       return {
         type: 'pageview',
         path: sanitizedPath,
         referrer: typeof data.referrer === 'string' ? data.referrer : undefined,
+        deviceType,
+        viewportWidth,
+        hourLocal,
       };
     }
 
@@ -180,6 +261,55 @@ export function parseEvent(body: unknown): AnalyticsEvent | null {
         path: path.split('?')[0].split('#')[0],
         readTime: Math.round(readTime),
         scrollDepth: Math.round(scrollDepth),
+      };
+    }
+
+    case 'node_click': {
+      const nodeType = data.nodeType;
+      const nodeLabel = data.nodeLabel;
+
+      if (nodeType !== 'track' && nodeType !== 'article' && nodeType !== 'cultivation') {
+        return null;
+      }
+      if (typeof nodeLabel !== 'string' || nodeLabel.length > 200) {
+        return null;
+      }
+
+      return {
+        type: 'node_click',
+        nodeType,
+        nodeLabel: nodeLabel.slice(0, 200),
+      };
+    }
+
+    case 'specimen_open': {
+      const specimenName = data.specimenName;
+      if (typeof specimenName !== 'string' || specimenName.length > 100) {
+        return null;
+      }
+
+      return {
+        type: 'specimen_open',
+        specimenName: specimenName.slice(0, 100),
+        series: typeof data.series === 'string' ? data.series.slice(0, 50) : undefined,
+      };
+    }
+
+    case 'outbound_click': {
+      const domain = data.domain;
+      const context = data.context;
+
+      if (typeof domain !== 'string' || domain.length > 100) {
+        return null;
+      }
+      if (typeof context !== 'string' || !context.startsWith('/')) {
+        return null;
+      }
+
+      return {
+        type: 'outbound_click',
+        domain: domain.slice(0, 100),
+        context: context.split('?')[0].split('#')[0],
       };
     }
 
