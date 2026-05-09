@@ -23,6 +23,14 @@ const workerUrl = import.meta.env.PUBLIC_VISITORS_WORKER_URL || '';
       <span class="legend-shape square cultivation"></span>
       <span class="legend-label">cultivation</span>
     </div>
+    <div class="legend-item">
+      <span class="legend-shape square dispatch"></span>
+      <span class="legend-label">dispatch</span>
+    </div>
+    <div class="legend-item">
+      <span class="legend-shape circle-hollow exit"></span>
+      <span class="legend-label">exit</span>
+    </div>
     <div class="legend-divider"></div>
     <div class="legend-item">
       <span class="legend-line musical"></span>
@@ -31,6 +39,10 @@ const workerUrl = import.meta.env.PUBLIC_VISITORS_WORKER_URL || '';
     <div class="legend-item">
       <span class="legend-line citation"></span>
       <span class="legend-label">citation</span>
+    </div>
+    <div class="legend-item">
+      <span class="legend-line exit-edge"></span>
+      <span class="legend-label">exit link</span>
     </div>
   </div>
 </div>
@@ -81,8 +93,8 @@ const workerUrl = import.meta.env.PUBLIC_VISITORS_WORKER_URL || '';
     }
   }
 
-  type NodeType = 'track' | 'article' | 'cultivation';
-  type EdgeType = 'musical' | 'wikilink' | 'announced' | 'context';
+  type NodeType = 'track' | 'article' | 'cultivation' | 'dispatch' | 'exit';
+  type EdgeType = 'musical' | 'wikilink' | 'announced' | 'context' | 'exit';
 
   interface MyceliumNodeData {
     id: string;
@@ -110,6 +122,13 @@ const workerUrl = import.meta.env.PUBLIC_VISITORS_WORKER_URL || '';
     // Cultivation-specific
     cultivationName?: string;
     status?: 'growing' | 'dormant' | 'wild' | 'composted';
+    // Dispatch-specific
+    date?: string;
+    announcements?: number;
+    hasProseLinks?: boolean;
+    // Exit-specific
+    platform?: 'spotify' | 'youtube' | 'bandcamp' | 'soundcloud' | 'github' | 'external';
+    label?: string;
   }
 
   interface MyceliumEdgeData {
@@ -216,10 +235,16 @@ const workerUrl = import.meta.env.PUBLIC_VISITORS_WORKER_URL || '';
     // Tracks: 6 + appearances*2, max 14
     // Articles: 10 base
     // Cultivations: 8 base
+    // Dispatches: 7 base (small squares)
+    // Exits: 6 fixed (hollow circles)
     if (node.type === 'track') {
       return 6 + Math.min(node.appearances * 2, 8);
     } else if (node.type === 'article') {
       return 10;
+    } else if (node.type === 'dispatch') {
+      return 7;
+    } else if (node.type === 'exit') {
+      return 6;
     } else {
       return 8;
     }
@@ -229,6 +254,8 @@ const workerUrl = import.meta.env.PUBLIC_VISITORS_WORKER_URL || '';
     if (isActive) return COLORS.sun;
     if (node.type === 'track') return COLORS.fern;
     if (node.type === 'cultivation') return COLORS.ochreMuted;
+    if (node.type === 'dispatch') return COLORS.inkSoft;
+    if (node.type === 'exit') return COLORS.inkFaint;
     return COLORS.ochre; // article
   }
 
@@ -246,6 +273,13 @@ const workerUrl = import.meta.env.PUBLIC_VISITORS_WORKER_URL || '';
       return { primary: node.title || '', secondary: node.artist };
     } else if (node.type === 'article') {
       return { primary: node.articleTitle || node.slug || '' };
+    } else if (node.type === 'dispatch') {
+      // Format date as "May 8" or similar
+      const date = new Date(node.date + 'T00:00:00');
+      const formatted = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      return { primary: formatted };
+    } else if (node.type === 'exit') {
+      return { primary: node.label || 'external' };
     } else {
       return { primary: node.cultivationName || node.slug || '' };
     }
@@ -271,8 +305,19 @@ const workerUrl = import.meta.env.PUBLIC_VISITORS_WORKER_URL || '';
       ctx.lineTo(link.target.x, link.target.y);
       ctx.strokeStyle = getEdgeColor(link.edgeType);
       ctx.lineWidth = Math.min(link.weight, 2) / transform.scale; // Keep consistent line width
+
+      // Dashed lines for exit edges
+      if (link.edgeType === 'exit') {
+        const dashLength = 4 / transform.scale;
+        ctx.setLineDash([dashLength, dashLength]);
+      } else {
+        ctx.setLineDash([]);
+      }
+
       ctx.stroke();
     }
+    // Reset line dash
+    ctx.setLineDash([]);
 
     // Draw nodes
     for (const node of nodes) {
@@ -289,6 +334,20 @@ const workerUrl = import.meta.env.PUBLIC_VISITORS_WORKER_URL || '';
         // Circle for tracks
         ctx.beginPath();
         ctx.arc(node.x, node.y, size, 0, Math.PI * 2);
+        ctx.fill();
+      } else if (node.type === 'exit') {
+        // Hollow circle for exit nodes (portal aesthetic)
+        ctx.beginPath();
+        ctx.arc(node.x, node.y, size, 0, Math.PI * 2);
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 1.5 / transform.scale;
+        ctx.stroke();
+      } else if (node.type === 'dispatch') {
+        // Small square for dispatches
+        const halfSize = size;
+        const cornerRadius = 1;
+        ctx.beginPath();
+        ctx.roundRect(node.x - halfSize, node.y - halfSize, halfSize * 2, halfSize * 2, cornerRadius);
         ctx.fill();
       } else {
         // Rounded square for articles and cultivations
@@ -330,8 +389,8 @@ const workerUrl = import.meta.env.PUBLIC_VISITORS_WORKER_URL || '';
       if (node.x == null) continue;
       const size = getNodeSize(node);
 
-      if (node.type === 'track') {
-        // Circle hit test
+      if (node.type === 'track' || node.type === 'exit') {
+        // Circle hit test (tracks are filled, exits are hollow but still clickable)
         const dx = node.x - x;
         const dy = node.y - y;
         if (dx * dx + dy * dy <= size * size) {
@@ -447,6 +506,65 @@ const workerUrl = import.meta.env.PUBLIC_VISITORS_WORKER_URL || '';
       }
 
       html += `<p class="detail-action"><a href="/#cultivations">→ view cultivation</a></p>`;
+    } else if (node.type === 'dispatch') {
+      // Dispatch detail
+      const date = new Date(node.date + 'T00:00:00');
+      const formatted = date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+      html = `
+        <p class="detail-title">${formatted}</p>
+      `;
+
+      const parts: string[] = [];
+      if (node.announcements && node.announcements > 0) {
+        parts.push(`${node.announcements} announcement${node.announcements > 1 ? 's' : ''}`);
+      }
+      if (node.hasProseLinks) {
+        parts.push('prose links');
+      }
+      if (parts.length > 0) {
+        html += `<p class="detail-meta">${parts.join(' · ')}</p>`;
+      }
+
+      // Count connected edges
+      let trackCount = 0;
+      let articleCount = 0;
+      for (const link of links) {
+        const sourceNode = link.source as SimNode;
+        const targetNode = link.target as SimNode;
+        const otherNode = sourceNode.id === node.id ? targetNode : (targetNode.id === node.id ? sourceNode : null);
+        if (otherNode) {
+          if (otherNode.type === 'track') trackCount++;
+          if (otherNode.type === 'article') articleCount++;
+        }
+      }
+
+      const connectionParts: string[] = [];
+      if (trackCount > 0) connectionParts.push(`${trackCount} track${trackCount > 1 ? 's' : ''}`);
+      if (articleCount > 0) connectionParts.push(`${articleCount} article${articleCount > 1 ? 's' : ''}`);
+      if (connectionParts.length > 0) {
+        html += `<p class="detail-meta">connects: ${connectionParts.join(', ')}</p>`;
+      }
+
+      html += `<p class="detail-action"><a href="/ahora#${node.date}">→ view dispatch</a></p>`;
+    } else if (node.type === 'exit') {
+      // Exit node detail
+      html = `
+        <p class="detail-title"><a href="${node.url}" target="_blank" rel="noopener">${node.label}</a></p>
+        <p class="detail-meta">external link</p>
+      `;
+
+      // Count how many nodes link here
+      let linkCount = 0;
+      for (const link of links) {
+        const sourceNode = link.source as SimNode;
+        const targetNode = link.target as SimNode;
+        if ((sourceNode.id === node.id || targetNode.id === node.id) && link.edgeType === 'exit') {
+          linkCount++;
+        }
+      }
+      if (linkCount > 0) {
+        html += `<p class="detail-meta">${linkCount} connection${linkCount > 1 ? 's' : ''}</p>`;
+      }
     }
 
     detailPanel.innerHTML = html;
@@ -772,16 +890,35 @@ const workerUrl = import.meta.env.PUBLIC_VISITORS_WORKER_URL || '';
             if (l.edgeType === 'wikilink') return 50;
             // Announced edges medium distance
             if (l.edgeType === 'announced') return 70;
+            // Exit edges stretch to periphery - longer distance
+            if (l.edgeType === 'exit') return 120;
+            // Context edges (dispatch↔track) looser
+            if (l.edgeType === 'context') return 80;
             // Musical edges default
             return 60;
           })
-          .strength(l => l.weight * 0.3))
+          .strength(l => {
+            // Exit edges pull harder to stretch the membrane
+            if (l.edgeType === 'exit') return 0.8;
+            return l.weight * 0.3;
+          }))
         .force('charge', forceManyBody<SimNode>()
-          .strength(-150)) // Moderate repulsion
+          .strength(d => {
+            // Exit nodes have weaker repulsion (they're pulled by radial)
+            if (d.type === 'exit') return -50;
+            return -150;
+          }))
         .force('center', forceCenter(w / 2, h / 2))
         // Gentle gravity toward center - keeps disconnected nodes from floating away
-        .force('gravityX', forceX(w / 2).strength(0.05))
-        .force('gravityY', forceY(h / 2).strength(0.05))
+        // Exit nodes exempt from gravity (radial handles them)
+        .force('gravityX', forceX<SimNode>(w / 2).strength(d => d.type === 'exit' ? 0 : 0.05))
+        .force('gravityY', forceY<SimNode>(h / 2).strength(d => d.type === 'exit' ? 0 : 0.05))
+        // Radial force pushes exit nodes to the periphery
+        .force('radial', forceRadial<SimNode>(
+          d => d.type === 'exit' ? Math.max(w, h) * 0.4 : 0,
+          w / 2,
+          h / 2
+        ).strength(d => d.type === 'exit' ? 0.3 : 0))
         .force('collide', forceCollide<SimNode>()
           .radius(d => getNodeSize(d) + 4))
         .on('tick', draw);
@@ -989,6 +1126,24 @@ const workerUrl = import.meta.env.PUBLIC_VISITORS_WORKER_URL || '';
     height: 8px;
   }
 
+  .legend-shape.dispatch {
+    background: #6b5435; /* ink-soft */
+    width: 8px;
+    height: 8px;
+  }
+
+  .legend-shape.circle-hollow {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    border: 1.5px solid;
+    box-sizing: border-box;
+  }
+
+  .legend-shape.exit {
+    border-color: #8a7350; /* ink-faint */
+  }
+
   .legend-divider {
     height: 1px;
     background: var(--paper-line);
@@ -1007,6 +1162,16 @@ const workerUrl = import.meta.env.PUBLIC_VISITORS_WORKER_URL || '';
 
   .legend-line.citation {
     background: #b8860b; /* ochre */
+  }
+
+  .legend-line.exit-edge {
+    background: repeating-linear-gradient(
+      to right,
+      #8a7350 0px,
+      #8a7350 3px,
+      transparent 3px,
+      transparent 6px
+    );
   }
 
   .legend-label {
@@ -1028,7 +1193,13 @@ const workerUrl = import.meta.env.PUBLIC_VISITORS_WORKER_URL || '';
       height: 8px;
     }
 
-    .legend-shape.cultivation {
+    .legend-shape.circle-hollow {
+      width: 8px;
+      height: 8px;
+    }
+
+    .legend-shape.cultivation,
+    .legend-shape.dispatch {
       width: 6px;
       height: 6px;
     }

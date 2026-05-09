@@ -18,10 +18,14 @@ import {
   type ArticleData,
   type CultivationData,
   type AhoraLink,
+  type DispatchData,
 } from '../lib/mycelium-graph.ts';
 
 // Pattern for extracting wikilinks: [[collection:slug#fragment|display]]
 const WIKILINK_PATTERN = /\[\[(\w+):([^\]#|]+)(?:#([^\]|]+))?(?:\|([^\]]+))?\]\]/g;
+
+// Pattern for extracting markdown external links: [text](url)
+const EXTERNAL_LINK_PATTERN = /\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g;
 
 interface AhoraFrontmatter {
   date: string;
@@ -42,6 +46,14 @@ interface AhoraFrontmatter {
   }>;
   articuloNuevo?: Array<{
     article: string;
+    note?: string;
+  }>;
+  specimenNuevo?: Array<{
+    specimen: string;
+    note?: string;
+  }>;
+  cultivando?: Array<{
+    cultivation: string;
     note?: string;
   }>;
 }
@@ -77,6 +89,20 @@ function extractWikilinks(text: string): string[] {
 }
 
 /**
+ * Extract external URLs from markdown links.
+ * Returns array of URLs.
+ */
+function extractExternalLinks(text: string): string[] {
+  const links: string[] = [];
+  let match;
+  EXTERNAL_LINK_PATTERN.lastIndex = 0;
+  while ((match = EXTERNAL_LINK_PATTERN.exec(text)) !== null) {
+    links.push(match[2]);
+  }
+  return links;
+}
+
+/**
  * Read markdown content from a file, stripping frontmatter.
  */
 async function readMarkdownBody(filePath: string): Promise<string> {
@@ -105,6 +131,7 @@ export default function myceliumDataIntegration(): AstroIntegration {
           const allArticles: ArticleData[] = [];
           const allCultivations: CultivationData[] = [];
           const allAhoraLinks: AhoraLink[] = [];
+          const allDispatches: DispatchData[] = [];
 
           // === Read ahora dispatches ===
           const ahoraFiles = await readdir(ahoraDir);
@@ -150,6 +177,29 @@ export default function myceliumDataIntegration(): AstroIntegration {
                   articleSlug: announcement.article,
                 });
               }
+            }
+
+            // Count announcements
+            const announcementCount =
+              (frontmatter.articuloNuevo?.length || 0) +
+              (frontmatter.specimenNuevo?.length || 0) +
+              (frontmatter.cultivando?.length || 0);
+
+            // Extract prose body (after frontmatter)
+            const proseBody = content.replace(/^---\n[\s\S]*?\n---\n?/, '');
+            const proseWikilinks = extractWikilinks(proseBody);
+            const proseExternalLinks = extractExternalLinks(proseBody);
+            const hasProseLinks = proseWikilinks.length > 0 || proseExternalLinks.length > 0;
+
+            // Only create dispatch node if notable
+            if (announcementCount > 0 || hasProseLinks) {
+              allDispatches.push({
+                date: dateStr,
+                announcements: announcementCount,
+                hasProseLinks,
+                proseWikilinks,
+                proseExternalLinks,
+              });
             }
           }
 
@@ -242,6 +292,7 @@ export default function myceliumDataIntegration(): AstroIntegration {
             articles: allArticles,
             cultivations: allCultivations,
             ahoraLinks: allAhoraLinks,
+            dispatches: allDispatches,
           });
 
           // Ensure public dir exists
@@ -254,7 +305,9 @@ export default function myceliumDataIntegration(): AstroIntegration {
           const trackCount = graph.nodes.filter(n => n.type === 'track').length;
           const articleCount = graph.nodes.filter(n => n.type === 'article').length;
           const cultCount = graph.nodes.filter(n => n.type === 'cultivation').length;
-          console.log(`[mycelium] Generated ${graph.nodes.length} nodes (${trackCount} tracks, ${articleCount} articles, ${cultCount} cultivations), ${graph.edges.length} edges`);
+          const dispatchCount = graph.nodes.filter(n => n.type === 'dispatch').length;
+          const exitCount = graph.nodes.filter(n => n.type === 'exit').length;
+          console.log(`[mycelium] Generated ${graph.nodes.length} nodes (${trackCount} tracks, ${articleCount} articles, ${cultCount} cultivations, ${dispatchCount} dispatches, ${exitCount} exits), ${graph.edges.length} edges`);
         } catch (error) {
           console.error('[mycelium] Error building graph:', error);
           // Don't fail the build, just write empty data
