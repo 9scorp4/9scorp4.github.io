@@ -16,6 +16,23 @@ const journal = defineCollection({
     metalogue_title: z.string().optional(),
     metalogue_epigraph: z.string().optional(),
     colophon: z.string().optional(),
+    // Series fields
+    series: z.string().optional(),                 // series id, e.g., 'smash-laterally'
+    seriesIndex: z.number().optional(),            // 1, 2, 3...
+  }),
+});
+
+const series = defineCollection({
+  type: 'data',
+  schema: z.object({
+    id: z.string(),                                // 'smash-laterally'
+    title: z.string(),                             // "if you can't smash the top, smash it laterally"
+    title_secondary: z.string().optional(),
+    description: z.string(),
+    totalParts: z.number(),
+    started: z.date(),
+    completed: z.date().optional(),
+    status: z.enum(['growing', 'complete']).default('growing'),
   }),
 });
 
@@ -118,4 +135,4 @@ const visitors = defineCollection({
   }),
 });
 
-export const collections = { journal, specimens, cultivations, ahora, visitors };
+export const collections = { journal, specimens, cultivations, ahora, visitors, series };

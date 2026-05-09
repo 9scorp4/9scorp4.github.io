@@ -4,7 +4,7 @@
  * Handles both regular articles and diptych entries.
  */
 
-import { getCollection } from 'astro:content';
+import { getCollection, getEntry } from 'astro:content';
 import type { CollectionEntry } from 'astro:content';
 import DiptychPage from '../../components/diptych/DiptychPage.astro';
 import Garden from '../../layouts/Garden.astro';
@@ -23,6 +23,51 @@ interface Props {
 }
 
 const { entry } = Astro.props;
+
+// Compute series context if entry belongs to a series
+interface SeriesContext {
+  seriesTitle: string;
+  totalParts: number;
+  partIndex: number;
+  prev?: { slug: string; title: string; partIndex: number };
+  next?: { slug: string; title: string; partIndex: number };
+}
+
+let seriesContext: SeriesContext | undefined;
+
+if (entry.data.series && entry.data.seriesIndex) {
+  // Fetch series manifest
+  const seriesManifest = await getEntry('series', entry.data.series);
+
+  if (seriesManifest) {
+    // Find all entries in this series
+    const allEntries = await getCollection('journal', ({ data }) => !data.draft);
+    const seriesEntries = allEntries
+      .filter(e => e.data.series === entry.data.series)
+      .sort((a, b) => (a.data.seriesIndex ?? 0) - (b.data.seriesIndex ?? 0));
+
+    const currentIndex = seriesEntries.findIndex(e => e.slug === entry.slug);
+
+    const prevEntry = currentIndex > 0 ? seriesEntries[currentIndex - 1] : undefined;
+    const nextEntry = currentIndex < seriesEntries.length - 1 ? seriesEntries[currentIndex + 1] : undefined;
+
+    seriesContext = {
+      seriesTitle: seriesManifest.data.title,
+      totalParts: seriesManifest.data.totalParts,
+      partIndex: entry.data.seriesIndex,
+      prev: prevEntry ? {
+        slug: prevEntry.slug,
+        title: prevEntry.data.title,
+        partIndex: prevEntry.data.seriesIndex!,
+      } : undefined,
+      next: nextEntry ? {
+        slug: nextEntry.slug,
+        title: nextEntry.data.title,
+        partIndex: nextEntry.data.seriesIndex!,
+      } : undefined,
+    };
+  }
+}
 const { type } = entry.data;
 const workerUrl = import.meta.env.PUBLIC_VISITORS_WORKER_URL || '';
 
@@ -86,6 +131,7 @@ const jsonLd = JSON.stringify({
     entry={entry}
     articleHtml={articleHtml}
     metalogueHtml={metalogueHtml}
+    seriesContext={seriesContext}
   />
 ) : (
   <Garden

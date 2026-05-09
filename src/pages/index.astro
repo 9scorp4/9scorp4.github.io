@@ -1,10 +1,11 @@
 ---
-import { getCollection } from 'astro:content';
+import { getCollection, getEntry } from 'astro:content';
 import Garden from '../layouts/Garden.astro';
 import StationHeader from '../components/chrome/StationHeader.astro';
 import SectionHeader from '../components/chrome/SectionHeader.astro';
 import Ahora from '../components/cards/Ahora.astro';
 import JournalEntry from '../components/cards/JournalEntry.astro';
+import SeriesRow from '../components/cards/SeriesRow.astro';
 import Cultivation from '../components/cards/Cultivation.astro';
 import Specimen from '../components/cards/Specimen.astro';
 import SpecimenModal from '../components/interactive/SpecimenModal.astro';
@@ -17,6 +18,83 @@ const ahoraEntries = (await getCollection('ahora'))
 
 const journalEntries = (await getCollection('journal', ({ data }) => !data.draft))
   .sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
+
+// Group journal entries by series
+const seriesManifests = await getCollection('series');
+
+// Build series groups and identify standalone entries
+type SeriesGroup = {
+  type: 'series';
+  seriesId: string;
+  seriesData: {
+    id: string;
+    title: string;
+    description: string;
+    totalParts: number;
+    status: 'growing' | 'complete';
+  };
+  entries: typeof journalEntries;
+  latestDate: Date;
+};
+
+type StandaloneEntry = {
+  type: 'standalone';
+  entry: typeof journalEntries[0];
+  latestDate: Date;
+};
+
+type JournalItem = SeriesGroup | StandaloneEntry;
+
+const seriesGroups = new Map<string, SeriesGroup>();
+const standaloneEntries: StandaloneEntry[] = [];
+
+for (const entry of journalEntries) {
+  if (entry.data.series) {
+    const existing = seriesGroups.get(entry.data.series);
+    if (existing) {
+      existing.entries.push(entry);
+      if (entry.data.date > existing.latestDate) {
+        existing.latestDate = entry.data.date;
+      }
+    } else {
+      const manifest = seriesManifests.find(s => s.id === entry.data.series);
+      if (manifest) {
+        seriesGroups.set(entry.data.series, {
+          type: 'series',
+          seriesId: entry.data.series,
+          seriesData: {
+            id: manifest.data.id,
+            title: manifest.data.title,
+            description: manifest.data.description,
+            totalParts: manifest.data.totalParts,
+            status: manifest.data.status,
+          },
+          entries: [entry],
+          latestDate: entry.data.date,
+        });
+      } else {
+        // Manifest not found, treat as standalone
+        standaloneEntries.push({
+          type: 'standalone',
+          entry,
+          latestDate: entry.data.date,
+        });
+      }
+    }
+  } else {
+    standaloneEntries.push({
+      type: 'standalone',
+      entry,
+      latestDate: entry.data.date,
+    });
+  }
+}
+
+// Combine and sort by latest date
+const journalItems: JournalItem[] = [
+  ...Array.from(seriesGroups.values()),
+  ...standaloneEntries,
+].sort((a, b) => b.latestDate.getTime() - a.latestDate.getTime());
 
 const specimens = (await getCollection('specimens'))
   .sort((a, b) => b.data.grown.getTime() - a.data.grown.getTime());
@@ -63,11 +141,18 @@ const libraryAuthors = [
     <section class="section">
       <SectionHeader slug="journal" />
       <div class="section-content">
-        {journalEntries.length > 0 ? (
+        {journalItems.length > 0 ? (
           <div class="journal-entries">
-            {journalEntries.map((entry) => (
-              <JournalEntry entry={entry} />
-            ))}
+            {journalItems.map((item) =>
+              item.type === 'series' ? (
+                <SeriesRow
+                  series={item.seriesData}
+                  entries={item.entries}
+                />
+              ) : (
+                <JournalEntry entry={item.entry} />
+              )
+            )}
           </div>
         ) : (
           <p class="empty-state">no field notes yet. the pen is somewhere.</p>
