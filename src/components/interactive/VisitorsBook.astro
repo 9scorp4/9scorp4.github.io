@@ -769,7 +769,7 @@ const batesonQuotes = [
     hola: 'la maceta recognizes returning guests',
     hello: 'mind the ferns',
     bonjour: 'weather from montréal, and a poem',
-    micelio: 'the network beneath',
+    micelio: 'the meta-map — a map of the map',
     jardin: 'the secret that reveals secrets',
   };
 
@@ -1255,6 +1255,7 @@ const batesonQuotes = [
           <p class="output-line output-fern">the seed has sprouted.</p>
           <p class="output-line output-quote">"the pattern which connects."</p>
           <p class="output-line output-sun">— you found it.</p>
+          <p class="output-line output-muted">roots have spread into something deeper. the micelio.</p>
         `);
       } else {
         const stage = stages[Math.min(visitorState.seedCount - 1, stages.length - 1)];
@@ -1543,7 +1544,7 @@ const batesonQuotes = [
       if (isFirstTime) {
         visitorState.stats.secretsFound.push('micelio');
         saveVisitorState(visitorState);
-        showOutput('<p class="output-line output-fern">the network reveals itself.</p>');
+        showOutput('<p class="output-line output-fern">you found the meta-map — the map of the map.</p>');
         setTimeout(() => {
           window.location.href = '/micelio';
         }, 1200);
@@ -1699,8 +1700,8 @@ const batesonQuotes = [
   function trackSecretDiscovery(name: string): void {
     const canonical = secretCommands[name];
     if (!canonical) return;
-    // Skip jardin — it handles its own tracking after modal dismiss
-    if (canonical === 'jardin') return;
+    // Skip jardin and micelio — they handle their own tracking for first-time message
+    if (canonical === 'jardin' || canonical === 'micelio') return;
     if (visitorState.stats.secretsFound.includes(canonical)) return;
     visitorState.stats.secretsFound.push(canonical);
     saveVisitorState(visitorState);
