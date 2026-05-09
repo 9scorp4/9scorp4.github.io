@@ -1,31 +1,25 @@
-#!/usr/bin/env npx tsx
 /**
- * Generate Instagram profile picture for @jardincibernetico.
- * 400×400 PNG with paper background and centered sun mandala.
+ * Generate Instagram profile picture
  *
- * Usage:
- *   npx tsx scripts/generate-profile-pic.ts
- *
- * Output: insta-output/profile-jardincibernetico.png
+ * 400x400 PNG with paper background and centered sun mandala.
  */
 
 import React from 'react';
 import { mkdir, writeFile } from 'node:fs/promises';
-import { join, dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
-import { loadFonts, generatePng } from '../src/lib/shared-image-utils.ts';
-import { colors } from '../src/lib/insta-templates.tsx';
+import { join } from 'node:path';
+import { loadFonts, generatePng } from '../../../src/lib/shared-image-utils.ts';
+import { colors } from '../../../src/lib/insta-templates.tsx';
+import { title, print, success, blank } from '../../lib/cli-style.ts';
+import { getProjectRoot, getOutputDir } from '../../lib/cli-utils.ts';
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const PROJECT_ROOT = join(__dirname, '..');
-const OUTPUT_DIR = join(PROJECT_ROOT, 'insta-output');
+const PROJECT_ROOT = getProjectRoot();
+const OUTPUT_DIR = getOutputDir();
 
 const PROFILE_SIZE = 400;
 const MANDALA_SIZE = 300;
 
 /**
  * Sun mandala SVG for profile picture.
- * Matches the SunMandala from insta-templates but as a standalone component.
  */
 function ProfileMandala({ size }: { size: number }) {
   const cx = size / 2;
@@ -137,15 +131,15 @@ function ProfileTemplate() {
   );
 }
 
-async function main() {
-  console.log('\n  ✦ generating profile picture\n');
+export async function run(_args: string[]): Promise<void> {
+  title('generating profile picture');
 
   await mkdir(OUTPUT_DIR, { recursive: true });
 
-  console.log('  loading fonts...');
+  print('loading fonts...');
   const fonts = await loadFonts(PROJECT_ROOT);
 
-  console.log('  rendering...');
+  print('rendering...');
   const element = ProfileTemplate();
   const png = await generatePng(element, fonts, {
     width: PROFILE_SIZE,
@@ -155,10 +149,6 @@ async function main() {
   const outputPath = join(OUTPUT_DIR, 'profile-jardincibernetico.png');
   await writeFile(outputPath, png);
 
-  console.log(`  ✓ saved: ${outputPath}\n`);
+  success(`saved: ${outputPath}`);
+  blank();
 }
-
-main().catch((err) => {
-  console.error('Error:', err);
-  process.exit(1);
-});

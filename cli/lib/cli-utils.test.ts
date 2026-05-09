@@ -2,11 +2,11 @@ import { describe, it, expect } from 'vitest';
 import {
   parseFrontmatter,
   extractBody,
-  extractParagraphs,
   truncate,
   formatDate,
   slugify,
-} from './insta-gen.ts';
+} from './cli-utils.ts';
+import { extractParagraphs } from '../commands/insta/generate.ts';
 
 describe('parseFrontmatter', () => {
   it('parses valid YAML frontmatter', () => {

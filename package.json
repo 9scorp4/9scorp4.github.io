@@ -1,14 +1,20 @@
 {
   "name": "9scorp4.github.io",
   "type": "module",
+  "bin": {
+    "jardin": "./cli/jardin.ts"
+  },
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "insta": "tsx scripts/insta-gen.ts",
-    "insta:publish": "tsx scripts/insta-gen.ts --publish",
-    "buffer": "tsx scripts/buffer-publish.ts --interactive",
-    "buffer:channels": "tsx scripts/buffer-publish.ts --channels",
+    "jardin": "tsx cli/jardin.ts",
+    "insta": "tsx cli/jardin.ts insta generate",
+    "insta:publish": "tsx cli/jardin.ts insta generate --publish",
+    "insta:batch": "tsx cli/jardin.ts insta batch",
+    "insta:batch:publish": "tsx cli/jardin.ts insta batch --publish",
+    "buffer": "tsx cli/jardin.ts buffer publish",
+    "buffer:channels": "tsx cli/jardin.ts buffer channels",
     "test": "vitest run",
     "test:watch": "vitest"
   },
@@ -20,6 +26,7 @@
     "@inquirer/prompts": "^8.4.2",
     "@resvg/resvg-js": "^2.6.2",
     "astro": "^5",
+    "chalk": "^5.6.2",
     "d3-force": "^3.0.0",
     "markdown-it": "^14.1.1",
     "p5": "^1.11",

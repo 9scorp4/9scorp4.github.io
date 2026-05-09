@@ -1,0 +1,50 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Batch Queue",
+  "description": "Queue of entries for Instagram batch generation",
+  "type": "object",
+  "required": ["entries"],
+  "properties": {
+    "entries": {
+      "type": "array",
+      "description": "List of entries to generate content for",
+      "items": {
+        "oneOf": [
+          {
+            "type": "object",
+            "title": "Journal Entry",
+            "description": "Full batch: journal entry with quotes (status card auto-matched from ahora)",
+            "required": ["slug", "quotes"],
+            "properties": {
+              "slug": {
+                "type": "string",
+                "description": "Journal entry slug (folder name in src/content/journal/)"
+              },
+              "quotes": {
+                "type": "array",
+                "items": { "type": "string" },
+                "minItems": 1,
+                "description": "Quote strings for carousel (each becomes a slide)"
+              }
+            },
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "title": "Status Only",
+            "description": "Status-only batch: ahora dispatch without journal entry",
+            "required": ["ahoraDate"],
+            "properties": {
+              "ahoraDate": {
+                "type": "string",
+                "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+                "description": "Date for status-only post (YYYY-MM-DD)"
+              }
+            },
+            "additionalProperties": false
+          }
+        ]
+      }
+    }
+  }
+}
