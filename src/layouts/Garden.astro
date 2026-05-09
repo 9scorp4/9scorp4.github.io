@@ -76,20 +76,52 @@ const fullImageUrl = `${siteUrl}${ogImagePath}`;
       <Footer />
     </div>
     <script define:vars={{ workerUrl }}>
-      // Privacy-respecting pageview tracking
+      // Privacy-respecting pageview tracking with enhanced metadata
       if (workerUrl && navigator.doNotTrack !== '1') {
         try {
+          // Detect device type from viewport width
+          const vw = window.innerWidth;
+          let deviceType = 'desktop';
+          if (vw < 768) deviceType = 'mobile';
+          else if (vw < 1024) deviceType = 'tablet';
+
           navigator.sendBeacon?.(
             workerUrl + '/track',
             JSON.stringify({
               type: 'pageview',
               path: location.pathname,
               referrer: document.referrer || undefined,
+              deviceType,
+              viewportWidth: vw,
+              hourLocal: new Date().getHours(),
             })
           );
         } catch {
           // Silently fail if tracking fails
         }
+
+        // Track outbound link clicks (delegated handler)
+        document.addEventListener('click', (e) => {
+          const link = e.target.closest('a[href^="http"]');
+          if (!link) return;
+
+          try {
+            const url = new URL(link.href);
+            // Skip same-origin links
+            if (url.origin === location.origin) return;
+
+            navigator.sendBeacon?.(
+              workerUrl + '/track',
+              JSON.stringify({
+                type: 'outbound_click',
+                domain: url.hostname,
+                context: location.pathname,
+              })
+            );
+          } catch {
+            // Invalid URL or tracking failed
+          }
+        });
       }
     </script>
     <script>

@@ -8,6 +8,7 @@
 
 // Roman numerals for series display
 const romanNumerals = ['i', 'ii', 'iii', 'iv', 'v', 'vi', 'vii', 'viii', 'ix', 'x'];
+const workerUrl = import.meta.env.PUBLIC_VISITORS_WORKER_URL || '';
 ---
 
 <div class="modal-backdrop" id="specimen-modal" aria-hidden="true" role="dialog" aria-modal="true">
@@ -223,6 +224,10 @@ const romanNumerals = ['i', 'ii', 'iii', 'iv', 'v', 'vi', 'vii', 'viii', 'ix', '
   }
 </style>
 
+<script define:vars={{ workerUrl }}>
+  // workerUrl is injected via define:vars from the frontmatter
+  const _workerUrl = workerUrl;
+</script>
 <script>
   // Lazy-load sketch modules using Vite's glob import
   // Each sketch is code-split into its own chunk and loaded on demand
@@ -230,6 +235,28 @@ const romanNumerals = ['i', 'ii', 'iii', 'iv', 'v', 'vi', 'vii', 'viii', 'ix', '
     string,
     () => Promise<{ createSketch: (container: HTMLElement, options: any) => { remove: () => void } }>
   >;
+
+  // Get workerUrl from the inline script above
+  declare const _workerUrl: string;
+
+  /**
+   * Track specimen open for analytics
+   */
+  function trackSpecimenOpen(specimen: { name: string; series?: string }) {
+    if (!_workerUrl || navigator.doNotTrack === '1') return;
+    try {
+      navigator.sendBeacon?.(
+        _workerUrl + '/track',
+        JSON.stringify({
+          type: 'specimen_open',
+          specimenName: specimen.name,
+          series: specimen.series,
+        })
+      );
+    } catch {
+      // Silently fail
+    }
+  }
 
   // Modal state
   let currentSketch: { remove: () => void } | null = null;
@@ -259,6 +286,9 @@ const romanNumerals = ['i', 'ii', 'iii', 'iv', 'v', 'vi', 'vii', 'viii', 'ix', '
   }) {
     if (isOpen) return;
     isOpen = true;
+
+    // Track specimen open
+    trackSpecimenOpen({ name: specimen.name, series: specimen.series });
 
     // Set content
     nameEl.textContent = specimen.name;
