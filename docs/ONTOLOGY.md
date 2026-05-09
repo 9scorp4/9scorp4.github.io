@@ -150,3 +150,94 @@ Never write:
 ## When voice and frame conflict
 
 Voice wins. The cybernetic-garden frame is a setting for the voice; if the metaphor starts demanding sentences the voice wouldn't say, the metaphor steps back.
+
+## Cross-references between pieces
+
+Cross-references between articles, metalogues, and dispatches are mycelial. As the corpus grows, motifs and questions may resurface across pieces — let connections form incidentally, in body text, in passing. Never "see also" footers. The garden rewards looking around; it doesn't announce its connective tissue.
+
+*I* in metalogues is indexical — always Nico, accumulating across pieces. Figures (DOG, GIÁP, ALI…) stay sealed within their encounters and don't reference each other.
+
+### Three levels of cross-reference
+
+| Level | Syntax | Use when |
+|-------|--------|----------|
+| Article | `[[journal:slug\|display]]` | Referencing the whole piece or its scale of analysis |
+| Fragment | `[[journal:slug#^anchor\|display]]` | Citing a specific claim or paragraph |
+| Text-fragment | `[[journal:slug#:~:text=phrase\|display]]` | Ad-hoc reference without a pre-placed anchor |
+
+**Article-level** links point to a whole entry. Use when the reference is to the piece's argument in general, not a specific passage. Example: "the [[journal:smash-laterally-i|war-scale analysis]] showed..."
+
+**Fragment-level** links point to a specific paragraph via `^anchor`. Use when building on or responding to a particular claim. The reader jumps directly to the source, highlighted. Example: "...as the [[journal:smash-laterally-i#^cost-relocation|cost-relocation formulation]] showed..."
+
+**Text-fragment** links use the browser-native `#:~:text=` syntax to highlight an exact phrase. Use for references to text you didn't anticipate needing to cite — no anchor required in the source. Less stable than `^anchor` (breaks if prose is reworded).
+
+### Display text is mandatory
+
+Never leave wikilinks without display text in prose. Raw slugs break the reading experience.
+
+```markdown
+<!-- wrong -->
+What was at stake in [[journal:smash-laterally-i]] and one degree harder to see.
+
+<!-- right -->
+What was at stake in [[journal:smash-laterally-i|the previous piece]] and one degree harder to see.
+```
+
+The only exception: technical contexts where the slug itself is the point (docs, debugging).
+
+### Block anchors
+
+Mark paragraphs for precise linking by adding `^anchor-id` at the end:
+
+```markdown
+The map has to be paid for in territory. ^map-territory
+```
+
+Renders as `<p id="map-territory">...</p>`. Link to it with `[[journal:slug#^map-territory|display text]]`.
+
+**Anchor naming**: lowercase, hyphenated, descriptive of the claim. Keep them stable — other pieces may depend on them.
+
+Fragment targets highlight with a brief ochre glow on navigation (respects reduced motion preferences).
+
+### Wikilink syntax reference
+
+```
+[[journal:slug|display]]                    → /cuaderno/slug/
+[[journal:slug#heading-id|display]]         → /cuaderno/slug/#heading-id
+[[journal:slug#^anchor|display]]            → /cuaderno/slug/#anchor
+[[journal:slug#:~:text=phrase|display]]     → /cuaderno/slug/#:~:text=phrase
+[[specimen:id]]                             → /#id
+[[library:author-slug]]                     → /#library-author-slug
+```
+
+The build fails if a wikilink points to a non-existent entry (strict mode in production).
+
+### Anti-patterns
+
+- **"See also" footers** — connections belong in body text, not appendices
+- **Over-linking** — every link should deepen understanding, not prove the infrastructure works
+- **Naked slugs** — always provide display text for prose links
+- **Unstable anchors** — don't change `^anchor-id` values once other pieces reference them
+- **Linking where echo suffices** — deliberate phrase echoes ("the map has to be paid for" → "the territory has eaten the map") work through resonance, not hyperlinks
+
+## Series
+
+Multi-part journal entries are grouped into **series**. Each series has a manifest in `src/content/series/` (YAML):
+
+```yaml
+id: smash-laterally
+title: "if you can't smash the top, smash it laterally"
+description: "On lateral leverage at the scale of a war, a body, and an empire."
+totalParts: 3
+started: 2026-05-08
+status: growing
+```
+
+Individual entries reference the series in frontmatter:
+
+```yaml
+series: smash-laterally
+seriesIndex: 1
+```
+
+On the entry page, a series header shows "part i of iii" above the title, and series navigation arrows appear at the bottom. On the index page, series entries collapse into a single expandable row.
