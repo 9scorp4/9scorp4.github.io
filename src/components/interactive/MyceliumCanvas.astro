@@ -7,8 +7,31 @@
 ---
 
 <div class="mycelium-container">
-  <canvas id="mycelium-canvas" aria-label="Network visualization of connected songs"></canvas>
+  <canvas id="mycelium-canvas" aria-label="Network visualization of connected songs and writings"></canvas>
   <div id="mycelium-detail" class="detail-panel" aria-live="polite"></div>
+  <div class="legend">
+    <div class="legend-item">
+      <span class="legend-shape circle track"></span>
+      <span class="legend-label">track</span>
+    </div>
+    <div class="legend-item">
+      <span class="legend-shape square article"></span>
+      <span class="legend-label">article</span>
+    </div>
+    <div class="legend-item">
+      <span class="legend-shape square cultivation"></span>
+      <span class="legend-label">cultivation</span>
+    </div>
+    <div class="legend-divider"></div>
+    <div class="legend-item">
+      <span class="legend-line musical"></span>
+      <span class="legend-label">musical</span>
+    </div>
+    <div class="legend-item">
+      <span class="legend-line citation"></span>
+      <span class="legend-label">citation</span>
+    </div>
+  </div>
 </div>
 <div id="mycelium-attribution" class="mycelium-footer-attribution"></div>
 
@@ -19,16 +42,27 @@
     forceManyBody,
     forceCenter,
     forceCollide,
+    forceRadial,
+    forceX,
+    forceY,
     type Simulation,
     type SimulationNodeDatum,
     type SimulationLinkDatum,
   } from 'd3-force';
 
+  type NodeType = 'track' | 'article' | 'cultivation';
+  type EdgeType = 'musical' | 'wikilink' | 'announced' | 'context';
+
   interface MyceliumNodeData {
     id: string;
-    artist: string;
-    title: string;
-    url: string;
+    type: NodeType;
+    // Common
+    firstSeen: string;
+    appearances: number;
+    // Track-specific
+    artist?: string;
+    title?: string;
+    url?: string;
     bpm?: number;
     key?: string;
     openKey?: string;
@@ -38,8 +72,13 @@
     sourceVerified?: boolean;
     corrections?: string;
     energy?: number;
-    firstHeard: string;
-    appearances: number;
+    // Article-specific
+    slug?: string;
+    articleTitle?: string;
+    excerpt?: string;
+    // Cultivation-specific
+    cultivationName?: string;
+    status?: 'growing' | 'dormant' | 'wild' | 'composted';
   }
 
   interface MyceliumEdgeData {
@@ -47,6 +86,7 @@
     target: string;
     weight: number;
     reasons: string[];
+    edgeType: EdgeType;
   }
 
   interface MyceliumGraph {
@@ -55,6 +95,8 @@
     generated: string;
     meta?: {
       tracksFromSongbpm: number;
+      articleCount: number;
+      cultivationCount: number;
     };
   }
 
@@ -72,6 +114,7 @@
     target: SimNode;
     weight: number;
     reasons: string[];
+    edgeType: EdgeType;
   }
 
   const canvas = document.getElementById('mycelium-canvas') as HTMLCanvasElement;
@@ -83,6 +126,8 @@
     paper: '#efe2c2',
     paperLine: '#c9b886',
     fern: '#2d5a3d',
+    ochre: '#b8860b',
+    ochreMuted: '#9a7209',
     sun: '#c93f7a',
     ink: '#3d2f1a',
     inkSoft: '#6b5435',
@@ -95,6 +140,21 @@
   let selectedNode: SimNode | null = null;
   let hoveredNode: SimNode | null = null;
   let draggedNode: SimNode | null = null;
+
+  // Transform state for pan/zoom
+  let transform = { x: 0, y: 0, scale: 1 };
+  let isPanning = false;
+  let panStart = { x: 0, y: 0 };
+  let transformStart = { x: 0, y: 0 };
+
+  // Zoom constraints
+  const MIN_ZOOM = 0.3;
+  const MAX_ZOOM = 3;
+  const ZOOM_SENSITIVITY = 0.002;
+
+  // Touch state for pinch-to-zoom
+  let lastPinchDistance = 0;
+  let lastPinchCenter = { x: 0, y: 0 };
 
   const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -110,17 +170,54 @@
 
     ctx.scale(dpr, dpr);
 
-    // Update force center
+    // Update force centers
     if (simulation) {
       const w = rect.width;
       const h = rect.height;
       simulation.force('center', forceCenter(w / 2, h / 2));
+      simulation.force('gravityX', forceX(w / 2).strength(0.05));
+      simulation.force('gravityY', forceY(h / 2).strength(0.05));
       simulation.alpha(0.3).restart();
     }
   }
 
-  function getNodeRadius(node: SimNode): number {
-    return 6 + Math.min(node.appearances * 2, 8);
+  function getNodeSize(node: SimNode): number {
+    // Tracks: 6 + appearances*2, max 14
+    // Articles: 10 base
+    // Cultivations: 8 base
+    if (node.type === 'track') {
+      return 6 + Math.min(node.appearances * 2, 8);
+    } else if (node.type === 'article') {
+      return 10;
+    } else {
+      return 8;
+    }
+  }
+
+  function getNodeColor(node: SimNode, isActive: boolean): string {
+    if (isActive) return COLORS.sun;
+    if (node.type === 'track') return COLORS.fern;
+    if (node.type === 'cultivation') return COLORS.ochreMuted;
+    return COLORS.ochre; // article
+  }
+
+  function getEdgeColor(edgeType: EdgeType): string {
+    // Musical edges: paper-line (warm neutral)
+    // Wikilink/announced edges: ochre (citation color)
+    if (edgeType === 'wikilink' || edgeType === 'announced' || edgeType === 'context') {
+      return COLORS.ochre;
+    }
+    return COLORS.paperLine;
+  }
+
+  function getNodeLabel(node: SimNode): { primary: string; secondary?: string } {
+    if (node.type === 'track') {
+      return { primary: node.title || '', secondary: node.artist };
+    } else if (node.type === 'article') {
+      return { primary: node.articleTitle || node.slug || '' };
+    } else {
+      return { primary: node.cultivationName || node.slug || '' };
+    }
   }
 
   function draw() {
@@ -129,15 +226,20 @@
 
     ctx.clearRect(0, 0, w, h);
 
-    // Draw edges
-    ctx.strokeStyle = COLORS.paperLine;
+    // Apply transform
+    ctx.save();
+    ctx.translate(transform.x, transform.y);
+    ctx.scale(transform.scale, transform.scale);
+
+    // Draw edges (grouped by type for consistent layering)
     for (const link of links) {
       if (link.source.x == null || link.target.x == null) continue;
 
       ctx.beginPath();
       ctx.moveTo(link.source.x, link.source.y);
       ctx.lineTo(link.target.x, link.target.y);
-      ctx.lineWidth = Math.min(link.weight, 2);
+      ctx.strokeStyle = getEdgeColor(link.edgeType);
+      ctx.lineWidth = Math.min(link.weight, 2) / transform.scale; // Keep consistent line width
       ctx.stroke();
     }
 
@@ -147,72 +249,173 @@
 
       const isHovered = node === hoveredNode;
       const isSelected = node === selectedNode;
-      const radius = getNodeRadius(node);
+      const size = getNodeSize(node);
+      const color = getNodeColor(node, isSelected || isHovered);
 
-      ctx.beginPath();
-      ctx.arc(node.x, node.y, radius, 0, Math.PI * 2);
-      ctx.fillStyle = (isSelected || isHovered) ? COLORS.sun : COLORS.fern;
-      ctx.fill();
+      ctx.fillStyle = color;
+
+      if (node.type === 'track') {
+        // Circle for tracks
+        ctx.beginPath();
+        ctx.arc(node.x, node.y, size, 0, Math.PI * 2);
+        ctx.fill();
+      } else {
+        // Rounded square for articles and cultivations
+        const halfSize = size;
+        const cornerRadius = 2;
+        ctx.beginPath();
+        ctx.roundRect(node.x - halfSize, node.y - halfSize, halfSize * 2, halfSize * 2, cornerRadius);
+        ctx.fill();
+      }
 
       // Draw label on hover/select
       if (isHovered || isSelected) {
-        ctx.font = '14px "IM Fell DW Pica", Georgia, serif';
+        const label = getNodeLabel(node);
+        // Scale font inversely to keep readable
+        const fontSize = 14 / transform.scale;
+        const smallFontSize = 12 / transform.scale;
+        ctx.font = `${fontSize}px "IM Fell DW Pica", Georgia, serif`;
         ctx.fillStyle = COLORS.ink;
         ctx.textAlign = 'center';
-        ctx.fillText(node.title, node.x, node.y - radius - 8);
-        ctx.font = '12px "IM Fell DW Pica", Georgia, serif';
-        ctx.fillStyle = COLORS.inkSoft;
-        ctx.fillText(node.artist, node.x, node.y - radius - 22);
+        ctx.fillText(label.primary, node.x, node.y - size - 8 / transform.scale);
+        if (label.secondary) {
+          ctx.font = `${smallFontSize}px "IM Fell DW Pica", Georgia, serif`;
+          ctx.fillStyle = COLORS.inkSoft;
+          ctx.fillText(label.secondary, node.x, node.y - size - 22 / transform.scale);
+        }
       }
     }
+
+    ctx.restore();
   }
 
-  function findNodeAt(x: number, y: number): SimNode | null {
+  function findNodeAt(screenX: number, screenY: number): SimNode | null {
+    // Convert screen coords to world coords
+    const { x, y } = screenToWorld(screenX, screenY);
+
     // Search in reverse order (top nodes first)
     for (let i = nodes.length - 1; i >= 0; i--) {
       const node = nodes[i];
       if (node.x == null) continue;
-      const radius = getNodeRadius(node);
-      const dx = node.x - x;
-      const dy = node.y - y;
-      if (dx * dx + dy * dy <= radius * radius) {
-        return node;
+      const size = getNodeSize(node);
+
+      if (node.type === 'track') {
+        // Circle hit test
+        const dx = node.x - x;
+        const dy = node.y - y;
+        if (dx * dx + dy * dy <= size * size) {
+          return node;
+        }
+      } else {
+        // Square hit test
+        if (Math.abs(node.x - x) <= size && Math.abs(node.y - y) <= size) {
+          return node;
+        }
       }
     }
     return null;
   }
 
-  function showDetail(node: SimNode) {
-    const hasBpm = node.bpm !== undefined;
-    const hasKey = node.key !== undefined;
-    const hasOpenKey = node.openKey !== undefined;
-    const hasDanceability = node.danceability !== undefined;
-    const hasEnriched = hasBpm || hasKey || hasOpenKey || hasDanceability;
-
-    let html = `
-      <p class="detail-title"><a href="${node.url}" target="_blank" rel="noopener">${node.artist} — ${node.title}</a></p>
-      <p class="detail-meta">first heard: ${node.firstHeard}</p>
-    `;
-
-    if (hasEnriched) {
-      const parts: string[] = [];
-      if (hasBpm) parts.push(`${node.bpm} bpm`);
-      if (hasKey) parts.push(node.openKey ? `${node.key} (${node.openKey})` : node.key!);
-      if (hasDanceability) parts.push(`dance: ${node.danceability}`);
-      if (node.timeSignature && node.timeSignature !== '4/4') parts.push(node.timeSignature);
-      html += `<p class="detail-meta">${parts.join(' · ')}</p>`;
+  function getStatusSymbol(status?: string): string {
+    switch (status) {
+      case 'growing': return '▲';
+      case 'dormant': return '◐';
+      case 'wild': return '○';
+      case 'composted': return '✕';
+      default: return '';
     }
+  }
 
-    if (node.songbpmId) {
-      html += `<p class="detail-attribution">via <a href="https://getsongbpm.com/song/${node.songbpmId}" target="_blank" rel="noopener">getsongbpm.com</a>`;
-      if (node.sourceVerified) html += ` · verified`;
-      html += `</p>`;
-      if (node.corrections) {
-        html += `<p class="detail-attribution">corrections: ${node.corrections}</p>`;
+  function showDetail(node: SimNode) {
+    let html = '';
+
+    if (node.type === 'track') {
+      // Track detail
+      const hasBpm = node.bpm !== undefined;
+      const hasKey = node.key !== undefined;
+      const hasOpenKey = node.openKey !== undefined;
+      const hasDanceability = node.danceability !== undefined;
+      const hasEnriched = hasBpm || hasKey || hasOpenKey || hasDanceability;
+
+      html = `
+        <p class="detail-title"><a href="${node.url}" target="_blank" rel="noopener">${node.artist} — ${node.title}</a></p>
+        <p class="detail-meta">first heard: ${node.firstSeen}</p>
+      `;
+
+      if (hasEnriched) {
+        const parts: string[] = [];
+        if (hasBpm) parts.push(`${node.bpm} bpm`);
+        if (hasKey) parts.push(node.openKey ? `${node.key} (${node.openKey})` : node.key!);
+        if (hasDanceability) parts.push(`dance: ${node.danceability}`);
+        if (node.timeSignature && node.timeSignature !== '4/4') parts.push(node.timeSignature);
+        html += `<p class="detail-meta">${parts.join(' · ')}</p>`;
       }
-    } else if (hasEnriched) {
-      // manually sourced (Beatport, tap-tempo, etc.)
-      html += `<p class="detail-attribution">metadata harvested manually</p>`;
+
+      if (node.songbpmId) {
+        html += `<p class="detail-attribution">via <a href="https://getsongbpm.com/song/${node.songbpmId}" target="_blank" rel="noopener">getsongbpm.com</a>`;
+        if (node.sourceVerified) html += ` · verified`;
+        html += `</p>`;
+        if (node.corrections) {
+          html += `<p class="detail-attribution">corrections: ${node.corrections}</p>`;
+        }
+      } else if (hasEnriched) {
+        html += `<p class="detail-attribution">metadata harvested manually</p>`;
+      }
+    } else if (node.type === 'article') {
+      // Article detail
+      html = `
+        <p class="detail-title">${node.articleTitle || node.slug}</p>
+        <p class="detail-meta">published: ${node.firstSeen}</p>
+      `;
+
+      // Find citation edges
+      const citedBy: string[] = [];
+      const cites: string[] = [];
+      for (const link of links) {
+        if (link.edgeType !== 'wikilink') continue;
+        const sourceNode = link.source as SimNode;
+        const targetNode = link.target as SimNode;
+        if (sourceNode.id === node.id && targetNode.type === 'article') {
+          cites.push(targetNode.articleTitle || targetNode.slug || '');
+        } else if (targetNode.id === node.id && sourceNode.type === 'article') {
+          citedBy.push(sourceNode.articleTitle || sourceNode.slug || '');
+        }
+      }
+
+      if (cites.length > 0) {
+        html += `<p class="detail-meta">cites: ${cites.join(', ')}</p>`;
+      }
+      if (citedBy.length > 0) {
+        html += `<p class="detail-meta">cited by: ${citedBy.join(', ')}</p>`;
+      }
+
+      html += `<p class="detail-action"><a href="/cuaderno/${node.slug}/">→ read article</a></p>`;
+    } else if (node.type === 'cultivation') {
+      // Cultivation detail
+      const symbol = getStatusSymbol(node.status);
+      html = `
+        <p class="detail-title">${node.cultivationName || node.slug}</p>
+        <p class="detail-meta">${symbol} ${node.status}</p>
+      `;
+
+      // Find connected articles
+      const connectedArticles: string[] = [];
+      for (const link of links) {
+        if (link.edgeType !== 'wikilink') continue;
+        const sourceNode = link.source as SimNode;
+        const targetNode = link.target as SimNode;
+        if (sourceNode.id === node.id && targetNode.type === 'article') {
+          connectedArticles.push(targetNode.articleTitle || targetNode.slug || '');
+        } else if (targetNode.id === node.id && sourceNode.type === 'article') {
+          connectedArticles.push(sourceNode.articleTitle || sourceNode.slug || '');
+        }
+      }
+
+      if (connectedArticles.length > 0) {
+        html += `<p class="detail-meta">connects to: ${connectedArticles.join(', ')}</p>`;
+      }
+
+      html += `<p class="detail-action"><a href="/#cultivations">→ view cultivation</a></p>`;
     }
 
     detailPanel.innerHTML = html;
@@ -232,12 +435,57 @@
     };
   }
 
+  // Convert screen coords to world coords (accounting for pan/zoom)
+  function screenToWorld(screenX: number, screenY: number): { x: number; y: number } {
+    return {
+      x: (screenX - transform.x) / transform.scale,
+      y: (screenY - transform.y) / transform.scale,
+    };
+  }
+
+  // Convert world coords to screen coords
+  function worldToScreen(worldX: number, worldY: number): { x: number; y: number } {
+    return {
+      x: worldX * transform.scale + transform.x,
+      y: worldY * transform.scale + transform.y,
+    };
+  }
+
+  // Zoom centered on a point
+  function zoomAt(centerX: number, centerY: number, delta: number) {
+    const oldScale = transform.scale;
+    const newScale = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, oldScale * (1 - delta)));
+
+    // Adjust translation to zoom toward the cursor
+    transform.x = centerX - (centerX - transform.x) * (newScale / oldScale);
+    transform.y = centerY - (centerY - transform.y) * (newScale / oldScale);
+    transform.scale = newScale;
+
+    draw();
+  }
+
+  // Reset view to fit all nodes
+  function resetView() {
+    transform = { x: 0, y: 0, scale: 1 };
+    draw();
+  }
+
   canvas.addEventListener('mousemove', (e) => {
     const { x, y } = getCanvasCoords(e);
 
+    // Handle panning
+    if (isPanning) {
+      transform.x = transformStart.x + (x - panStart.x);
+      transform.y = transformStart.y + (y - panStart.y);
+      draw();
+      return;
+    }
+
+    // Handle node dragging
     if (draggedNode) {
-      draggedNode.fx = x;
-      draggedNode.fy = y;
+      const world = screenToWorld(x, y);
+      draggedNode.fx = world.x;
+      draggedNode.fy = world.y;
       simulation?.alpha(0.3).restart();
       return;
     }
@@ -255,12 +503,20 @@
     const node = findNodeAt(x, y);
 
     if (node) {
+      // Drag node
       draggedNode = node;
       selectedNode = node;
-      node.fx = x;
-      node.fy = y;
+      const world = screenToWorld(x, y);
+      node.fx = world.x;
+      node.fy = world.y;
       showDetail(node);
       simulation?.alphaTarget(0.3).restart();
+      canvas.style.cursor = 'grabbing';
+    } else {
+      // Start panning
+      isPanning = true;
+      panStart = { x, y };
+      transformStart = { x: transform.x, y: transform.y };
       canvas.style.cursor = 'grabbing';
     }
   });
@@ -272,6 +528,7 @@
       draggedNode = null;
       simulation?.alphaTarget(0);
     }
+    isPanning = false;
     canvas.style.cursor = hoveredNode ? 'pointer' : 'grab';
   });
 
@@ -282,11 +539,15 @@
       draggedNode = null;
       simulation?.alphaTarget(0);
     }
+    isPanning = false;
     hoveredNode = null;
     draw();
   });
 
   canvas.addEventListener('click', (e) => {
+    // Don't trigger click after panning
+    if (isPanning) return;
+
     const { x, y } = getCanvasCoords(e);
     const node = findNodeAt(x, y);
 
@@ -300,39 +561,125 @@
     draw();
   });
 
-  // Touch support
+  // Mouse wheel zoom
+  canvas.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    const { x, y } = getCanvasCoords(e);
+    const delta = e.deltaY * ZOOM_SENSITIVITY;
+    zoomAt(x, y, delta);
+  }, { passive: false });
+
+  // Double-click to reset view
+  canvas.addEventListener('dblclick', (e) => {
+    e.preventDefault();
+    resetView();
+  });
+
+  // Touch support with pan and pinch-to-zoom
+  function getTouchDistance(touches: TouchList): number {
+    if (touches.length < 2) return 0;
+    const dx = touches[0].clientX - touches[1].clientX;
+    const dy = touches[0].clientY - touches[1].clientY;
+    return Math.sqrt(dx * dx + dy * dy);
+  }
+
+  function getTouchCenter(touches: TouchList): { x: number; y: number } {
+    if (touches.length < 2) {
+      const { x, y } = getCanvasCoords(touches[0]);
+      return { x, y };
+    }
+    const rect = canvas.getBoundingClientRect();
+    return {
+      x: (touches[0].clientX + touches[1].clientX) / 2 - rect.left,
+      y: (touches[0].clientY + touches[1].clientY) / 2 - rect.top,
+    };
+  }
+
   canvas.addEventListener('touchstart', (e) => {
     e.preventDefault();
-    const touch = e.touches[0];
-    const { x, y } = getCanvasCoords(touch);
-    const node = findNodeAt(x, y);
 
-    if (node) {
-      draggedNode = node;
-      selectedNode = node;
-      node.fx = x;
-      node.fy = y;
-      showDetail(node);
-      simulation?.alphaTarget(0.3).restart();
+    if (e.touches.length === 2) {
+      // Start pinch-to-zoom
+      lastPinchDistance = getTouchDistance(e.touches);
+      lastPinchCenter = getTouchCenter(e.touches);
+      isPanning = false;
+      draggedNode = null;
+    } else if (e.touches.length === 1) {
+      const touch = e.touches[0];
+      const { x, y } = getCanvasCoords(touch);
+      const node = findNodeAt(x, y);
+
+      if (node) {
+        // Drag node
+        draggedNode = node;
+        selectedNode = node;
+        const world = screenToWorld(x, y);
+        node.fx = world.x;
+        node.fy = world.y;
+        showDetail(node);
+        simulation?.alphaTarget(0.3).restart();
+      } else {
+        // Start panning
+        isPanning = true;
+        panStart = { x, y };
+        transformStart = { x: transform.x, y: transform.y };
+      }
     }
   }, { passive: false });
 
   canvas.addEventListener('touchmove', (e) => {
     e.preventDefault();
-    if (draggedNode) {
+
+    if (e.touches.length === 2) {
+      // Pinch-to-zoom
+      const newDistance = getTouchDistance(e.touches);
+      const newCenter = getTouchCenter(e.touches);
+
+      if (lastPinchDistance > 0) {
+        const scaleDelta = (lastPinchDistance - newDistance) * 0.01;
+        zoomAt(newCenter.x, newCenter.y, scaleDelta);
+      }
+
+      lastPinchDistance = newDistance;
+      lastPinchCenter = newCenter;
+    } else if (e.touches.length === 1) {
       const touch = e.touches[0];
       const { x, y } = getCanvasCoords(touch);
-      draggedNode.fx = x;
-      draggedNode.fy = y;
+
+      if (isPanning) {
+        // Pan
+        transform.x = transformStart.x + (x - panStart.x);
+        transform.y = transformStart.y + (y - panStart.y);
+        draw();
+      } else if (draggedNode) {
+        // Drag node
+        const world = screenToWorld(x, y);
+        draggedNode.fx = world.x;
+        draggedNode.fy = world.y;
+        simulation?.alpha(0.3).restart();
+      }
     }
   }, { passive: false });
 
-  canvas.addEventListener('touchend', () => {
-    if (draggedNode) {
-      draggedNode.fx = null;
-      draggedNode.fy = null;
-      draggedNode = null;
-      simulation?.alphaTarget(0);
+  canvas.addEventListener('touchend', (e) => {
+    if (e.touches.length === 0) {
+      // All touches ended
+      if (draggedNode) {
+        draggedNode.fx = null;
+        draggedNode.fy = null;
+        draggedNode = null;
+        simulation?.alphaTarget(0);
+      }
+      isPanning = false;
+      lastPinchDistance = 0;
+    } else if (e.touches.length === 1) {
+      // Went from 2 fingers to 1 — start panning from current position
+      lastPinchDistance = 0;
+      const touch = e.touches[0];
+      const { x, y } = getCanvasCoords(touch);
+      isPanning = true;
+      panStart = { x, y };
+      transformStart = { x: transform.x, y: transform.y };
     }
   });
 
@@ -379,20 +726,32 @@
           target: nodeById.get(e.target)!,
           weight: e.weight,
           reasons: e.reasons,
+          edgeType: e.edgeType || 'musical', // fallback for old data
         }))
         .filter(l => l.source && l.target);
 
-      // Create simulation
+      // Create simulation with tuned parameters for unified graph
+      // Balance: repulsion keeps nodes apart, gravity keeps them together
       simulation = forceSimulation<SimNode>(nodes)
         .force('link', forceLink<SimNode, SimLink>(links)
           .id(d => d.id)
-          .distance(80)
+          .distance(l => {
+            // Wikilink edges should be shorter (tighter clusters)
+            if (l.edgeType === 'wikilink') return 50;
+            // Announced edges medium distance
+            if (l.edgeType === 'announced') return 70;
+            // Musical edges default
+            return 60;
+          })
           .strength(l => l.weight * 0.3))
         .force('charge', forceManyBody<SimNode>()
-          .strength(-200))
+          .strength(-150)) // Moderate repulsion
         .force('center', forceCenter(w / 2, h / 2))
+        // Gentle gravity toward center - keeps disconnected nodes from floating away
+        .force('gravityX', forceX(w / 2).strength(0.05))
+        .force('gravityY', forceY(h / 2).strength(0.05))
         .force('collide', forceCollide<SimNode>()
-          .radius(d => getNodeRadius(d) + 4))
+          .radius(d => getNodeSize(d) + 4))
         .on('tick', draw);
 
       // For reduced motion, run simulation silently then stop
@@ -494,6 +853,21 @@
     text-decoration: underline;
   }
 
+  .detail-panel :global(.detail-action) {
+    margin: 8px 0 0 0;
+    font-size: 14px;
+  }
+
+  .detail-panel :global(.detail-action a) {
+    color: var(--fern);
+    text-decoration: none;
+    font-style: italic;
+  }
+
+  .detail-panel :global(.detail-action a:hover) {
+    text-decoration: underline;
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .detail-panel {
       transition: none;
@@ -527,6 +901,108 @@
   @media (prefers-reduced-motion: reduce) {
     .mycelium-footer-attribution {
       transition: none;
+    }
+  }
+
+  /* Legend */
+  .legend {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: var(--paper-deep);
+    border: 1px solid var(--paper-line);
+    padding: 8px 12px;
+    font-family: var(--font-serif);
+    font-size: 12px;
+    color: var(--ink-soft);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    opacity: 0.9;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .legend-shape {
+    flex-shrink: 0;
+  }
+
+  .legend-shape.circle {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+  }
+
+  .legend-shape.square {
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+  }
+
+  .legend-shape.track {
+    background: var(--fern);
+  }
+
+  .legend-shape.article {
+    background: #b8860b; /* ochre */
+  }
+
+  .legend-shape.cultivation {
+    background: #9a7209; /* ochre muted */
+    width: 8px;
+    height: 8px;
+  }
+
+  .legend-divider {
+    height: 1px;
+    background: var(--paper-line);
+    margin: 2px 0;
+  }
+
+  .legend-line {
+    width: 16px;
+    height: 2px;
+    flex-shrink: 0;
+  }
+
+  .legend-line.musical {
+    background: var(--paper-line);
+  }
+
+  .legend-line.citation {
+    background: #b8860b; /* ochre */
+  }
+
+  .legend-label {
+    color: var(--ink-faint);
+    font-style: italic;
+  }
+
+  /* Compact legend on small screens */
+  @media (max-width: 500px) {
+    .legend {
+      padding: 6px 10px;
+      font-size: 11px;
+      gap: 4px;
+    }
+
+    .legend-shape.circle,
+    .legend-shape.square {
+      width: 8px;
+      height: 8px;
+    }
+
+    .legend-shape.cultivation {
+      width: 6px;
+      height: 6px;
+    }
+
+    .legend-line {
+      width: 12px;
     }
   }
 </style>
