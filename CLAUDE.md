@@ -45,6 +45,7 @@ jardin insta generate         # Same as above
 jardin insta batch            # List unpublished entries in queue
 jardin insta batch --last=2   # Generate last N unpublished entries
 jardin insta batch --all      # Generate all unpublished entries
+jardin insta metalogue        # Generate metalogue carousel from diptych
 jardin insta profile          # Generate profile picture
 jardin insta intro            # Generate intro carousel
 ```
@@ -65,6 +66,10 @@ The batch system uses `cli/batch-queue.yaml` to define what content to generate:
      quotes:
        - "First quote from the article..."
        - "Second quote..."
+     # For diptychs, add metalogue fragments:
+     metalogue:
+       - speaker: "FIGURE"
+         line: "Dialogue line here..."
    ```
 4. **Generate**: `jardin insta batch --last=1`
 5. **Publish**: `jardin insta batch --last=1 --publish`
@@ -151,6 +156,9 @@ Before writing or editing any content, code, or copy:
 
 Additional reference:
 - [`docs/CONSOLE.md`](docs/CONSOLE.md) — devtools greeting and `window.garden` diagnostic API
+- [`docs/EL_AHORA.md`](docs/EL_AHORA.md) — the now section: slot vocabulary, frontmatter schema, rendering rules
+- [`docs/SEASONS.md`](docs/SEASONS.md) — seasonal grouping logic for the `seasons` command
+- [`docs/VISITORS.md`](docs/VISITORS.md) — visitors' book CLI: commands, secrets, parser behavior
 
 These exist so we don't re-litigate decisions every session. If a doc is missing something, update the doc — don't drift from it silently.
 
@@ -191,11 +199,11 @@ See `ONTOLOGY.md` for the full diptych structure and required frontmatter fields
 ## Build-time integrations
 
 - **OG images** (`src/integrations/og-images.ts`) — generates 1200×630 social preview images at build time using Satori. Templates in `src/lib/og-image.tsx`.
-- **Instagram cards** (`src/lib/insta-templates.tsx`) — same Satori pipeline, different templates: quote, title, status, specimen, intro carousel.
+- **Instagram cards** (`src/lib/insta-templates.tsx`) — same Satori pipeline, different templates: quote, title, status, specimen, intro carousel, metalogue (Bateson-style dialogue cards for diptychs).
 
 ## Key interactive components
 
-- **MyceliumCanvas** (`src/components/interactive/MyceliumCanvas.astro`) — force-directed graph unifying music, articles, and cultivations. Uses d3-force. Tracks connect by tempo/key/dispatch; articles connect by wikilinks; cross-links form through `articuloNuevo` announcements. Supports pan/zoom navigation.
+- **MyceliumCanvas** (`src/components/interactive/MyceliumCanvas.astro`) — force-directed graph unifying music, articles, cultivations, dispatches, and exit links. Uses d3-force. Node types: tracks (circles), articles (rounded squares), cultivations (squares), dispatches (small squares for notable ahora entries), exits (hollow circles at periphery for external URLs). Tracks connect by tempo/key/artist; articles connect by wikilinks; cross-links form through `articuloNuevo` announcements; exits pull outward via radial force. Supports pan/zoom navigation.
 - **VisitorsBook** (`src/components/interactive/VisitorsBook.astro`) — terminal-style console with custom parser. Commands: `ayuda`, `escuchar`, `dejar`, `limpiar`.
 - **SpecimenModal** — lightbox for full-size p5.js sketches.
 
