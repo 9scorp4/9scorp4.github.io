@@ -107,6 +107,13 @@ const batesonQuotes = [
   </div>
   <p class="help" id="console-help">try: random · about · seasons · dejar · ...</p>
   <div class="console-output" id="console-output" role="log" aria-live="polite"></div>
+  <div class="jardin-modal-backdrop" id="jardin-modal" aria-hidden="true" role="dialog" aria-modal="true">
+    <div class="jardin-modal">
+      <p class="jardin-modal-title">you found the ledger.</p>
+      <p class="jardin-modal-body">the meta-secret: the secret that holds all the secrets.</p>
+      <button class="jardin-modal-dismiss" type="button">continue</button>
+    </div>
+  </div>
 </div>
 
 <script id="garden-content-data" type="application/json" set:html={JSON.stringify(contentData)}></script>
@@ -480,11 +487,91 @@ const batesonQuotes = [
     color: var(--ink-faint);
   }
 
+  /* Jardin modal */
+  .jardin-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(var(--ink-rgb, 45, 42, 38), 0.85);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.25s ease, visibility 0.25s ease;
+  }
+
+  .jardin-modal-backdrop[aria-hidden="false"] {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .jardin-modal {
+    background: var(--paper);
+    border: 2px solid var(--fern);
+    padding: 24px 32px;
+    max-width: 320px;
+    text-align: center;
+    transform: scale(0.96);
+    transition: transform 0.25s ease;
+  }
+
+  .jardin-modal-backdrop[aria-hidden="false"] .jardin-modal {
+    transform: scale(1);
+  }
+
+  .jardin-modal-title {
+    font-family: var(--font-serif);
+    font-size: 18px;
+    font-style: italic;
+    color: var(--fern);
+    margin: 0 0 8px 0;
+  }
+
+  .jardin-modal-body {
+    font-family: var(--font-serif);
+    font-size: 15px;
+    color: var(--ink-soft);
+    margin: 0 0 16px 0;
+    line-height: 1.5;
+  }
+
+  .jardin-modal-dismiss {
+    font-family: var(--font-serif);
+    font-size: 14px;
+    font-style: italic;
+    color: var(--ink-faint);
+    background: none;
+    border: none;
+    padding: 4px 12px;
+    cursor: pointer;
+    transition: color 0.15s ease;
+  }
+
+  .jardin-modal-dismiss:hover {
+    color: var(--fern);
+  }
+
+  .jardin-modal-dismiss:focus-visible {
+    outline: 2px solid var(--fern);
+    outline-offset: 2px;
+  }
+
   /* Reduced motion */
   @media (prefers-reduced-motion: reduce) {
     .cursor {
       animation: none;
       opacity: 1;
+    }
+
+    .jardin-modal-backdrop {
+      backdrop-filter: none;
+      transition: none;
+    }
+
+    .jardin-modal {
+      transition: none;
     }
   }
 </style>
@@ -660,12 +747,31 @@ const batesonQuotes = [
     'water': 'water',
     'regar': 'water',       // alias
     'ls': 'ls',
+    'cd': 'cd',
     'pwd': 'pwd',
     'bonjour': 'bonjour',
     'hola': 'hola',
     'hello': 'hello',
+    'micelio': 'micelio',   // network portal
+    'mycelium': 'micelio',  // English alias
+    'jardin': 'jardin',     // meta-secret
+    'garden': 'jardin',     // English alias
   };
-  const TOTAL_SECRETS = new Set(Object.values(secretCommands)).size; // 8 unique
+  const TOTAL_SECRETS = new Set(Object.values(secretCommands)).size; // 11 unique
+
+  const secretDescriptions: Record<string, string> = {
+    bateson: '"the pattern which connects"',
+    seed: 'a thing that grows if tended',
+    water: 'roots remember',
+    ls: 'the paths are real',
+    cd: 'navigation by name',
+    pwd: 'you are here',
+    hola: 'la maceta recognizes returning guests',
+    hello: 'mind the ferns',
+    bonjour: 'weather from montréal, and a poem',
+    micelio: 'the network beneath',
+    jardin: 'the secret that reveals secrets',
+  };
 
   function createDefaultState(): VisitorState {
     return {
@@ -833,6 +939,36 @@ const batesonQuotes = [
       startTypingAnimation();
     }
   }
+
+  // Jardin modal control
+  const jardinModal = document.getElementById('jardin-modal') as HTMLDivElement;
+  const jardinDismissBtn = jardinModal?.querySelector('.jardin-modal-dismiss') as HTMLButtonElement;
+  let jardinModalCallback: (() => void) | null = null;
+
+  function showJardinModal(onDismiss: () => void): void {
+    jardinModalCallback = onDismiss;
+    jardinModal?.setAttribute('aria-hidden', 'false');
+    jardinDismissBtn?.focus();
+  }
+
+  function dismissJardinModal(): void {
+    jardinModal?.setAttribute('aria-hidden', 'true');
+    if (jardinModalCallback) {
+      jardinModalCallback();
+      jardinModalCallback = null;
+    }
+    input?.focus();
+  }
+
+  jardinDismissBtn?.addEventListener('click', dismissJardinModal);
+  jardinModal?.addEventListener('click', (e) => {
+    if (e.target === jardinModal) dismissJardinModal();
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && jardinModal?.getAttribute('aria-hidden') === 'false') {
+      dismissJardinModal();
+    }
+  });
 
   // Helper: get season from date
   // NOTE: Client-side duplicate of src/lib/season.ts (can't import server modules here)
@@ -1128,7 +1264,7 @@ const batesonQuotes = [
 
     ls() {
       showOutput(`
-        <p class="output-line output-mono">conservatory/&nbsp;&nbsp;cuaderno/&nbsp;&nbsp;cultivations/&nbsp;&nbsp;library/</p>
+        <p class="output-line output-mono"><a href="/#conservatory">conservatory/</a>&nbsp;&nbsp;<a href="/#journal">cuaderno/</a>&nbsp;&nbsp;<a href="/#cultivations">cultivations/</a>&nbsp;&nbsp;<a href="/#library">library/</a></p>
       `);
     },
 
@@ -1317,50 +1453,62 @@ const batesonQuotes = [
     },
 
     garden() {
-      // Calculate days since first visit
+      commands.jardin('');
+    },
+
+    jardin() {
+      const isFirstTime = !visitorState.stats.secretsFound.includes('jardin');
+
+      // Track jardin discovery before building output (so it appears in the list)
+      if (isFirstTime) {
+        visitorState.stats.secretsFound.push('jardin');
+        saveVisitorState(visitorState);
+      }
+
+      // Calculate stats
       const firstVisit = new Date(visitorState.stats.firstVisit);
       const now = new Date();
       const daysTending = Math.floor((now.getTime() - firstVisit.getTime()) / (1000 * 60 * 60 * 24));
-
-      // Seed growth stage
       const seedStages = ['dormant', 'stirring', 'cracked', 'sprouting', 'reaching', 'leafing', 'blooming'];
       const seedStage = visitorState.seedPlanted
         ? seedStages[Math.min(visitorState.seedCount, seedStages.length - 1)]
         : 'none planted';
 
-      // Secrets found count
-      const totalSecrets = TOTAL_SECRETS;
-      const foundSecrets = visitorState.stats.secretsFound.length;
+      // Build output: stats + secrets
+      const foundSecrets = visitorState.stats.secretsFound;
+      let html = `<p class="output-line output-fern">the garden's ledger</p>`;
 
-      let html = `
-        <p class="output-line output-fern">your garden</p>
-        <p class="output-line">visits: ${visitorState.visits}</p>
-        <p class="output-line">days tending: ${daysTending}</p>
-        <p class="output-line">waterings: ${visitorState.waterings}</p>
-      `;
-
+      // Stats section
+      html += `<p class="output-line">visits: ${visitorState.visits} · days tending: ${daysTending}</p>`;
+      html += `<p class="output-line">waterings: ${visitorState.waterings} · seed: ${seedStage}</p>`;
       if (visitorState.stats.articlesRead.length > 0) {
         html += `<p class="output-line">articles read: ${visitorState.stats.articlesRead.length}</p>`;
       }
 
-      html += `<p class="output-line">secrets found: ${foundSecrets}/${totalSecrets}</p>`;
+      // Secrets section
+      html += `<p class="output-line" style="margin-top: 8px;">secrets found: ${foundSecrets.length}/${TOTAL_SECRETS}</p>`;
 
-      if (foundSecrets > 0) {
-        const secretsList = visitorState.stats.secretsFound.join(', ');
-        html += `<p class="output-line output-muted"><span class="output-mono">${secretsList}</span></p>`;
+      if (foundSecrets.length === 0) {
+        html += `<p class="output-line output-muted">none yet. keep looking.</p>`;
+      } else {
+        foundSecrets.forEach(secret => {
+          const desc = secretDescriptions[secret] || '';
+          html += `<p class="output-line"><span class="output-mono">${secret}</span> — <span class="output-muted">${desc}</span></p>`;
+        });
+
+        const remaining = TOTAL_SECRETS - foundSecrets.length;
+        if (remaining > 0) {
+          html += `<p class="output-line output-muted" style="margin-top: 8px;">${remaining} more hidden.</p>`;
+        } else {
+          html += `<p class="output-line output-sun" style="margin-top: 8px;">the garden has no more secrets from you.</p>`;
+        }
       }
 
-      html += `<p class="output-line">seed: ${seedStage}</p>`;
-
-      if (foundSecrets === totalSecrets) {
-        html += `<p class="output-line output-sun">you've found all the secrets. the garden knows you.</p>`;
+      if (isFirstTime) {
+        showJardinModal(() => showOutput(html));
+      } else {
+        showOutput(html);
       }
-
-      showOutput(html);
-    },
-
-    jardin() {
-      commands.garden('');
     },
 
     help() {
@@ -1547,9 +1695,12 @@ const batesonQuotes = [
   }
 
   // Track secret discovery (locally, using canonical name)
+  // Note: 'jardin' and 'garden' handle their own tracking (for first-time modal)
   function trackSecretDiscovery(name: string): void {
     const canonical = secretCommands[name];
     if (!canonical) return;
+    // Skip jardin — it handles its own tracking after modal dismiss
+    if (canonical === 'jardin') return;
     if (visitorState.stats.secretsFound.includes(canonical)) return;
     visitorState.stats.secretsFound.push(canonical);
     saveVisitorState(visitorState);
