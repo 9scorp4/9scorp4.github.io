@@ -226,7 +226,8 @@ const workerUrl = import.meta.env.PUBLIC_VISITORS_WORKER_URL || '';
 
 <script define:vars={{ workerUrl }}>
   // workerUrl is injected via define:vars from the frontmatter
-  const _workerUrl = workerUrl;
+  // Set on window so the bundled module script can access it
+  window.__specimenWorkerUrl = workerUrl;
 </script>
 <script>
   // Lazy-load sketch modules using Vite's glob import
@@ -236,8 +237,8 @@ const workerUrl = import.meta.env.PUBLIC_VISITORS_WORKER_URL || '';
     () => Promise<{ createSketch: (container: HTMLElement, options: any) => { remove: () => void } }>
   >;
 
-  // Get workerUrl from the inline script above
-  declare const _workerUrl: string;
+  // Get workerUrl from the inline script (set on window due to separate script scopes)
+  const _workerUrl = (window as any).__specimenWorkerUrl || '';
 
   /**
    * Track specimen open for analytics
