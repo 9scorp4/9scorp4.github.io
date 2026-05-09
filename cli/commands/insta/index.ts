@@ -43,6 +43,12 @@ export async function run(args: string[]): Promise<void> {
       break;
     }
 
+    case 'metalogue': {
+      const { run: runMetalogue } = await import('./metalogue.ts');
+      await runMetalogue(filteredArgs, hasPublish);
+      break;
+    }
+
     case 'help':
     case '-h':
     case '--help':
@@ -77,6 +83,10 @@ function showHelp(): void {
 
   print(`  ${style.command('intro')}      Generate intro carousel`);
   muted('             10-slide welcome carousel');
+  blank();
+
+  print(`  ${style.command('metalogue')}  Generate metalogue carousel`);
+  muted('             Bateson-style dialogue cards from diptych entries');
   blank();
 
   divider();

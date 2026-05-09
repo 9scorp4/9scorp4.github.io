@@ -3,7 +3,7 @@
  * Generates default captions based on content type and metadata.
  */
 
-export type TemplateType = 'quote' | 'title' | 'status' | 'specimen' | 'intro';
+export type TemplateType = 'quote' | 'title' | 'status' | 'specimen' | 'intro' | 'metalogue';
 
 export interface QuoteMetadata {
   quote: string;
@@ -36,7 +36,15 @@ export interface IntroMetadata {
   slideCount: number;
 }
 
-export type ContentMetadata = QuoteMetadata | TitleMetadata | StatusMetadata | SpecimenMetadata | IntroMetadata;
+export interface MetalogueMetadata {
+  fragments: Array<{ speaker: string; line: string }>;
+  sourceTitle: string;
+  metalogueTitle?: string;
+  date: Date;
+  slug: string;
+}
+
+export type ContentMetadata = QuoteMetadata | TitleMetadata | StatusMetadata | SpecimenMetadata | IntroMetadata | MetalogueMetadata;
 
 export interface GeneratedCaption {
   caption: string;
@@ -109,6 +117,22 @@ link in bio`;
 }
 
 /**
+ * Generate a default caption for metalogue cards.
+ */
+function generateMetalogueCaption(meta: MetalogueMetadata): string {
+  const title = meta.metalogueTitle || meta.sourceTitle;
+  const fragmentPreview = meta.fragments.slice(0, 2)
+    .map(f => `${f.speaker}: ${f.line}`)
+    .join('\n');
+
+  return `metálogo de "${title}"
+
+${fragmentPreview}
+
+— after Bateson's metalogues`;
+}
+
+/**
  * Generate default hashtags based on content type.
  */
 function generateHashtags(type: TemplateType, meta: ContentMetadata): string {
@@ -120,6 +144,7 @@ function generateHashtags(type: TemplateType, meta: ContentMetadata): string {
     status: ['#elahora', '#thenow', '#maintenant'],
     specimen: ['#creativecoding', '#generativeart', '#p5js'],
     intro: ['#jardincibernetico', '#cyberneticgarden', '#personalsite', '#webdesign'],
+    metalogue: ['#metalogo', '#dialogue', '#batesonian', '#conversationtheory'],
   };
 
   const tags = [...base, ...typeSpecific[type]];
@@ -156,6 +181,9 @@ export function generateCaption(type: TemplateType, meta: ContentMetadata): Gene
       break;
     case 'intro':
       caption = generateIntroCaption();
+      break;
+    case 'metalogue':
+      caption = generateMetalogueCaption(meta as MetalogueMetadata);
       break;
   }
 
