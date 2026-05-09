@@ -1,0 +1,30 @@
+# yaml-language-server: $schema=./batch-queue.schema.json
+# Batch queue for Instagram content generation
+#
+# Entry types:
+#   - Journal entry: slug + quotes[] (status card auto-matched by articuloNuevo)
+#   - Status-only: ahoraDate (for ahora dispatches without a journal entry)
+#
+# Workflow:
+#   1. Write journal entry in src/content/journal/{slug}/
+#   2. Write ahora dispatch with articuloNuevo linking to the entry
+#   3. Add entry here with quotes
+#   4. Run: jardin insta batch --last=1
+
+entries:
+  # Full batch: lo que corrige el mapa
+  - slug: lo-que-corrige-el-mapa
+    quotes:
+      - "A system that loses contact with its environment doesn't learn, it confabulates."
+      - "The map needs the territory."
+      - "Without it, the map starts to refer only to itself, and what looks like coherence is actually escalation — the system becomes more confident in claims that have no anchor."
+
+  # Full batch: al borde del fenomeno
+  - slug: al-borde-del-fenomeno
+    quotes:
+      - "Cognitive sovereignty isn't a defensive capacity. It's not about discerning truth from lies in a flood of plausible content."
+      - "Cognitive sovereignty is the capacity to produce knowledge at the edge of phenomena — to be one of the nodes where new distinctions get drawn — with the conditions of negotiation preserved."
+      - "It is collective. It is configural. And it is not a property of any individual."
+
+  # Status-only: ahora dispatch 2026-05-05 (no journal entry)
+  - ahoraDate: 2026-05-05
