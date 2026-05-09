@@ -1,3 +1,8 @@
+# MAINTAINER NOTE: Before editing, verify:
+# - Script paths match actual CLI location (cli/jardin.ts)
+# - Env var names match what the code expects (check cli/commands/visitors/api.ts)
+# - Secrets exist in repo settings
+
 name: Sync Visitors
 
 on:
