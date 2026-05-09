@@ -99,6 +99,33 @@ img {
   }
 }
 
+/* Fragment target highlighting */
+:target {
+  scroll-margin-top: var(--rhythm-lg);
+}
+
+[id]:target {
+  animation: fragment-glow 2s ease-out;
+}
+
+@keyframes fragment-glow {
+  0% { background-color: rgba(200, 136, 32, 0.2); }
+  100% { background-color: transparent; }
+}
+
+p[id]:target {
+  border-left: 2px solid var(--ochre);
+  padding-left: var(--rhythm-sm);
+  margin-left: calc(-1 * var(--rhythm-sm) - 2px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [id]:target {
+    animation: none;
+    background-color: rgba(200, 136, 32, 0.15);
+  }
+}
+
 /* Print stylesheet */
 @media print {
   /* Hide interactive elements */
