@@ -1,0 +1,63 @@
+---
+/**
+ * SeriesHeader — displays series title and part indicator above DiptychHeader.
+ * Shows "part i of iii" badge in monospace + series title in italic.
+ */
+
+interface Props {
+  seriesTitle: string;
+  partIndex: number;      // 1-based
+  totalParts: number;
+}
+
+const { seriesTitle, partIndex, totalParts } = Astro.props;
+
+// Convert numbers to roman numerals for the aesthetic
+const toRoman = (n: number): string => {
+  const romans: [number, string][] = [
+    [10, 'x'], [9, 'ix'], [5, 'v'], [4, 'iv'], [1, 'i']
+  ];
+  let result = '';
+  for (const [value, numeral] of romans) {
+    while (n >= value) {
+      result += numeral;
+      n -= value;
+    }
+  }
+  return result;
+};
+
+const partRoman = toRoman(partIndex);
+const totalRoman = toRoman(totalParts);
+---
+
+<div class="series-header">
+  <p class="series-part">part {partRoman} of {totalRoman}</p>
+  <p class="series-title">{seriesTitle}</p>
+</div>
+
+<style>
+  .series-header {
+    text-align: center;
+    margin-bottom: var(--rhythm);
+    padding-bottom: var(--rhythm);
+    border-bottom: 1px solid var(--paper-line);
+  }
+
+  .series-part {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--ochre);
+    letter-spacing: 0.05em;
+    margin: 0 0 var(--rhythm-sm) 0;
+  }
+
+  .series-title {
+    font-family: var(--font-serif);
+    font-size: 15px;
+    font-style: italic;
+    color: var(--ink-soft);
+    margin: 0;
+    line-height: 1.4;
+  }
+</style>

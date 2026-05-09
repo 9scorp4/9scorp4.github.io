@@ -1,0 +1,100 @@
+---
+/**
+ * SeriesRow — collapsed details element for series entries on index page.
+ * Styled to match JournalEntry visual language.
+ */
+
+import type { CollectionEntry } from 'astro:content';
+import JournalEntry from './JournalEntry.astro';
+
+interface SeriesData {
+  id: string;
+  title: string;
+  description: string;
+  totalParts: number;
+  status: 'growing' | 'complete';
+}
+
+interface Props {
+  series: SeriesData;
+  entries: CollectionEntry<'journal'>[];
+}
+
+const { series, entries } = Astro.props;
+
+// Sort entries by series index
+const sortedEntries = [...entries].sort(
+  (a, b) => (a.data.seriesIndex ?? 0) - (b.data.seriesIndex ?? 0)
+);
+---
+
+<details class="series-row" open>
+  <summary class="series-summary">
+    <h3 class="series-title">{series.title}</h3>
+    <p class="meta">a series · {series.totalParts} parts</p>
+  </summary>
+  <div class="series-entries">
+    {sortedEntries.map((entry) => (
+      <JournalEntry entry={entry} />
+    ))}
+  </div>
+</details>
+
+<style>
+  .series-row {
+    border-left: 2px solid var(--terracotta);
+    padding-left: 18px;
+    margin-bottom: 20px;
+  }
+
+  .series-row:last-child {
+    margin-bottom: 0;
+  }
+
+  .series-summary {
+    cursor: pointer;
+    list-style: none;
+  }
+
+  .series-summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .series-title {
+    font-family: var(--font-serif);
+    font-size: 20px;
+    font-weight: 400;
+    font-style: italic;
+    margin: 0 0 4px 0;
+    color: var(--ink);
+  }
+
+  .meta {
+    font-family: var(--font-serif);
+    font-size: 14px;
+    font-style: italic;
+    color: var(--ink-soft);
+    margin: 0;
+  }
+
+  .series-summary:hover .series-title {
+    color: var(--terracotta);
+  }
+
+  .series-summary:focus-visible {
+    outline: 2px solid var(--sun);
+    outline-offset: 2px;
+  }
+
+  .series-entries {
+    margin-top: var(--rhythm);
+    padding-left: 12px;
+    border-left: 1px solid var(--paper-line);
+  }
+
+  /* Override JournalEntry border for nested display */
+  .series-entries :global(.journal-entry) {
+    border-left: none;
+    padding-left: 0;
+  }
+</style>

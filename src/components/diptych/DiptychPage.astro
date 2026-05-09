@@ -12,14 +12,25 @@ import Seam from './Seam.astro';
 import MetalogueBody from './MetalogueBody.astro';
 import DiptychColophon from './DiptychColophon.astro';
 import ReturnMarker from './ReturnMarker.astro';
+import SeriesHeader from './SeriesHeader.astro';
+import SeriesNav from './SeriesNav.astro';
+
+interface SeriesContext {
+  seriesTitle: string;
+  totalParts: number;
+  partIndex: number;
+  prev?: { slug: string; title: string; partIndex: number };
+  next?: { slug: string; title: string; partIndex: number };
+}
 
 interface Props {
   entry: CollectionEntry<'journal'>;
   articleHtml: string;
   metalogueHtml: string;
+  seriesContext?: SeriesContext;
 }
 
-const { entry, articleHtml, metalogueHtml } = Astro.props;
+const { entry, articleHtml, metalogueHtml, seriesContext } = Astro.props;
 const { title, title_secondary, date, entry: entryNumber, preamble, metalogue_title, metalogue_epigraph, colophon, summary } = entry.data;
 const workerUrl = import.meta.env.PUBLIC_VISITORS_WORKER_URL || '';
 const slug = entry.slug;
@@ -55,6 +66,14 @@ const jsonLd = JSON.stringify({
   <script type="application/ld+json" set:html={jsonLd} />
   <main id="main" class="diptych">
     <article class="diptych-article">
+      {seriesContext && (
+        <SeriesHeader
+          seriesTitle={seriesContext.seriesTitle}
+          partIndex={seriesContext.partIndex}
+          totalParts={seriesContext.totalParts}
+        />
+      )}
+
       <DiptychHeader
         title={title}
         title_secondary={title_secondary}
@@ -78,6 +97,14 @@ const jsonLd = JSON.stringify({
       {colophon && <DiptychColophon text={colophon} />}
 
       <ReturnMarker />
+
+      {seriesContext && (
+        <SeriesNav
+          seriesTitle={seriesContext.seriesTitle}
+          prev={seriesContext.prev}
+          next={seriesContext.next}
+        />
+      )}
     </article>
     <DiptychNav />
   </main>
