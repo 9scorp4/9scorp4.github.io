@@ -1,30 +1,39 @@
 /**
- * Mycelium Graph - builds connection graph from ahora dispatches
+ * Mycelium Graph - builds connection graph from dispatches, articles, cultivations
  *
- * Songs connect where they touched: same dispatch, temporal proximity,
- * same artist, similar BPM, harmonic compatibility, shared genres.
+ * Songs and writings connect where they touched: same dispatch, temporal proximity,
+ * wikilinks, announcements, same artist, similar BPM, harmonic compatibility.
  */
 
+export type NodeType = 'track' | 'article' | 'cultivation';
+export type EdgeType = 'musical' | 'wikilink' | 'announced' | 'context';
+
 export interface MyceliumNode {
-  id: string;           // hash of artist+title
-  artist: string;
-  title: string;
-  url: string;
-  // Objective (GetSongBPM)
+  id: string;
+  type: NodeType;
+  // Common
+  firstSeen: string;    // ISO date
+  appearances: number;
+  // Track-specific
+  artist?: string;
+  title?: string;
+  url?: string;
   bpm?: number;
   key?: string;
   openKey?: string;     // Camelot notation
   timeSignature?: string;
   danceability?: number;
   songbpmId?: string;   // provenance marker
-  // Source verification
   sourceVerified?: boolean;
   corrections?: string;
-  // Subjective
   energy?: number;
-  // Meta
-  firstHeard: string;   // ISO date
-  appearances: number;
+  // Article-specific
+  slug?: string;
+  articleTitle?: string;
+  excerpt?: string;     // first ~100 chars
+  // Cultivation-specific
+  cultivationName?: string;
+  status?: 'growing' | 'dormant' | 'wild' | 'composted';
 }
 
 export interface MyceliumEdge {
@@ -32,6 +41,7 @@ export interface MyceliumEdge {
   target: string;
   weight: number;       // connection strength
   reasons: string[];    // why connected
+  edgeType: EdgeType;   // for visual differentiation
 }
 
 export interface MyceliumGraph {
@@ -40,10 +50,12 @@ export interface MyceliumGraph {
   generated: string;    // ISO timestamp
   meta: {
     tracksFromSongbpm: number;
+    articleCount: number;
+    cultivationCount: number;
   };
 }
 
-interface TrackData {
+export interface TrackData {
   artist: string;
   title: string;
   url: string;
@@ -58,6 +70,33 @@ interface TrackData {
   energy?: number;
   genre?: string[];
   date: string;
+}
+
+export interface ArticleData {
+  slug: string;
+  title: string;
+  date: string;       // ISO date
+  excerpt: string;    // first ~100 chars
+  wikilinks: string[]; // slugs this article links to
+}
+
+export interface CultivationData {
+  slug: string;
+  name: string;
+  status: 'growing' | 'dormant' | 'wild' | 'composted';
+  wikilinks: string[]; // slugs this cultivation's description links to
+}
+
+export interface AhoraLink {
+  date: string;       // dispatch date
+  articleSlug: string; // article announced
+}
+
+export interface GraphInput {
+  tracks: TrackData[];
+  articles: ArticleData[];
+  cultivations: CultivationData[];
+  ahoraLinks: AhoraLink[]; // articuloNuevo announcements
 }
 
 /**
@@ -119,25 +158,32 @@ function sharedGenre(g1?: string[], g2?: string[]): string | null {
   return null;
 }
 
-/**
- * Build the mycelium graph from track data
- */
-export function buildGraph(tracks: TrackData[]): MyceliumGraph {
-  const nodeMap = new Map<string, MyceliumNode>();
-  const edgeMap = new Map<string, { weight: number; reasons: Set<string> }>();
+interface EdgeData {
+  weight: number;
+  reasons: Set<string>;
+  edgeType: EdgeType;
+}
 
-  // Build nodes, tracking appearances
+/**
+ * Build the unified mycelium graph from tracks, articles, and cultivations
+ */
+export function buildGraph(input: GraphInput): MyceliumGraph {
+  const nodeMap = new Map<string, MyceliumNode>();
+  const edgeMap = new Map<string, EdgeData>();
+
+  const { tracks, articles, cultivations, ahoraLinks } = input;
+
+  // === Build track nodes ===
   for (const track of tracks) {
     const id = createNodeId(track.artist, track.title);
     const existing = nodeMap.get(id);
 
-    if (existing) {
+    if (existing && existing.type === 'track') {
       existing.appearances++;
-      // Keep earliest date
-      if (track.date < existing.firstHeard) {
-        existing.firstHeard = track.date;
+      if (track.date < existing.firstSeen) {
+        existing.firstSeen = track.date;
       }
-      // Update metadata if we have it (prefer newer data)
+      // Update metadata (prefer newer data)
       if (track.bpm !== undefined) existing.bpm = track.bpm;
       if (track.key !== undefined) existing.key = track.key;
       if (track.openKey !== undefined) existing.openKey = track.openKey;
@@ -150,6 +196,7 @@ export function buildGraph(tracks: TrackData[]): MyceliumGraph {
     } else {
       nodeMap.set(id, {
         id,
+        type: 'track',
         artist: track.artist,
         title: track.title,
         url: track.url,
@@ -162,22 +209,41 @@ export function buildGraph(tracks: TrackData[]): MyceliumGraph {
         sourceVerified: track.sourceVerified,
         corrections: track.corrections,
         energy: track.energy,
-        firstHeard: track.date,
+        firstSeen: track.date,
         appearances: 1,
       });
     }
   }
 
-  // Group tracks by date for dispatch-based connections
-  const tracksByDate = new Map<string, TrackData[]>();
-  for (const track of tracks) {
-    const dateKey = track.date.slice(0, 10); // ISO date portion
-    const list = tracksByDate.get(dateKey) || [];
-    list.push(track);
-    tracksByDate.set(dateKey, list);
+  // === Build article nodes ===
+  for (const article of articles) {
+    const id = `a:${article.slug}`;
+    nodeMap.set(id, {
+      id,
+      type: 'article',
+      slug: article.slug,
+      articleTitle: article.title,
+      excerpt: article.excerpt,
+      firstSeen: article.date,
+      appearances: 1,
+    });
   }
 
-  // Build edges
+  // === Build cultivation nodes ===
+  for (const cult of cultivations) {
+    const id = `c:${cult.slug}`;
+    nodeMap.set(id, {
+      id,
+      type: 'cultivation',
+      slug: cult.slug,
+      cultivationName: cult.name,
+      status: cult.status,
+      firstSeen: new Date().toISOString().slice(0, 10), // no date for cultivations
+      appearances: 1,
+    });
+  }
+
+  // === Build track↔track edges (musical) ===
   const trackList = tracks.map(t => ({
     ...t,
     id: createNodeId(t.artist, t.title),
@@ -188,18 +254,16 @@ export function buildGraph(tracks: TrackData[]): MyceliumGraph {
       const a = trackList[i];
       const b = trackList[j];
 
-      // Skip self-connections
       if (a.id === b.id) continue;
 
-      const edgeKey = [a.id, b.id].sort().join(':');
-      const existing = edgeMap.get(edgeKey) || { weight: 0, reasons: new Set<string>() };
+      const edgeKey = [a.id, b.id].sort().join('|');
+      const existing = edgeMap.get(edgeKey) || { weight: 0, reasons: new Set<string>(), edgeType: 'musical' as EdgeType };
 
       // Same dispatch
       if (a.date.slice(0, 10) === b.date.slice(0, 10)) {
         existing.weight += 1.0;
         existing.reasons.add('same dispatch');
       } else {
-        // Temporal proximity
         const days = daysBetween(a.date, b.date);
         if (days <= 2) {
           existing.weight += 0.7;
@@ -230,19 +294,16 @@ export function buildGraph(tracks: TrackData[]): MyceliumGraph {
         existing.reasons.add('same key');
       }
 
-      // Same open key (Camelot) - harmonic compatibility
+      // Harmonic (Camelot)
       if (a.openKey && b.openKey && a.openKey === b.openKey) {
         existing.weight += 0.3;
         existing.reasons.add('harmonic');
       }
 
-      // Same time signature
-      if (a.timeSignature && b.timeSignature && a.timeSignature === b.timeSignature) {
-        // Only count non-4/4 as interesting connection
-        if (a.timeSignature !== '4/4') {
-          existing.weight += 0.2;
-          existing.reasons.add('same meter');
-        }
+      // Same meter (non-4/4)
+      if (a.timeSignature && b.timeSignature && a.timeSignature === b.timeSignature && a.timeSignature !== '4/4') {
+        existing.weight += 0.2;
+        existing.reasons.add('same meter');
       }
 
       // Similar danceability
@@ -264,22 +325,90 @@ export function buildGraph(tracks: TrackData[]): MyceliumGraph {
     }
   }
 
-  // Filter edges below threshold and convert to array
+  // === Build article↔article edges (wikilinks) ===
+  for (const article of articles) {
+    const sourceId = `a:${article.slug}`;
+    for (const targetSlug of article.wikilinks) {
+      // Only link to journal articles for now
+      if (targetSlug.startsWith('journal:')) {
+        const slug = targetSlug.replace('journal:', '');
+        const targetId = `a:${slug}`;
+        if (nodeMap.has(targetId)) {
+          const edgeKey = [sourceId, targetId].sort().join('|');
+          const existing = edgeMap.get(edgeKey);
+          if (existing) {
+            existing.weight = Math.max(existing.weight, 1.0);
+            existing.reasons.add('cites');
+          } else {
+            edgeMap.set(edgeKey, { weight: 1.0, reasons: new Set(['cites']), edgeType: 'wikilink' });
+          }
+        }
+      }
+    }
+  }
+
+  // === Build article↔cultivation edges (wikilinks) ===
+  for (const cult of cultivations) {
+    const sourceId = `c:${cult.slug}`;
+    for (const targetSlug of cult.wikilinks) {
+      if (targetSlug.startsWith('journal:')) {
+        const slug = targetSlug.replace('journal:', '');
+        const targetId = `a:${slug}`;
+        if (nodeMap.has(targetId)) {
+          const edgeKey = [sourceId, targetId].sort().join('|');
+          if (!edgeMap.has(edgeKey)) {
+            edgeMap.set(edgeKey, { weight: 0.8, reasons: new Set(['references']), edgeType: 'wikilink' });
+          }
+        }
+      }
+    }
+  }
+
+  // === Build track↔article edges (announced together) ===
+  // Group tracks by dispatch date
+  const tracksByDate = new Map<string, string[]>(); // date -> track ids
+  for (const track of tracks) {
+    const dateKey = track.date.slice(0, 10);
+    const id = createNodeId(track.artist, track.title);
+    const list = tracksByDate.get(dateKey) || [];
+    if (!list.includes(id)) list.push(id);
+    tracksByDate.set(dateKey, list);
+  }
+
+  // Link articles to tracks from the same dispatch they were announced in
+  for (const link of ahoraLinks) {
+    const articleId = `a:${link.articleSlug}`;
+    if (!nodeMap.has(articleId)) continue;
+
+    const dateKey = link.date.slice(0, 10);
+    const trackIds = tracksByDate.get(dateKey) || [];
+
+    for (const trackId of trackIds) {
+      const edgeKey = [articleId, trackId].sort().join('|');
+      if (!edgeMap.has(edgeKey)) {
+        edgeMap.set(edgeKey, { weight: 0.8, reasons: new Set(['announced together']), edgeType: 'announced' });
+      }
+    }
+  }
+
+  // === Convert and filter edges ===
   const edges: MyceliumEdge[] = [];
   for (const [key, data] of edgeMap) {
     if (data.weight >= 0.3) {
-      const [source, target] = key.split(':');
+      const [source, target] = key.split('|');
       edges.push({
         source,
         target,
-        weight: Math.round(data.weight * 100) / 100, // Round to 2 decimals
+        weight: Math.round(data.weight * 100) / 100,
         reasons: Array.from(data.reasons),
+        edgeType: data.edgeType,
       });
     }
   }
 
   const nodesArray = Array.from(nodeMap.values());
-  const tracksFromSongbpm = nodesArray.filter(n => n.songbpmId).length;
+  const trackNodes = nodesArray.filter(n => n.type === 'track');
+  const tracksFromSongbpm = trackNodes.filter(n => n.songbpmId).length;
 
   return {
     nodes: nodesArray,
@@ -287,6 +416,21 @@ export function buildGraph(tracks: TrackData[]): MyceliumGraph {
     generated: new Date().toISOString(),
     meta: {
       tracksFromSongbpm,
+      articleCount: articles.length,
+      cultivationCount: cultivations.length,
     },
   };
+}
+
+/**
+ * Legacy function for backwards compatibility
+ * @deprecated Use buildGraph with GraphInput instead
+ */
+export function buildGraphFromTracks(tracks: TrackData[]): MyceliumGraph {
+  return buildGraph({
+    tracks,
+    articles: [],
+    cultivations: [],
+    ahoraLinks: [],
+  });
 }

@@ -1,5 +1,6 @@
 ---
 import type { CollectionEntry } from 'astro:content';
+import { resolveWikilinks } from '../../lib/resolve-wikilinks';
 
 interface Props {
   cultivation: CollectionEntry<'cultivations'>;
@@ -7,6 +8,7 @@ interface Props {
 
 const { cultivation } = Astro.props;
 const { name, status, description, repo, links } = cultivation.data;
+const descriptionHtml = resolveWikilinks(description);
 
 const statusSymbols: Record<typeof status, string> = {
   growing: '▲',
@@ -21,7 +23,7 @@ const symbol = statusSymbols[status];
 <article class="cultivation" data-status={status}>
   <p class="status">{symbol} {status}</p>
   <h3>{name}</h3>
-  <p class="description">{description}</p>
+  <p class="description" set:html={descriptionHtml} />
   <div class="links">
     {repo && <a href={repo} class="link">repo →</a>}
     {links?.map((link) => <a href={link.url} class="link">{link.label} →</a>)}
@@ -82,6 +84,18 @@ const symbol = statusSymbols[status];
     color: var(--ink-soft);
     margin: 0;
     line-height: 1.5;
+  }
+
+  .description :global(a) {
+    color: var(--ink-soft);
+    text-decoration: underline;
+    text-decoration-color: var(--paper-line);
+    text-underline-offset: 2px;
+  }
+
+  .description :global(a:hover) {
+    color: var(--fern);
+    text-decoration-color: var(--fern);
   }
 
   .links {
