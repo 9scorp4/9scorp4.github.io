@@ -27,7 +27,7 @@ jobs:
 
       - name: Sync approved messages
         env:
-          VISITORS_WORKER_URL: ${{ secrets.VISITORS_WORKER_URL }}
+          PUBLIC_VISITORS_WORKER_URL: ${{ secrets.VISITORS_WORKER_URL }}
           VISITORS_ADMIN_TOKEN: ${{ secrets.VISITORS_ADMIN_TOKEN }}
         run: npx tsx cli/jardin.ts visitors sync
 
