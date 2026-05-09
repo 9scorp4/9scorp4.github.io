@@ -3,10 +3,17 @@ import mdx from '@astrojs/mdx';
 import sitemap from '@astrojs/sitemap';
 import ogImages from './src/integrations/og-images.ts';
 import myceliumData from './src/integrations/mycelium-data.ts';
+import wikilinkResolver from './src/integrations/wikilink-resolver.ts';
 
 export default defineConfig({
   site: 'https://9scorp4.github.io',
-  integrations: [mdx(), sitemap(), ogImages(), myceliumData()],
+  integrations: [
+    wikilinkResolver(),  // Must run before mdx() to configure markdown plugins
+    mdx(),
+    sitemap(),
+    ogImages(),
+    myceliumData(),
+  ],
   build: {
     assets: 'assets',
   },
