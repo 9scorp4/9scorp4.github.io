@@ -4,7 +4,7 @@
  */
 
 import QRCode from 'qrcode';
-import type { TemplateType, ContentMetadata, QuoteMetadata, TitleMetadata, SpecimenMetadata } from './insta-captions.ts';
+import type { TemplateType, ContentMetadata, QuoteMetadata, TitleMetadata, SpecimenMetadata, MetalogueMetadata } from './insta-captions.ts';
 
 const DEFAULT_SITE_URL = 'https://9scorp4.github.io';
 
@@ -65,10 +65,15 @@ export interface ExtendedSpecimenMetadata extends SpecimenMetadata {
   id: string;
 }
 
+export interface ExtendedMetalogueMetadata extends MetalogueMetadata {
+  slug: string;
+}
+
 export type ExtendedContentMetadata =
   | ExtendedQuoteMetadata
   | ExtendedTitleMetadata
   | ExtendedSpecimenMetadata
+  | ExtendedMetalogueMetadata
   | ContentMetadata;
 
 /**
@@ -114,6 +119,15 @@ export function getContentUrl(
         return `${base}/#conservatory`;
       }
       return `${base}/#${id}`;
+    }
+
+    case 'metalogue': {
+      const slug = (metadata as ExtendedMetalogueMetadata).slug;
+      if (!slug) {
+        console.warn('No slug provided for metalogue template, defaulting to /#journal');
+        return `${base}/#journal`;
+      }
+      return `${base}/cuaderno/${slug}#metalogue`;
     }
 
     default:

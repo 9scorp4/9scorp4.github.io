@@ -21,9 +21,11 @@ import {
   QuoteTemplate,
   TitleTemplate,
   StatusTemplate,
+  MetalogueTemplate,
   INSTA_DIMENSIONS,
   type InstaFormat,
 } from '../../../src/lib/insta-templates.tsx';
+import type { MetalogueFragment } from '../../../src/lib/insta-templates.tsx';
 import {
   generateQRDataUrl,
   getContentUrl,
@@ -37,6 +39,7 @@ import {
   type StatusMetadata,
   type TitleMetadata,
   type QuoteMetadata,
+  type MetalogueMetadata,
   type SavedPostMetadata,
 } from '../../../src/lib/insta-captions.ts';
 import { uploadToR2 } from '../../../src/lib/r2-client.ts';
@@ -45,6 +48,8 @@ import {
   createPost,
   createCarouselPost,
   formatScheduledTime,
+  getOrganizationId,
+  getScheduledPosts,
   type BufferConfig,
 } from '../../../src/lib/buffer-client.ts';
 import { title, print, success, error, muted, blank, divider, warning } from '../../lib/cli-style.ts';
@@ -65,6 +70,7 @@ const dimensions = INSTA_DIMENSIONS[FORMAT];
 interface JournalQueueEntry {
   slug: string;
   quotes: string[];
+  metalogue?: Array<{ speaker: string; line: string }>;
 }
 
 /** Entry from batch-queue.yaml: status-only (ahora without journal) */
@@ -104,6 +110,7 @@ interface ResolvedBatch {
   journal?: JournalEntry;
   ahora?: AhoraEntry;
   quotes?: string[];
+  metalogue?: Array<{ speaker: string; line: string }>;
   batchType: 'full' | 'status-only';
 }
 
@@ -112,7 +119,7 @@ interface GeneratedImage {
   path: string;
   filename: string;
   type: TemplateType;
-  metadata: StatusMetadata | TitleMetadata | QuoteMetadata;
+  metadata: StatusMetadata | TitleMetadata | QuoteMetadata | MetalogueMetadata;
   isCarouselPart?: boolean;
   carouselIndex?: number;
   carouselTotal?: number;
@@ -123,7 +130,7 @@ interface PostToPublish {
   type: 'single' | 'carousel';
   templateType: TemplateType;
   images: GeneratedImage[];
-  metadata: StatusMetadata | TitleMetadata | QuoteMetadata;
+  metadata: StatusMetadata | TitleMetadata | QuoteMetadata | MetalogueMetadata;
   batchIdx: number;
   postIdx: number;
 }
@@ -332,7 +339,7 @@ async function findPublishedEntries(): Promise<PublishedInfo[]> {
 
         // Extract date from metadata
         if ('date' in meta.metadata) {
-          const dateVal = meta.metadata.date;
+          const dateVal = (meta.metadata as { date: string | Date }).date;
           if (typeof dateVal === 'string') {
             info.date = dateVal.split('T')[0];
           } else if (dateVal instanceof Date) {
@@ -355,14 +362,18 @@ function isEntryPublished(
   published: PublishedInfo[]
 ): boolean {
   if (isJournalEntry(entry)) {
-    // Check if both title and quote cards are published for this slug
+    // Check if title and quote cards are published for this slug
     const hasTitle = published.some(
       p => p.templateType === 'title' && p.slug === entry.slug
     );
     const hasQuote = published.some(
       p => p.templateType === 'quote' && p.slug === entry.slug
     );
-    return hasTitle && hasQuote;
+    // If entry has metalogue, also check if metalogue is published
+    const hasMetalogue = entry.metalogue
+      ? published.some(p => p.templateType === 'metalogue' && p.slug === entry.slug)
+      : true; // No metalogue required = consider fulfilled
+    return hasTitle && hasQuote && hasMetalogue;
   } else {
     // Check if status card is published for this date
     return published.some(
@@ -407,6 +418,7 @@ function resolveQueueEntry(
       journal,
       ahora,
       quotes: entry.quotes,
+      metalogue: entry.metalogue,
       batchType: 'full',
     };
   } else {
@@ -427,24 +439,72 @@ function resolveQueueEntry(
 // Publishing
 // ─────────────────────────────────────────────────────────────
 
-function getScheduleTime(batchIdx: number, postIdx: number): Date {
-  const now = new Date();
-  const baseTime = new Date(now);
-  baseTime.setDate(baseTime.getDate() + 1);
-  baseTime.setHours(9, 0, 0, 0);
+/**
+ * Calculate schedule time for a post based on the next available slot.
+ * Time slots are 9 AM, 1 PM, 5 PM (3 slots per day, 4-hour spacing).
+ * After 5 PM, rolls to next day at 9 AM.
+ */
+function getScheduleTime(baseTime: Date, postIndex: number): Date {
+  const SLOTS_PER_DAY = 4;
+  const SLOT_HOURS = [9, 13, 17, 21]; // 9 AM, 1 PM, 5 PM, 9 PM
 
-  const hoursOffset = (batchIdx * 24) + (postIdx * 4);
-  baseTime.setHours(baseTime.getHours() + hoursOffset);
+  // Find base slot index (which slot in the day is baseTime?)
+  const baseHour = baseTime.getHours();
+  let baseSlotIndex = SLOT_HOURS.findIndex(h => h === baseHour);
+  if (baseSlotIndex === -1) baseSlotIndex = 0; // Default to 9 AM slot
 
-  return baseTime;
+  // Calculate total slot offset
+  const totalSlot = baseSlotIndex + postIndex;
+  const daysOffset = Math.floor(totalSlot / SLOTS_PER_DAY);
+  const slotInDay = totalSlot % SLOTS_PER_DAY;
+
+  const scheduled = new Date(baseTime);
+  scheduled.setDate(scheduled.getDate() + daysOffset);
+  scheduled.setHours(SLOT_HOURS[slotInDay], 0, 0, 0);
+
+  return scheduled;
+}
+
+/**
+ * Calculate the next available scheduling slot based on existing Buffer queue.
+ * Returns tomorrow 9 AM if queue is empty, otherwise 4 hours after latest queued post.
+ */
+async function getNextAvailableSlot(bufferConfig: BufferConfig): Promise<Date> {
+  const orgId = await getOrganizationId(bufferConfig.apiKey, bufferConfig.channelId);
+  const queue = await getScheduledPosts(bufferConfig.apiKey, orgId, bufferConfig.channelId);
+
+  if (queue.length === 0) {
+    // Empty queue: start tomorrow 9 AM
+    const nextSlot = new Date();
+    nextSlot.setDate(nextSlot.getDate() + 1);
+    nextSlot.setHours(9, 0, 0, 0);
+    return nextSlot;
+  }
+
+  // Find latest scheduled time
+  const latestDue = queue
+    .map(p => new Date(p.dueAt))
+    .sort((a, b) => b.getTime() - a.getTime())[0];
+
+  // Add 4 hours after latest
+  const nextSlot = new Date(latestDue);
+  nextSlot.setHours(nextSlot.getHours() + 4);
+
+  // Roll to next day if past 9 PM
+  if (nextSlot.getHours() > 21) {
+    nextSlot.setDate(nextSlot.getDate() + 1);
+    nextSlot.setHours(9, 0, 0, 0);
+  }
+
+  return nextSlot;
 }
 
 async function publishPost(
   post: PostToPublish,
   bufferConfig: BufferConfig,
+  scheduledAt: Date,
   dryRun: boolean
 ): Promise<void> {
-  const scheduledAt = getScheduleTime(post.batchIdx, post.postIdx);
   const defaults = generateCaption(post.templateType, post.metadata);
 
   if (dryRun) {
@@ -618,6 +678,64 @@ async function generateBatch(
         postIdx: postIdxInBatch++,
       });
     }
+
+    // 4. Metalogue carousel (if metalogue fragments exist and journal is diptych)
+    if (batch.metalogue && batch.metalogue.length > 0 && batch.journal.type === 'diptych') {
+      const metalogueFragments = batch.metalogue as MetalogueFragment[];
+      const metalogueMeta: MetalogueMetadata = {
+        fragments: metalogueFragments,
+        sourceTitle: batch.journal.title,
+        date: batch.journal.date,
+        slug: batch.journal.slug,
+      };
+      const metalogueQrUrl = await generateQRDataUrl(getContentUrl('metalogue', metalogueMeta));
+
+      // Group fragments into slides (2-3 per slide)
+      const slides: MetalogueFragment[][] = [];
+      const FRAGMENTS_PER_SLIDE = 3;
+      for (let i = 0; i < metalogueFragments.length; i += FRAGMENTS_PER_SLIDE) {
+        slides.push(metalogueFragments.slice(i, i + FRAGMENTS_PER_SLIDE));
+      }
+
+      const metalogueCarouselImages: GeneratedImage[] = [];
+
+      for (let i = 0; i < slides.length; i++) {
+        const isLast = i === slides.length - 1;
+        const metalogueElement = MetalogueTemplate({
+          fragments: slides[i],
+          sourceTitle: batch.journal.title,
+          date: batch.journal.date,
+          format: FORMAT,
+          qrDataUrl: isLast ? metalogueQrUrl : undefined,
+        });
+        const slideNum = String(i + 1).padStart(2, '0');
+        const metalogueFilename = `batch${batchNum}-04-metalogue-${slideNum}.png`;
+        const metaloguePath = join(OUTPUT_DIR, metalogueFilename);
+        const metaloguePng = await generatePng(metalogueElement, fonts, dimensions);
+        await writeFile(metaloguePath, metaloguePng);
+        success(`[4.${i + 1}] ${metalogueFilename}`);
+        totalCards++;
+
+        metalogueCarouselImages.push({
+          path: metaloguePath,
+          filename: metalogueFilename,
+          type: 'metalogue',
+          metadata: metalogueMeta,
+          isCarouselPart: true,
+          carouselIndex: i,
+          carouselTotal: slides.length,
+        });
+      }
+
+      postsToPublish.push({
+        type: slides.length > 1 ? 'carousel' : 'single',
+        templateType: 'metalogue',
+        images: metalogueCarouselImages,
+        metadata: metalogueMeta,
+        batchIdx,
+        postIdx: postIdxInBatch++,
+      });
+    }
   }
 
   return totalCards;
@@ -773,6 +891,10 @@ export async function run(args: string[], publishMode = false): Promise<void> {
       if (batch.quotes) {
         muted(`  - quote carousel (${batch.quotes.length} slides)`);
       }
+      if (batch.metalogue && batch.journal.type === 'diptych') {
+        const slideCount = Math.ceil(batch.metalogue.length / 3);
+        muted(`  - metalogue carousel (${slideCount} slide${slideCount > 1 ? 's' : ''})`);
+      }
     }
     blank();
   }
@@ -784,12 +906,29 @@ export async function run(args: string[], publishMode = false): Promise<void> {
     divider();
     blank();
 
-    for (const post of postsToPublish) {
+    // Fetch queue and find next available slot
+    print('checking Buffer queue...');
+    let nextSlot: Date;
+    try {
+      nextSlot = await getNextAvailableSlot(bufferConfig);
+      success(`next available slot: ${formatScheduledTime(nextSlot)}`);
+    } catch (err) {
+      error(`Failed to fetch queue: ${(err as Error).message}`);
+      print('Falling back to tomorrow 9 AM');
+      nextSlot = new Date();
+      nextSlot.setDate(nextSlot.getDate() + 1);
+      nextSlot.setHours(9, 0, 0, 0);
+    }
+    blank();
+
+    for (let i = 0; i < postsToPublish.length; i++) {
+      const post = postsToPublish[i];
       const batchNum = post.batchIdx + 1;
       const postNum = post.postIdx + 1;
+      const scheduledAt = getScheduleTime(nextSlot, i);
       print(`Batch ${batchNum}, Post ${postNum} (${post.templateType}, ${post.type}):`);
       try {
-        await publishPost(post, bufferConfig, dryRunMode);
+        await publishPost(post, bufferConfig, scheduledAt, dryRunMode);
       } catch (err) {
         error(`Failed: ${(err as Error).message}`);
       }

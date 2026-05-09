@@ -25,6 +25,25 @@
                 "items": { "type": "string" },
                 "minItems": 1,
                 "description": "Quote strings for carousel (each becomes a slide)"
+              },
+              "metalogue": {
+                "type": "array",
+                "description": "Metalogue dialogue fragments for diptych entries (optional)",
+                "items": {
+                  "type": "object",
+                  "required": ["speaker", "line"],
+                  "properties": {
+                    "speaker": {
+                      "type": "string",
+                      "description": "Speaker name (e.g., YO, RENATA)"
+                    },
+                    "line": {
+                      "type": "string",
+                      "description": "Dialogue line"
+                    }
+                  },
+                  "additionalProperties": false
+                }
               }
             },
             "additionalProperties": false
