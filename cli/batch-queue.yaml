@@ -28,3 +28,22 @@ entries:
 
   # Status-only: ahora dispatch 2026-05-05 (no journal entry)
   - ahoraDate: 2026-05-05
+
+  # Full batch: smash-laterally triptych
+  - slug: smash-laterally-i
+    quotes:
+      - "He didn't find a smarter move in the French game. He played a different game and made the French game irrelevant."
+      - "The lateral move did not eliminate cost. It relocated cost."
+      - "You can choose what to spend, but you cannot choose to spend nothing."
+
+  - slug: smash-laterally-ii
+    quotes:
+      - "The contest does not enforce them. The body, and time, enforce them later."
+      - "The lateral move is downstream of the kind of person who can make it."
+      - "The receipt is in a currency the contest didn't print."
+
+  - slug: smash-laterally-iii
+    quotes:
+      - "When everyone is lateral, the observer position dissolves. There is nowhere from which to keep score."
+      - "The structure has stopped doing the moral work. It never was doing it."
+      - "The territory has eaten the map."
