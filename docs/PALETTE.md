@@ -2,6 +2,8 @@
 
 Colors and type. Authoritative — don't introduce new tokens without naming them here first.
 
+For interaction patterns (focus rings, hover states, transitions), see [`INTERACTIONS.md`](INTERACTIONS.md).
+
 ## Aesthetic
 
 **Solarpunk-gone-psychedelic.** Warm parchment grounds. Deep botanical accents (forest, ochre, terracotta). One saturated psychedelic punch (magenta). Mucha-with-the-saturation-cranked, not cyberpunk, not generic dark mode.
@@ -59,7 +61,7 @@ The structural color. Most colored UI uses these.
 
 | Role | Family | Weight | Notes |
 |---|---|---|---|
-| Body | Humanist serif | 400 / italic | Cormorant Garamond, Cardo, or IM Fell DW Pica |
+| Body | IM Fell DW Pica | 400 / italic | The garden's chosen voice |
 | Section banners | Same serif, small caps | 400, letter-spacing 3px | All-caps acceptable here only |
 | Display (h1) | Same serif, italic | 400 | The garden's title is in italic; this carries the weight |
 | Code (rare) | JetBrains Mono | 400 | Reserved for actual code blocks in field journal |
@@ -107,7 +109,7 @@ Drop into `src/styles/tokens.css`:
   --sun: #c93f7a;
 
   /* type */
-  --font-serif: "Cormorant Garamond", "Cardo", Georgia, serif;
+  --font-serif: "IM Fell DW Pica", Georgia, serif;
   --font-mono:  "JetBrains Mono", ui-monospace, monospace;
 
   /* spacing rhythm */
@@ -124,7 +126,7 @@ Drop into `src/styles/tokens.css`:
 - `--ink-soft` on `--paper`: ≈ 5.4:1 (passes AA for body, AAA for large text)
 - `--fern` on `--paper`: ≈ 6.1:1 (passes AA, AAA for large)
 - `--sun` on `--paper`: ≈ 4.8:1 (passes AA — fine for headings and accents, marginal for body, so don't use it for body)
-- Focus rings: `outline: 2px solid var(--fern); outline-offset: 2px;`. Never remove focus rings.
+- Focus rings: `--fern` for controls, `--sun` for content links. See [`INTERACTIONS.md`](INTERACTIONS.md) for the full pattern. Never remove focus rings.
 
 ## Dark mode
 

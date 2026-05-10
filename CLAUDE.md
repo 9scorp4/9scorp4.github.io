@@ -157,6 +157,7 @@ Before writing or editing any content, code, or copy:
 Additional reference:
 - [`docs/CONSOLE.md`](docs/CONSOLE.md) — devtools greeting and `window.garden` diagnostic API
 - [`docs/EL_AHORA.md`](docs/EL_AHORA.md) — the now section: slot vocabulary, frontmatter schema, rendering rules
+- [`docs/INTERACTIONS.md`](docs/INTERACTIONS.md) — focus rings, hover states, transitions, touch targets
 - [`docs/SEASONS.md`](docs/SEASONS.md) — seasonal grouping logic for the `seasons` command
 - [`docs/VISITORS.md`](docs/VISITORS.md) — visitors' book CLI: commands, secrets, parser behavior
 
