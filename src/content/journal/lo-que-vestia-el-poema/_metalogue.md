@@ -118,7 +118,7 @@ RENATA: No te voy a contestar eso. No me corresponde. Probablemente ni yo lo sé
 
 YO: ¿Qué?
 
-RENATA: Que tú llevas 131 días procesándome como si esa carta no hubiera existido. Como si yo hubiera sido la evitativa que prefirió a Oliver. Como si te hubiera deshonrado a propósito. La figura que armaste no es la mujer que te escribió esa noche. Tampoco es la mujer que aceptó tres meses sin volver después. Es otra cosa — una construcción que necesitabas para que la rabia tuviera dónde aterrizar.
+RENATA: Que tú llevas 131 días procesándome como si esa carta no hubiera existido. Como si yo hubiera sido la evitativa que se quedó con él para no enfrentar lo de Oliver. Como si te hubiera deshonrado a propósito. La figura que armaste no es la mujer que te escribió esa noche. Tampoco es la mujer que aceptó tres meses sin volver después. Es otra cosa — una construcción que necesitabas para que la rabia tuviera dónde aterrizar.
 
 YO: La carta llegó.
 
