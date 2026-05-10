@@ -401,53 +401,133 @@ const fullImageUrl = `${siteUrl}${ogImagePath}`;
           console.log('%c\ntry garden.xray() to see them.', styles.muted);
         }
 
-        function state() {
+        function getTimeOfDay(hour) {
+          if (hour >= 6 && hour < 12) return 'in the morning';
+          if (hour >= 12 && hour < 18) return 'in the afternoon';
+          if (hour >= 18 && hour < 23) return 'in the evening';
+          return 'in the night';
+        }
+
+        function reflect() {
+          // Privacy disclaimer (always shown)
+          console.log('%c🌿 garden.reflect()', styles.header);
+          console.log('%c\ncome as you are.', styles.muted);
+          console.log('%cthis garden keeps nothing that doesn\'t stay in your browser.', styles.muted);
+          console.log('%cno cookies. no analytics. no IP tracking. localStorage only.', styles.muted);
+          console.log('%cwhat you tend here stays here — or clears when you forget.', styles.muted);
+
           const raw = localStorage.getItem('jardin-visitor');
           if (!raw) {
-            console.log('%c🌿 visitor state', styles.header);
-            console.log('%cno visitor data found. fresh arrival.', styles.body);
+            console.log('%c\nfresh arrival. the garden is still learning your shape.', styles.body);
             return;
           }
 
           try {
             const data = JSON.parse(raw);
-            console.log('%c🌿 visitor state', styles.header);
-            console.log('%cversion: %c' + (data.v || 1), styles.label, styles.body);
-            console.log('%cvisits: %c' + (data.visits || 1), styles.label, styles.body);
+            const now = new Date();
 
-            if (data.firstVisit) {
-              const first = new Date(data.firstVisit);
-              const now = new Date();
-              const days = Math.floor((now - first) / (1000 * 60 * 60 * 24));
-              console.log('%cdays tending: %c' + days, styles.label, styles.body);
-            }
+            // Calculate days tending
+            const firstVisit = data.stats?.firstVisit ? new Date(data.stats.firstVisit) : now;
+            const days = Math.floor((now - firstVisit) / (1000 * 60 * 60 * 24));
+            const visits = data.visits || 1;
 
-            if (data.watered !== undefined) {
-              console.log('%cwaterings: %c' + data.watered, styles.label, styles.body);
-            }
+            // Visit frequency interpretation
+            const avgDays = days / Math.max(visits - 1, 1);
+            let frequencyNote;
+            if (visits <= 1) frequencyNote = 'first day in the garden.';
+            else if (avgDays < 2) frequencyNote = 'a regular presence — the ferns recognize you.';
+            else if (avgDays < 5) frequencyNote = 'you return when something calls you.';
+            else frequencyNote = 'sparse visits. the garden waits patiently.';
 
-            if (data.seedStage) {
-              console.log('%cseed: %c' + data.seedStage, styles.label, styles.body);
-            }
+            // Time of day
+            const hour = now.getHours();
+            let timeNote;
+            if (hour >= 6 && hour < 12) timeNote = '(the cool hours. good for tending.)';
+            else if (hour >= 12 && hour < 18) timeNote = '(the alert hours. good for exploring.)';
+            else if (hour >= 18 && hour < 23) timeNote = '(the contemplative hours. bateson would approve.)';
+            else timeNote = '(the witching hours. strange things grow here.)';
 
-            if (data.secrets) {
-              const found = Object.values(data.secrets).filter(Boolean).length;
-              const total = Object.keys(data.secrets).length;
-              console.log('%csecrets: %c' + found + '/' + total + ' found', styles.label, styles.body);
-            }
+            // Articles and secrets
+            const articles = data.stats?.articlesRead || [];
+            const secrets = data.stats?.secretsFound || [];
+            const totalSecrets = 12;
 
-            if (data.articlesRead && data.articlesRead.length) {
-              console.log('%carticles: %c' + data.articlesRead.join(', '), styles.label, styles.body);
-            }
+            // Seed stage
+            const seedStages = ['none planted', 'dormant', 'stirring', 'cracked', 'sprouting', 'reaching', 'leafing', 'blooming'];
+            const seedStage = seedStages[Math.min(data.seedCount || 0, 7)];
 
-            if (data.commandsUsed !== undefined) {
-              console.log('%ccommands used: %c' + data.commandsUsed, styles.label, styles.body);
-            }
+            // Output narrative
+            console.log('%c\nyou\'ve been tending for ' + days + ' day' + (days !== 1 ? 's' : '') +
+                        ', across ' + visits + ' visit' + (visits !== 1 ? 's' : '') + '.', styles.body);
+            console.log('%c' + frequencyNote, styles.body);
+            console.log('%c\nyou arrived ' + getTimeOfDay(hour) + '.', styles.body);
+            console.log('%c' + timeNote, styles.muted);
 
-            console.log('%c\nlocalStorage key: jardin-visitor', styles.muted);
+            console.log('%c\narticles read: %c' + (articles.length || 'none yet'), styles.label, styles.body);
+            console.log('%csecrets found: %c' + secrets.length + ' of ' + totalSecrets +
+                        (secrets.length < totalSecrets ? ' (the rest are patient)' : ''), styles.label, styles.body);
+            console.log('%cseed stage: %c' + seedStage, styles.label, styles.body);
+
+            // Pattern interpretation
+            let pattern;
+            if (visits <= 1) pattern = 'too early to tell. return. the garden is patient.';
+            else if (articles.length >= 3 && secrets.length >= 5) pattern = 'a visitor who reads, explores, and tends. almost part of the garden by now.';
+            else if (articles.length >= 2) pattern = 'a reader. the cuaderno appreciates your attention.';
+            else if (secrets.length >= 3) pattern = 'an explorer. you look in the corners.';
+            else pattern = 'still finding your path. that\'s fine. gardens aren\'t linear.';
+
+            console.log('%c\nthe pattern: %c' + pattern, styles.label, styles.body);
+
           } catch {
-            console.log('%c🌿 visitor state', styles.header);
-            console.log('%ccorrupted data. the garden forgets.', styles.body);
+            console.log('%c\ncorrupted data. the garden forgets.', styles.body);
+          }
+        }
+
+        async function ecology() {
+          console.log('%c🌿 garden.ecology()', styles.header);
+          console.log('%c\nfetching mycelium data...', styles.muted);
+
+          try {
+            const response = await fetch('/mycelium-data.json');
+            if (!response.ok) throw new Error('unreachable');
+            const graph = await response.json();
+
+            // Last tended
+            const generated = new Date(graph.generated);
+            const genDate = generated.toLocaleDateString('en-CA'); // YYYY-MM-DD
+            const genTime = generated.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+            console.log('%c\nlast tended: %c' + genDate + ' at ' + genTime + ' UTC', styles.label, styles.body);
+            console.log('%c(the gardener was here recently)', styles.muted);
+
+            // Content counts
+            const nodeCounts = { track: 0, article: 0, cultivation: 0, dispatch: 0, exit: 0 };
+            for (const node of graph.nodes) {
+              nodeCounts[node.type] = (nodeCounts[node.type] || 0) + 1;
+            }
+
+            console.log('%c\ncontent', styles.label);
+            console.log('%c  articles:     ' + nodeCounts.article, styles.body);
+            console.log('%c  tracks:       ' + nodeCounts.track, styles.body);
+            console.log('%c  cultivations: ' + nodeCounts.cultivation, styles.body);
+            console.log('%c  dispatches:   ' + nodeCounts.dispatch, styles.body);
+            console.log('%c  exits:        ' + nodeCounts.exit, styles.body);
+
+            // Mycelium density
+            const density = (graph.edges.length / Math.max(graph.nodes.length, 1)).toFixed(2);
+            let densityNote;
+            if (density < 1.5) densityNote = '(sparse. the mycelium is still spreading.)';
+            else if (density < 2.5) densityNote = '(well-connected. the roots know each other.)';
+            else densityNote = '(densely woven. everything knows everything.)';
+
+            console.log('%c\nmycelium density', styles.label);
+            console.log('%c  nodes: ' + graph.nodes.length, styles.body);
+            console.log('%c  edges: ' + graph.edges.length, styles.body);
+            console.log('%c  ratio: ' + density + ' edges per node', styles.body);
+            console.log('%c  ' + densityNote, styles.muted);
+
+          } catch (e) {
+            console.log('%c\nthe mycelium is unreachable.', styles.body);
+            console.log('%ctry again when the network clears.', styles.muted);
           }
         }
 
@@ -654,7 +734,8 @@ const fullImageUrl = `${siteUrl}${ogImagePath}`;
         // Expose API
         window.garden = {
           surfaces: surfacesList,
-          state,
+          reflect,
+          ecology,
           xray,
           explore,
         };
@@ -662,7 +743,7 @@ const fullImageUrl = `${siteUrl}${ogImagePath}`;
         // Announce after devtools greeting (~3500ms)
         setTimeout(() => {
           console.log('%c\n🌿 diagnostic tools loaded.', styles.header);
-          console.log('%ctry: garden.surfaces() · garden.explore() · garden.xray()', styles.muted);
+          console.log('%ctry: garden.reflect() · garden.ecology() · garden.xray()', styles.muted);
           console.log('%cthe roots go deeper. try: micelio', styles.muted);
         }, 3500);
       })();

@@ -756,8 +756,9 @@ const batesonQuotes = [
     'mycelium': 'micelio',  // English alias
     'jardin': 'jardin',     // meta-secret
     'garden': 'jardin',     // English alias
+    'roots': 'roots',       // devtools hint
   };
-  const TOTAL_SECRETS = new Set(Object.values(secretCommands)).size; // 11 unique
+  const TOTAL_SECRETS = new Set(Object.values(secretCommands)).size; // 12 unique
 
   const secretDescriptions: Record<string, string> = {
     bateson: '"the pattern which connects"',
@@ -771,6 +772,7 @@ const batesonQuotes = [
     bonjour: 'weather from montréal, and a poem',
     micelio: 'the meta-map — a map of the map',
     jardin: 'the secret that reveals secrets',
+    roots: 'below the surface, diagnostic tools wait',
   };
 
   function createDefaultState(): VisitorState {
@@ -1555,6 +1557,26 @@ const batesonQuotes = [
 
     mycelium() {
       commands.micelio('');
+    },
+
+    roots() {
+      const isFirstTime = !visitorState.stats.secretsFound.includes('roots');
+
+      if (isFirstTime) {
+        visitorState.stats.secretsFound.push('roots');
+        saveVisitorState(visitorState);
+
+        showOutput(`
+          <p class="output-line output-ochre">you found the root system.</p>
+          <p class="output-line output-muted">beneath the garden, diagnostic tools sleep.</p>
+          <p class="output-line output-muted">open your browser's console. try <span class="output-mono">garden.reflect()</span></p>
+        `);
+      } else {
+        showOutput(`
+          <p class="output-line output-muted">you already know where the roots are.</p>
+          <p class="output-line output-muted">console → <span class="output-mono">garden.reflect()</span> or <span class="output-mono">garden.ecology()</span></p>
+        `);
+      }
     },
 
     cd(args) {

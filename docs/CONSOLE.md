@@ -25,7 +25,7 @@ After the greeting (~3.5s delay), a diagnostic API is announced:
 
 ```
 🌿 diagnostic tools loaded.
-try: garden.surfaces() · garden.explore() · garden.xray()
+try: garden.reflect() · garden.ecology() · garden.xray()
 ```
 
 ### Commands
@@ -33,7 +33,8 @@ try: garden.surfaces() · garden.explore() · garden.xray()
 | Command | Description |
 |---------|-------------|
 | `garden.surfaces()` | Console table of all surfaces with type and element count |
-| `garden.state()` | Pretty-print visitor state from localStorage |
+| `garden.reflect()` | Narrative interpretation of visitor relationship (privacy-first) |
+| `garden.ecology()` | Garden health: content counts, last tended, mycelium density |
 | `garden.xray()` | Toggle color-coded overlay on all surfaces |
 | `garden.explore()` | Interactive walkthrough with keyboard navigation |
 
@@ -113,25 +114,62 @@ try garden.xray() to see them.
 
 Page context appears in header: `garden`, `article`, or `micelio`.
 
-### `garden.state()`
+### `garden.reflect()`
 
-Reads `jardin-visitor` from localStorage and pretty-prints:
+Narrative interpretation of the visitor's relationship to the garden. Always begins with a privacy disclaimer:
 
 ```
-🌿 visitor state
-version: 2
-visits: 7
-days tending: 12
-waterings: 3
-seed: sprouting
-secrets: 4/5 found
-articles: FR-001, FR-002
-commands used: 23
+🌿 garden.reflect()
 
-localStorage key: jardin-visitor
+come as you are.
+this garden keeps nothing that doesn't stay in your browser.
+no cookies. no analytics. no IP tracking. localStorage only.
+what you tend here stays here — or clears when you forget.
+
+you've been tending for 12 days, across 7 visits.
+a regular presence — the ferns recognize you.
+
+you arrived in the afternoon.
+(the alert hours. good for exploring.)
+
+articles read: 3
+secrets found: 5 of 12 (the rest are patient)
+seed stage: sprouting
+
+the pattern: a visitor who reads, explores, and tends. almost part of the garden by now.
 ```
 
-If no data exists: "no visitor data found. fresh arrival."
+If no data exists: "fresh arrival. the garden is still learning your shape."
+
+**Pattern interpretations** vary based on visits, articles read, and secrets found.
+
+### `garden.ecology()`
+
+Garden health metrics fetched from `mycelium-data.json`:
+
+```
+🌿 garden.ecology()
+
+fetching mycelium data...
+
+last tended: 2025-01-15 at 14:32 UTC
+(the gardener was here recently)
+
+content
+  articles:     8
+  tracks:       45
+  cultivations: 3
+  dispatches:   12
+  exits:        5
+
+mycelium density
+  nodes: 73
+  edges: 142
+  ratio: 1.95 edges per node
+  (well-connected. the roots know each other.)
+```
+
+If unreachable: "the mycelium is unreachable. try again when the network clears."
 
 ### `garden.xray()`
 
