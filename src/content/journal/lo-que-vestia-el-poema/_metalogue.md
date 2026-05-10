@@ -118,7 +118,7 @@ RENATA: No te voy a contestar eso. No me corresponde. Probablemente ni yo lo sé
 
 YO: ¿Qué?
 
-RENATA: Que tú llevas 131 días procesándome como si esa carta no hubiera existido. Como si yo hubiera sido la evitativa que se quedó con él para no enfrentar lo de Oliver. Como si te hubiera deshonrado a propósito. La figura que armaste no es la mujer que te escribió esa noche. Tampoco es la mujer que aceptó tres meses sin volver después. Es otra cosa — una construcción que necesitabas para que la rabia tuviera dónde aterrizar.
+RENATA: Que tú llevas 131 días procesándome como si esa carta no hubiera existido. Como si yo hubiera sido la evitativa que prefirió quedarse con aquel europeo que decía despreciar. Como si te hubiera deshonrado a propósito. La figura que armaste no es la mujer que te escribió esa noche. Tampoco es la mujer que aceptó tres meses sin volver después. Es otra cosa — una construcción que necesitabas para que la rabia tuviera dónde aterrizar.
 
 YO: La carta llegó.
 
@@ -142,11 +142,45 @@ RENATA: Pues que lo diga claro. Y no me vuelvas a llamar.
 
 ---
 
-YO: Una última cosa, Renata.
+YO: Tengo dos cosas más que decirte antes de irme. Y no son leverage. Quiero que las escuches y después puedas seguir.
 
-RENATA: Dila.
+RENATA: Estoy escuchando.
 
-YO: Te extraño a pesar de la falta de respeto. Y ese es exactamente el problema que tú nunca vas a ver. Por eso, ya.
+YO: La primera. Esto no fue tu culpa. Ni la mía. La temporalidad estaba mal. Tú acababas de salir de dos años con Oliver. No estabas disponible y no tenías que estarlo — ese no era tu deber. Yo quería encontrarte en el medio, en el [[journal:al-borde-del-fenomeno#^corrective-channel-sovereignty|borde del fenómeno donde dos sistemas convergen y emergen diferencias nuevas]]. Estaba dispuesto a adaptarme a tu ritmo. No teníamos las herramientas metacomunicativas para construir el canal donde se pudiera negociar lo que había pasado entre nosotros — qué podía ser, dadas las condiciones reales de cada uno. Sin ese canal, los besos quedaron ilegibles. Frida intentó traducir lo que había pasado al frame del triángulo romántico — *¿estás con ella o con él?* — y ese frame no podía cargar lo que había pasado entre nosotros. Por eso el silencio en el círculo. No fue tu culpa ni la mía. Fue que el lenguaje disponible no servía.
+
+RENATA: ...
+
+YO: La segunda es algo que no te conté en su momento. Te dije una vez que nunca había amado a mi ex. No te dije por qué. La razón es esto: lo que pasó entre nosotros — esos dos besos, los que dijiste que estaban entre los mejores que habías tenido — me mostró por contraste lo que mis cuatro años no habían sido. Mi ex era una buena terapeuta. Sabía las palabras correctas para convencerme de quedarme. Yo confundí ese manejo experto con amor. Tú no me manejaste. Me besaste y me dijiste la verdad — primero que valía algo más que un desechable, después que no estabas disponible. Las dos cosas eran ciertas. Y las dos cosas me trataron como alguien a quien se le puede decir la verdad. Eso fue el reconocimiento. Eso fue lo que mis casi-cuatro años no habían tenido.
+
+RENATA: ...
+
+YO: Y eso es lo que me abrió la pregunta que ahora cargo solo: ¿qué es el amor? No como concepto. Como ese diferencial específico. Lo que tu beso tuvo y mis casi-cuatro años no. No te estoy pidiendo que respondas. Tú no eres la responsable de la respuesta. Pero la pregunta es tuya en el sentido de que tú la abriste.
+
+RENATA: No tengo respuesta para eso, Nico.
+
+YO: Ya sé. No te la estoy pidiendo. Solo quería que supieras que esa es la pregunta que estoy viviendo. ^pregunta-abierta
+
+RENATA: ...
+
+YO: Esperé mucho tiempo a que se rompiera el silencio. A que tú o alguien del círculo me escribiera. Eso ya lo suelto. No tengo ningún recurso para hacer que pase, y no quiero seguir esperando una cosa que el bloqueo mismo cerró.
+
+RENATA: Hiciste bien en bloquearme. Era la frontera que necesitabas.
+
+YO: Lo sé. Eso no me lo discuto.
+
+RENATA: ...
+
+YO: Gracias.
+
+RENATA: ¿Por qué?
+
+YO: Por los besos. Por lo que me mostraron. Por haberme tratado como alguien a quien se le puede decir la verdad, aunque después la verdad fuera que no estabas disponible. Por haber abierto la pregunta que ahora me toca vivir. No te guardo rencor, Renata. Estoy herido pero no hay nadie a quien culpar acá. No hay ganador y no hay perdedor. Solo había mala temporalidad, y un canal que no alcanzamos a construir, y dos personas que se reconocieron sin tener las condiciones para hacer algo con el reconocimiento.
+
+RENATA: ...gracias a ti, Nico.
+
+---
+
+YO: Y aún así te extraño a pesar de la falta de respeto. Y ese es el problema que tú nunca vas a ver. Por eso, ya.
 
 RENATA: ¿Qué quieres que diga?
 
@@ -154,7 +188,7 @@ YO: Nada.
 
 RENATA: No te entiendo.
 
-YO: Lo sé. Esa es la prueba de que tengo razón.
+YO: Lo sé.
 
 RENATA: ...
 
