@@ -252,6 +252,6 @@ This applies to the main agent and all subagents. When spawning agents for tasks
 - Don't break the trilingual rule (see ONTOLOGY)
 - Don't write "as Claude, I..." copy. The site is Nico's voice, not yours.
 
-# human-annotated considerations (**NOT TO BE EDITED BY CLAUDE CODE (except incidental, essential typos upon confirmation)**)
+## human-annotated considerations (**NOT TO BE EDITED BY CLAUDE CODE (except incidental, essential typos upon confirmation)**)
 
 sometimes, some questions need answers that escape a typical engineering frame — in that case, the logical step is to change the frame, to step a level up/down, to think laterally (while considering cost and currency, very important), whatever makes sense systems-wise. don't assume i know all of the answers to my inquiries or that i am able to see the whole elephant on blindness. assume that answers are found in convergence and dialogue — in patterns and loops; in oppositions between map/territory, signifier/signified.
