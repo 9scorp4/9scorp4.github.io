@@ -205,9 +205,12 @@ Cross-references use `[[collection:slug|display]]` syntax processed by `remark-w
 
 **The build fails if wikilinks target non-existent entries.** The resolver runs at build time; check `src/integrations/wikilink-resolver.ts` for strict-mode logic.
 
+Two wikilink systems exist: `resolve-wikilinks.ts` (simple string replacement for HTML contexts) and `remark-wikilink.ts` (full remark plugin for markdown processing).
+
 ## Conventions
 
 - Components: `src/components/`, PascalCase
+- Test files are colocated with source: `foo.ts` → `foo.test.ts`
 - Use existing CSS custom properties from `src/styles/tokens.css`
 - Sentence case for everything; ALL CAPS only for the small-caps section banners
 - No new colors without naming them in `PALETTE.md` first
@@ -216,6 +219,7 @@ Cross-references use `[[collection:slug|display]]` syntax processed by `remark-w
 
 - **OG images** (`src/integrations/og-images.ts`) — generates 1200×630 social preview images at build time using Satori. Templates in `src/lib/og-image.tsx`.
 - **Instagram cards** (`src/lib/insta-templates.tsx`) — same Satori pipeline, different templates: quote, title, status, specimen, intro carousel, metalogue (Bateson-style dialogue cards for diptychs).
+- **Remark/Rehype plugins** — `remark-wikilink.ts` transforms `[[collection:slug]]` at parse time; `rehype-block-anchors.ts` adds `id` attributes from `^anchor` syntax. Both are tested with unified pipelines.
 
 ## Key interactive components
 
@@ -248,6 +252,6 @@ This applies to the main agent and all subagents. When spawning agents for tasks
 - Don't break the trilingual rule (see ONTOLOGY)
 - Don't write "as Claude, I..." copy. The site is Nico's voice, not yours.
 
-# human-annotated considerations (**NOT TO BE EDITED BY CLAUDE CODE (except incidental, essential typos)**)
+# human-annotated considerations (**NOT TO BE EDITED BY CLAUDE CODE (except incidental, essential typos upon confirmation)**)
 
-sometimes, some questions need answers that escape a typical engineering frame — in that case, the logical step is to change the frame, to step a level up/down, to think laterally (while considering cost and currency, very important), whatever makes sense systems-wise. don't asumme i know all of the answers to my inquiries or that i am able to see the whole elephant on blindness. assume that answers are found in convergence and dialogue — in patterns and loops; in oppositions between map/territory, signifier/signified.
+sometimes, some questions need answers that escape a typical engineering frame — in that case, the logical step is to change the frame, to step a level up/down, to think laterally (while considering cost and currency, very important), whatever makes sense systems-wise. don't assume i know all of the answers to my inquiries or that i am able to see the whole elephant on blindness. assume that answers are found in convergence and dialogue — in patterns and loops; in oppositions between map/territory, signifier/signified.
