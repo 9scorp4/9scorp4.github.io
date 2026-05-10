@@ -76,7 +76,7 @@ interface CultivationYaml {
 /**
  * Classify anchor fragment to determine citation type
  */
-function classifyAnchor(anchor: string | undefined): CitationType {
+export function classifyAnchor(anchor: string | undefined): CitationType {
   if (!anchor) return 'section';
   // Handle URL-encoded text fragments (:%7E: = :~:)
   if (anchor.startsWith(':~:text=') || anchor.startsWith(':%7E:text=')) return 'text';
@@ -88,7 +88,7 @@ function classifyAnchor(anchor: string | undefined): CitationType {
  * Extract wikilink data from text.
  * Returns rich wikilink data including target, citation type, and anchor.
  */
-function extractWikilinks(text: string): WikilinkData[] {
+export function extractWikilinks(text: string): WikilinkData[] {
   const links: WikilinkData[] = [];
   let match;
   // Reset lastIndex since we're reusing the regex
@@ -110,7 +110,7 @@ function extractWikilinks(text: string): WikilinkData[] {
  * Extract external URLs from markdown links.
  * Returns array of URLs.
  */
-function extractExternalLinks(text: string): string[] {
+export function extractExternalLinks(text: string): string[] {
   const links: string[] = [];
   let match;
   EXTERNAL_LINK_PATTERN.lastIndex = 0;

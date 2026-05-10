@@ -129,7 +129,7 @@ export interface GraphInput {
 /**
  * Detect platform from URL
  */
-function detectPlatform(url: string): 'spotify' | 'youtube' | 'bandcamp' | 'soundcloud' | 'github' | 'external' {
+export function detectPlatform(url: string): 'spotify' | 'youtube' | 'bandcamp' | 'soundcloud' | 'github' | 'external' {
   try {
     const hostname = new URL(url).hostname.toLowerCase();
     if (hostname.includes('spotify.com')) return 'spotify';
@@ -161,7 +161,7 @@ function getPlatformLabel(platform: string): string {
 /**
  * Create a stable ID for an exit node from URL
  */
-function createExitNodeId(url: string): string {
+export function createExitNodeId(url: string): string {
   // Simple hash - djb2 algorithm
   let hash = 5381;
   for (let i = 0; i < url.length; i++) {
@@ -173,7 +173,7 @@ function createExitNodeId(url: string): string {
 /**
  * Create a stable ID from artist + title
  */
-function createNodeId(artist: string, title: string): string {
+export function createNodeId(artist: string, title: string): string {
   const normalized = `${artist.toLowerCase().trim()}:${title.toLowerCase().trim()}`;
   // Simple hash - djb2 algorithm
   let hash = 5381;
@@ -186,7 +186,7 @@ function createNodeId(artist: string, title: string): string {
 /**
  * Calculate days between two ISO date strings
  */
-function daysBetween(date1: string, date2: string): number {
+export function daysBetween(date1: string, date2: string): number {
   const d1 = new Date(date1);
   const d2 = new Date(date2);
   return Math.abs(Math.floor((d1.getTime() - d2.getTime()) / (1000 * 60 * 60 * 24)));
@@ -195,7 +195,7 @@ function daysBetween(date1: string, date2: string): number {
 /**
  * Check if two tracks have similar BPM (within ±10)
  */
-function similarBpm(bpm1?: number, bpm2?: number): boolean {
+export function similarBpm(bpm1?: number, bpm2?: number): boolean {
   if (bpm1 === undefined || bpm2 === undefined) return false;
   return Math.abs(bpm1 - bpm2) <= 10;
 }
@@ -203,7 +203,7 @@ function similarBpm(bpm1?: number, bpm2?: number): boolean {
 /**
  * Normalize key notation for comparison
  */
-function normalizeKey(key?: string): string | null {
+export function normalizeKey(key?: string): string | null {
   if (!key) return null;
   // Handle common formats: "Am", "A minor", "C#", "Db"
   return key.toLowerCase().replace(/\s*(minor|major|min|maj)\s*/g, '').trim();
