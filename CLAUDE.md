@@ -17,7 +17,8 @@ npm run dev      # Local dev server
 npm run build    # Production build to dist/
 npm run preview  # Preview production build
 npm run test     # Run tests (vitest)
-npm run test:watch  # Watch mode
+npm run test:watch              # Watch mode
+npm run test -- path/to/file    # Run single test file
 ```
 
 ### Garden CLI (jardin)
@@ -190,6 +191,20 @@ src/content/journal/[slug]/
 
 See `ONTOLOGY.md` for the full diptych structure and required frontmatter fields.
 
+### Series
+
+Multi-part journal entries are grouped into **series** (`src/content/series/*.yaml`). Individual entries reference the series in frontmatter (`series: smash-laterally`, `seriesIndex: 1`). On the entry page, a series header shows "part i of iii" above the title.
+
+### Wikilinks
+
+Cross-references use `[[collection:slug|display]]` syntax processed by `remark-wikilink.ts`:
+
+- `[[journal:slug|display]]` → article link
+- `[[journal:slug#^anchor|display]]` → block anchor (paragraph-level)
+- `[[journal:slug#:~:text=phrase|display]]` → text fragment (browser-native highlight)
+
+**The build fails if wikilinks target non-existent entries.** The resolver runs at build time; check `src/integrations/wikilink-resolver.ts` for strict-mode logic.
+
 ## Conventions
 
 - Components: `src/components/`, PascalCase
@@ -204,7 +219,7 @@ See `ONTOLOGY.md` for the full diptych structure and required frontmatter fields
 
 ## Key interactive components
 
-- **MyceliumCanvas** (`src/components/interactive/MyceliumCanvas.astro`) — force-directed graph unifying music, articles, cultivations, dispatches, and exit links. Uses d3-force. Node types: tracks (circles), articles (rounded squares), cultivations (squares), dispatches (small squares for notable ahora entries), exits (hollow circles at periphery for external URLs). Tracks connect by tempo/key/artist; articles connect by wikilinks; cross-links form through `articuloNuevo` announcements; exits pull outward via radial force. Supports pan/zoom navigation.
+- **MyceliumCanvas** (`src/components/interactive/MyceliumCanvas.astro`) — force-directed graph unifying music, articles, cultivations, dispatches, and exit links. Uses d3-force. Data pipeline: `src/integrations/mycelium-data.ts` extracts tracks/articles/wikilinks at build time → `src/lib/mycelium-graph.ts` builds nodes/edges. Node types: tracks (circles), articles (rounded squares), cultivations (squares), dispatches (small squares), exits (hollow circles). Edge types: `musical` (tempo/key/artist similarity), `wikilink` (article citations with `citationType`), `announced` (articuloNuevo links), `context`, `exit`.
 - **VisitorsBook** (`src/components/interactive/VisitorsBook.astro`) — terminal-style console with custom parser. Commands: `ayuda`, `escuchar`, `dejar`, `limpiar`.
 - **SpecimenModal** — lightbox for full-size p5.js sketches.
 
@@ -232,3 +247,7 @@ This applies to the main agent and all subagents. When spawning agents for tasks
 - Don't add dependencies casually
 - Don't break the trilingual rule (see ONTOLOGY)
 - Don't write "as Claude, I..." copy. The site is Nico's voice, not yours.
+
+# human-annotated considerations (**NOT TO BE EDITED BY CLAUDE CODE (except incidental, essential typos)**)
+
+sometimes, some questions need answers that escape a typical engineering frame — in that case, the logical step is to change the frame, to step a level up/down, to think laterally (while considering cost and currency, very important), whatever makes sense systems-wise. don't asumme i know all of the answers to my inquiries or that i am able to see the whole elephant on blindness. assume that answers are found in convergence and dialogue — in patterns and loops; in oppositions between map/territory, signifier/signified.
