@@ -73,6 +73,8 @@ export function resolveWikilinks(text: string): string {
  * Checks if a string contains any wikilink syntax.
  */
 export function hasWikilinks(text: string): boolean {
+  // Reset lastIndex since we use a global regex
+  WIKILINK_PATTERN.lastIndex = 0;
   return WIKILINK_PATTERN.test(text);
 }
 
