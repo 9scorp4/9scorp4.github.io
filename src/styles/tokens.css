@@ -28,4 +28,25 @@
   --rhythm:    1rem;
   --rhythm-md: 1.5rem;
   --rhythm-lg: 2rem;
+
+  /* === Interaction primitives === */
+
+  /* Focus rings: --fern for controls, --sun for content links */
+  --focus-ring-control: var(--fern);
+  --focus-ring-content: var(--sun);
+  --focus-offset: 2px;
+
+  /* Touch targets */
+  --touch-padding: 8px 4px;
+  --touch-margin: -8px -4px;
+
+  /* Transitions: micro (quick feedback), state (UI changes), reveal (content appears) */
+  --transition-micro: 0.15s ease;
+  --transition-state: 0.2s ease;
+  --transition-reveal: 0.3s ease;
+
+  /* Hover semantics (reference only - use the source tokens directly) */
+  --hover-narrative: var(--terracotta);
+  --hover-control: var(--fern);
+  --hover-meta: var(--ink);
 }
