@@ -19,6 +19,8 @@ import {
   type CultivationData,
   type AhoraLink,
   type DispatchData,
+  type WikilinkData,
+  type CitationType,
 } from '../lib/mycelium-graph.ts';
 
 // Pattern for extracting wikilinks: [[collection:slug#fragment|display]]
@@ -72,18 +74,34 @@ interface CultivationYaml {
 }
 
 /**
- * Extract wikilink target slugs from text.
- * Returns array like ["journal:slug", "journal:other-slug"]
+ * Classify anchor fragment to determine citation type
  */
-function extractWikilinks(text: string): string[] {
-  const links: string[] = [];
+function classifyAnchor(anchor: string | undefined): CitationType {
+  if (!anchor) return 'section';
+  // Handle URL-encoded text fragments (:%7E: = :~:)
+  if (anchor.startsWith(':~:text=') || anchor.startsWith(':%7E:text=')) return 'text';
+  if (anchor.startsWith('^')) return 'block';
+  return 'heading';
+}
+
+/**
+ * Extract wikilink data from text.
+ * Returns rich wikilink data including target, citation type, and anchor.
+ */
+function extractWikilinks(text: string): WikilinkData[] {
+  const links: WikilinkData[] = [];
   let match;
   // Reset lastIndex since we're reusing the regex
   WIKILINK_PATTERN.lastIndex = 0;
   while ((match = WIKILINK_PATTERN.exec(text)) !== null) {
     const collection = match[1];
     const slug = match[2];
-    links.push(`${collection}:${slug}`);
+    const anchor = match[3]; // fragment after #
+    links.push({
+      target: `${collection}:${slug}`,
+      citationType: classifyAnchor(anchor),
+      anchor,
+    });
   }
   return links;
 }
@@ -256,12 +274,27 @@ export default function myceliumDataIntegration(): AstroIntegration {
                 ? frontmatter.date
                 : new Date(frontmatter.date).toISOString().slice(0, 10);
 
+              // Dedupe wikilinks by target, keeping most specific citation type
+              const citationPriority: Record<CitationType, number> = {
+                block: 4,
+                text: 3,
+                heading: 2,
+                section: 1,
+              };
+              const wikilinkMap = new Map<string, WikilinkData>();
+              for (const link of wikilinks) {
+                const existing = wikilinkMap.get(link.target);
+                if (!existing || citationPriority[link.citationType] > citationPriority[existing.citationType]) {
+                  wikilinkMap.set(link.target, link);
+                }
+              }
+
               allArticles.push({
                 slug: entry,
                 title: frontmatter.title,
                 date: dateStr,
                 excerpt,
-                wikilinks: [...new Set(wikilinks)], // Dedupe
+                wikilinks: Array.from(wikilinkMap.values()),
               });
             } catch {
               // Skip entries without valid index.md
