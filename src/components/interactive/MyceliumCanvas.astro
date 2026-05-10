@@ -37,8 +37,20 @@ const workerUrl = import.meta.env.PUBLIC_VISITORS_WORKER_URL || '';
       <span class="legend-label">musical</span>
     </div>
     <div class="legend-item">
-      <span class="legend-line citation"></span>
-      <span class="legend-label">citation</span>
+      <span class="legend-line cite-section"></span>
+      <span class="legend-label">cites §</span>
+    </div>
+    <div class="legend-item">
+      <span class="legend-line cite-text"></span>
+      <span class="legend-label">cites text</span>
+    </div>
+    <div class="legend-item">
+      <span class="legend-line cite-block"></span>
+      <span class="legend-label">cites ^block</span>
+    </div>
+    <div class="legend-item">
+      <span class="legend-line cite-heading"></span>
+      <span class="legend-label">cites #heading</span>
     </div>
     <div class="legend-item">
       <span class="legend-line exit-edge"></span>
@@ -95,6 +107,7 @@ const workerUrl = import.meta.env.PUBLIC_VISITORS_WORKER_URL || '';
 
   type NodeType = 'track' | 'article' | 'cultivation' | 'dispatch' | 'exit';
   type EdgeType = 'musical' | 'wikilink' | 'announced' | 'context' | 'exit';
+  type CitationType = 'section' | 'text' | 'block' | 'heading';
 
   interface MyceliumNodeData {
     id: string;
@@ -137,6 +150,8 @@ const workerUrl = import.meta.env.PUBLIC_VISITORS_WORKER_URL || '';
     weight: number;
     reasons: string[];
     edgeType: EdgeType;
+    citationType?: CitationType;
+    citationCount?: number;
   }
 
   interface MyceliumGraph {
@@ -165,6 +180,8 @@ const workerUrl = import.meta.env.PUBLIC_VISITORS_WORKER_URL || '';
     weight: number;
     reasons: string[];
     edgeType: EdgeType;
+    citationType?: CitationType;
+    citationCount?: number;
   }
 
   const canvas = document.getElementById('mycelium-canvas') as HTMLCanvasElement;
@@ -183,6 +200,17 @@ const workerUrl = import.meta.env.PUBLIC_VISITORS_WORKER_URL || '';
     inkSoft: '#6b5435',
     inkFaint: '#8a7350',
   };
+
+  // Dash patterns for citation types
+  const CITATION_DASH_PATTERNS: Record<CitationType, number[]> = {
+    section: [],           // solid
+    text: [4, 4],          // short dash
+    block: [8, 4],         // long dash
+    heading: [2, 4, 6, 4], // dot-dash
+  };
+
+  // Zoom threshold for showing weight labels
+  const WEIGHT_LABEL_THRESHOLD = 1.5;
 
   let nodes: SimNode[] = [];
   let links: SimLink[] = [];
@@ -306,10 +334,13 @@ const workerUrl = import.meta.env.PUBLIC_VISITORS_WORKER_URL || '';
       ctx.strokeStyle = getEdgeColor(link.edgeType);
       ctx.lineWidth = Math.min(link.weight, 2) / transform.scale; // Keep consistent line width
 
-      // Dashed lines for exit edges
+      // Dashed lines based on edge type
       if (link.edgeType === 'exit') {
         const dashLength = 4 / transform.scale;
         ctx.setLineDash([dashLength, dashLength]);
+      } else if (link.edgeType === 'wikilink' && link.citationType) {
+        const pattern = CITATION_DASH_PATTERNS[link.citationType];
+        ctx.setLineDash(pattern.map(v => v / transform.scale));
       } else {
         ctx.setLineDash([]);
       }
@@ -318,6 +349,42 @@ const workerUrl = import.meta.env.PUBLIC_VISITORS_WORKER_URL || '';
     }
     // Reset line dash
     ctx.setLineDash([]);
+
+    // Draw weight labels when zoomed in
+    if (transform.scale >= WEIGHT_LABEL_THRESHOLD) {
+      const fontSize = 10 / transform.scale;
+      ctx.font = `${fontSize}px Junicode, "IM Fell DW Pica", Georgia, serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+
+      for (const link of links) {
+        const source = link.source as SimNode;
+        const target = link.target as SimNode;
+        if (!isInViewport(source) && !isInViewport(target)) continue;
+
+        // Midpoint in world coords
+        const mx = (source.x! + target.x!) / 2;
+        const my = (source.y! + target.y!) / 2;
+
+        // Format weight as decimal
+        const label = link.weight.toFixed(1);
+        const metrics = ctx.measureText(label);
+        const pad = 2 / transform.scale;
+
+        // Background pill (semi-transparent paper)
+        ctx.fillStyle = COLORS.paper + 'cc';
+        ctx.fillRect(
+          mx - metrics.width / 2 - pad,
+          my - fontSize / 2 - pad,
+          metrics.width + pad * 2,
+          fontSize + pad * 2
+        );
+
+        // Label text
+        ctx.fillStyle = COLORS.inkFaint;
+        ctx.fillText(label, mx, my);
+      }
+    }
 
     // Draw nodes
     for (const node of nodes) {
@@ -600,6 +667,16 @@ const workerUrl = import.meta.env.PUBLIC_VISITORS_WORKER_URL || '';
     };
   }
 
+  // Check if a world point is visible in the viewport
+  function isInViewport(node: SimNode): boolean {
+    const screen = worldToScreen(node.x, node.y);
+    const w = canvas.width / (window.devicePixelRatio || 1);
+    const h = canvas.height / (window.devicePixelRatio || 1);
+    const margin = 50; // buffer for labels
+    return screen.x >= -margin && screen.x <= w + margin &&
+           screen.y >= -margin && screen.y <= h + margin;
+  }
+
   // Zoom centered on a point
   function zoomAt(centerX: number, centerY: number, delta: number) {
     const oldScale = transform.scale;
@@ -877,6 +954,8 @@ const workerUrl = import.meta.env.PUBLIC_VISITORS_WORKER_URL || '';
           weight: e.weight,
           reasons: e.reasons,
           edgeType: e.edgeType || 'musical', // fallback for old data
+          citationType: e.citationType,
+          citationCount: e.citationCount,
         }))
         .filter(l => l.source && l.target);
 
@@ -886,8 +965,8 @@ const workerUrl = import.meta.env.PUBLIC_VISITORS_WORKER_URL || '';
         .force('link', forceLink<SimNode, SimLink>(links)
           .id(d => d.id)
           .distance(l => {
-            // Wikilink edges should be shorter (tighter clusters)
-            if (l.edgeType === 'wikilink') return 50;
+            // Wikilink edges - slightly longer to accommodate weight labels
+            if (l.edgeType === 'wikilink') return 60;
             // Announced edges medium distance
             if (l.edgeType === 'announced') return 70;
             // Exit edges stretch to periphery - longer distance
@@ -1160,8 +1239,43 @@ const workerUrl = import.meta.env.PUBLIC_VISITORS_WORKER_URL || '';
     background: var(--paper-line);
   }
 
-  .legend-line.citation {
-    background: #b8860b; /* ochre */
+  /* Citation types - all ochre, different dash patterns */
+  .legend-line.cite-section {
+    background: #b8860b; /* solid */
+  }
+
+  .legend-line.cite-text {
+    background: repeating-linear-gradient(
+      to right,
+      #b8860b 0px,
+      #b8860b 3px,
+      transparent 3px,
+      transparent 6px
+    ); /* short dash [4,4] */
+  }
+
+  .legend-line.cite-block {
+    background: repeating-linear-gradient(
+      to right,
+      #b8860b 0px,
+      #b8860b 5px,
+      transparent 5px,
+      transparent 8px
+    ); /* long dash [8,4] */
+  }
+
+  .legend-line.cite-heading {
+    background: repeating-linear-gradient(
+      to right,
+      #b8860b 0px,
+      #b8860b 2px,
+      transparent 2px,
+      transparent 5px,
+      #b8860b 5px,
+      #b8860b 9px,
+      transparent 9px,
+      transparent 12px
+    ); /* dot-dash [2,4,6,4] */
   }
 
   .legend-line.exit-edge {

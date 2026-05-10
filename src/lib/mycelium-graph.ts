@@ -7,6 +7,7 @@
 
 export type NodeType = 'track' | 'article' | 'cultivation' | 'dispatch' | 'exit';
 export type EdgeType = 'musical' | 'wikilink' | 'announced' | 'context' | 'exit';
+export type CitationType = 'section' | 'text' | 'block' | 'heading';
 
 export interface MyceliumNode {
   id: string;
@@ -49,6 +50,8 @@ export interface MyceliumEdge {
   weight: number;       // connection strength
   reasons: string[];    // why connected
   edgeType: EdgeType;   // for visual differentiation
+  citationType?: CitationType;  // only when edgeType === 'wikilink'
+  citationCount?: number;       // aggregated citations to same target
 }
 
 export interface MyceliumGraph {
@@ -81,19 +84,25 @@ export interface TrackData {
   date: string;
 }
 
+export interface WikilinkData {
+  target: string;           // "collection:slug"
+  citationType: CitationType;
+  anchor?: string;          // raw anchor for tooltips
+}
+
 export interface ArticleData {
   slug: string;
   title: string;
   date: string;       // ISO date
   excerpt: string;    // first ~100 chars
-  wikilinks: string[]; // slugs this article links to
+  wikilinks: WikilinkData[]; // rich wikilink data
 }
 
 export interface CultivationData {
   slug: string;
   name: string;
   status: 'growing' | 'dormant' | 'wild' | 'composted';
-  wikilinks: string[]; // slugs this cultivation's description links to
+  wikilinks: WikilinkData[]; // rich wikilink data
 }
 
 export interface AhoraLink {
@@ -105,7 +114,7 @@ export interface DispatchData {
   date: string;                    // ISO date
   announcements: number;           // count of articuloNuevo + specimenNuevo + cultivando
   hasProseLinks: boolean;          // has wikilinks or external links in prose
-  proseWikilinks: string[];        // wikilink targets in prose
+  proseWikilinks: WikilinkData[];  // rich wikilink data
   proseExternalLinks: string[];    // external URLs in prose
 }
 
@@ -224,6 +233,8 @@ interface EdgeData {
   weight: number;
   reasons: Set<string>;
   edgeType: EdgeType;
+  citationType?: CitationType;
+  citationCount?: number;
 }
 
 /**
@@ -431,12 +442,20 @@ export function buildGraph(input: GraphInput): MyceliumGraph {
   }
 
   // === Build article↔article edges (wikilinks) ===
+  // Citation type priority for aggregation: block > text > heading > section
+  const citationPriority: Record<CitationType, number> = {
+    block: 4,
+    text: 3,
+    heading: 2,
+    section: 1,
+  };
+
   for (const article of articles) {
     const sourceId = `a:${article.slug}`;
-    for (const targetSlug of article.wikilinks) {
+    for (const wikilink of article.wikilinks) {
       // Only link to journal articles for now
-      if (targetSlug.startsWith('journal:')) {
-        const slug = targetSlug.replace('journal:', '');
+      if (wikilink.target.startsWith('journal:')) {
+        const slug = wikilink.target.replace('journal:', '');
         const targetId = `a:${slug}`;
         if (nodeMap.has(targetId)) {
           const edgeKey = [sourceId, targetId].sort().join('|');
@@ -444,8 +463,19 @@ export function buildGraph(input: GraphInput): MyceliumGraph {
           if (existing) {
             existing.weight = Math.max(existing.weight, 1.0);
             existing.reasons.add('cites');
+            existing.citationCount = (existing.citationCount || 1) + 1;
+            // Keep most specific citation type
+            if (existing.citationType && citationPriority[wikilink.citationType] > citationPriority[existing.citationType]) {
+              existing.citationType = wikilink.citationType;
+            }
           } else {
-            edgeMap.set(edgeKey, { weight: 1.0, reasons: new Set(['cites']), edgeType: 'wikilink' });
+            edgeMap.set(edgeKey, {
+              weight: 1.0,
+              reasons: new Set(['cites']),
+              edgeType: 'wikilink',
+              citationType: wikilink.citationType,
+              citationCount: 1,
+            });
           }
         }
       }
@@ -455,14 +485,26 @@ export function buildGraph(input: GraphInput): MyceliumGraph {
   // === Build article↔cultivation edges (wikilinks) ===
   for (const cult of cultivations) {
     const sourceId = `c:${cult.slug}`;
-    for (const targetSlug of cult.wikilinks) {
-      if (targetSlug.startsWith('journal:')) {
-        const slug = targetSlug.replace('journal:', '');
+    for (const wikilink of cult.wikilinks) {
+      if (wikilink.target.startsWith('journal:')) {
+        const slug = wikilink.target.replace('journal:', '');
         const targetId = `a:${slug}`;
         if (nodeMap.has(targetId)) {
           const edgeKey = [sourceId, targetId].sort().join('|');
-          if (!edgeMap.has(edgeKey)) {
-            edgeMap.set(edgeKey, { weight: 0.8, reasons: new Set(['references']), edgeType: 'wikilink' });
+          const existing = edgeMap.get(edgeKey);
+          if (existing) {
+            existing.citationCount = (existing.citationCount || 1) + 1;
+            if (existing.citationType && citationPriority[wikilink.citationType] > citationPriority[existing.citationType]) {
+              existing.citationType = wikilink.citationType;
+            }
+          } else {
+            edgeMap.set(edgeKey, {
+              weight: 0.8,
+              reasons: new Set(['references']),
+              edgeType: 'wikilink',
+              citationType: wikilink.citationType,
+              citationCount: 1,
+            });
           }
         }
       }
@@ -540,16 +582,26 @@ export function buildGraph(input: GraphInput): MyceliumGraph {
 
     // Dispatch → articles (prose wikilinks): weight 0.8
     for (const wikilink of dispatch.proseWikilinks) {
-      if (wikilink.startsWith('journal:')) {
-        const slug = wikilink.replace('journal:', '');
+      if (wikilink.target.startsWith('journal:')) {
+        const slug = wikilink.target.replace('journal:', '');
         const articleId = `a:${slug}`;
         if (nodeMap.has(articleId)) {
           const edgeKey = [dispatchId, articleId].sort().join('|');
           const existing = edgeMap.get(edgeKey);
           if (existing) {
             existing.reasons.add('cites');
+            existing.citationCount = (existing.citationCount || 1) + 1;
+            if (existing.citationType && citationPriority[wikilink.citationType] > citationPriority[existing.citationType]) {
+              existing.citationType = wikilink.citationType;
+            }
           } else {
-            edgeMap.set(edgeKey, { weight: 0.8, reasons: new Set(['cites']), edgeType: 'wikilink' });
+            edgeMap.set(edgeKey, {
+              weight: 0.8,
+              reasons: new Set(['cites']),
+              edgeType: 'wikilink',
+              citationType: wikilink.citationType,
+              citationCount: 1,
+            });
           }
         }
       }
@@ -583,13 +635,21 @@ export function buildGraph(input: GraphInput): MyceliumGraph {
   for (const [key, data] of edgeMap) {
     if (data.weight >= 0.3) {
       const [source, target] = key.split('|');
-      edges.push({
+      const edge: MyceliumEdge = {
         source,
         target,
         weight: Math.round(data.weight * 100) / 100,
         reasons: Array.from(data.reasons),
         edgeType: data.edgeType,
-      });
+      };
+      // Include citation data for wikilink edges
+      if (data.edgeType === 'wikilink' && data.citationType) {
+        edge.citationType = data.citationType;
+        if (data.citationCount && data.citationCount > 1) {
+          edge.citationCount = data.citationCount;
+        }
+      }
+      edges.push(edge);
     }
   }
 
