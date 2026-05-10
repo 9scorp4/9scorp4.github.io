@@ -5,6 +5,9 @@ import {
   truncate,
   formatDate,
   slugify,
+  parseFlags,
+  parseLocalDate,
+  parseDaysFlag,
 } from './cli-utils.ts';
 import { extractParagraphs } from '../commands/insta/generate.ts';
 
@@ -178,5 +181,106 @@ describe('slugify', () => {
   it('handles complex strings', () => {
     const result = slugify('  Hello, World! How are you?  ');
     expect(result).toBe('hello-world-how-are-you');
+  });
+});
+
+describe('parseFlags', () => {
+  it('parses --flag as boolean true', () => {
+    const { flags, positional } = parseFlags(['--verbose']);
+    expect(flags.get('verbose')).toBe(true);
+    expect(positional).toHaveLength(0);
+  });
+
+  it('parses --key=value as string', () => {
+    const { flags } = parseFlags(['--name=test']);
+    expect(flags.get('name')).toBe('test');
+  });
+
+  it('parses --key=value with equals in value', () => {
+    const { flags } = parseFlags(['--equation=a=b+c']);
+    expect(flags.get('equation')).toBe('a=b+c');
+  });
+
+  it('parses short flags -f as boolean', () => {
+    const { flags } = parseFlags(['-v', '-d']);
+    expect(flags.get('v')).toBe(true);
+    expect(flags.get('d')).toBe(true);
+  });
+
+  it('collects positional arguments', () => {
+    const { flags, positional } = parseFlags(['generate', '--publish', 'output']);
+    expect(positional).toEqual(['generate', 'output']);
+    expect(flags.get('publish')).toBe(true);
+  });
+
+  it('handles mixed flags and positionals', () => {
+    const { flags, positional } = parseFlags(['--days=7', 'list', '-a', 'extra']);
+    expect(flags.get('days')).toBe('7');
+    expect(flags.get('a')).toBe(true);
+    expect(positional).toEqual(['list', 'extra']);
+  });
+
+  it('handles empty args', () => {
+    const { flags, positional } = parseFlags([]);
+    expect(flags.size).toBe(0);
+    expect(positional).toHaveLength(0);
+  });
+
+  it('ignores long flags with more than 2 chars starting with single dash', () => {
+    // -abc is not a short flag (only -a would be)
+    const { flags, positional } = parseFlags(['-abc']);
+    expect(flags.has('abc')).toBe(false);
+    expect(positional).toContain('-abc');
+  });
+});
+
+describe('parseLocalDate', () => {
+  it('parses YYYY-MM-DD as local date', () => {
+    const date = parseLocalDate('2026-05-04');
+    expect(date.getFullYear()).toBe(2026);
+    expect(date.getMonth()).toBe(4); // May is month 4 (0-indexed)
+    expect(date.getDate()).toBe(4);
+  });
+
+  it('handles month boundaries correctly', () => {
+    const jan = parseLocalDate('2026-01-01');
+    expect(jan.getMonth()).toBe(0);
+
+    const dec = parseLocalDate('2026-12-31');
+    expect(dec.getMonth()).toBe(11);
+    expect(dec.getDate()).toBe(31);
+  });
+
+  it('avoids UTC timezone shift issue', () => {
+    // This was the original bug: Date('2026-05-04') would parse as UTC
+    // and getDate() would return 3 (previous day) in negative UTC offsets
+    const date = parseLocalDate('2026-05-04');
+    expect(date.getDate()).toBe(4); // Should be 4, not 3
+  });
+});
+
+describe('parseDaysFlag', () => {
+  it('extracts --days=N value', () => {
+    expect(parseDaysFlag(['--days=30'])).toBe(30);
+    expect(parseDaysFlag(['--days=1'])).toBe(1);
+  });
+
+  it('returns default when no --days flag', () => {
+    expect(parseDaysFlag([])).toBe(7);
+    expect(parseDaysFlag(['--other=value'])).toBe(7);
+  });
+
+  it('accepts custom default value', () => {
+    expect(parseDaysFlag([], 14)).toBe(14);
+    expect(parseDaysFlag(['--verbose'], 30)).toBe(30);
+  });
+
+  it('returns default for invalid numbers', () => {
+    expect(parseDaysFlag(['--days=abc'])).toBe(7);
+    expect(parseDaysFlag(['--days='], 10)).toBe(10);
+  });
+
+  it('works with other flags present', () => {
+    expect(parseDaysFlag(['--verbose', '--days=5', '--output=file'])).toBe(5);
   });
 });
