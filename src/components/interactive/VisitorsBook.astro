@@ -617,6 +617,39 @@ const batesonQuotes = [
   // Initial position
   updateCursorPosition();
 
+  // Check URL for #dejar indicator (from cross-page navigation)
+  function checkDejarHash(): void {
+    const hash = window.location.hash;
+    if (hash === '#dejar') {
+      // Pre-fill immediately
+      const template = 'dejar nombre="" mensaje=""';
+      input.value = template;
+      input.setSelectionRange(14, 14);
+      updateCursorPosition();
+      updateGhostVisibility();
+      stopTypingAnimation();
+
+      // Clean up hash
+      history.replaceState(null, '', window.location.pathname + '#visitors-book');
+
+      // Scroll after browser finishes initial layout
+      requestAnimationFrame(() => {
+        setTimeout(() => {
+          const book = document.getElementById('visitors-book');
+          book?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          input?.focus();
+        }, 50);
+      });
+    }
+  }
+
+  // Run after page load to avoid browser scroll interference
+  if (document.readyState === 'complete') {
+    checkDejarHash();
+  } else {
+    window.addEventListener('load', checkDejarHash);
+  }
+
   // Ghost text typing animation
   const ghostText = document.getElementById('ghost-text') as HTMLSpanElement;
   const exampleCommands = [
