@@ -168,12 +168,33 @@ const jsonLd = JSON.stringify({
     text-decoration-thickness: 2px;
   }
 
+  /* Lists */
+  .article-body :global(ul) {
+    list-style: disc;
+    padding-left: 1.5em;
+    margin-bottom: var(--rhythm);
+  }
+
+  .article-body :global(li) {
+    font-family: var(--font-serif);
+    font-size: 17px;
+    line-height: 1.75;
+    color: var(--ink);
+    margin-bottom: 0.5em;
+    padding-left: 0.25em;
+  }
+
+  .article-body :global(li:last-child) {
+    margin-bottom: 0;
+  }
+
   @media (max-width: 640px) {
     .diptych {
       padding: var(--rhythm);
     }
 
     .article-body :global(p),
+    .article-body :global(li),
     .diptych :global(.metalogue-content p) {
       font-size: 16px;
     }
