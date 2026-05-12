@@ -184,9 +184,7 @@ export function trackEvent(
   // blob6: visitor ID (UUID)
   // blob7: dev flag
   // blob8: device name (dev only)
-  if (event.vid) {
-    blobs[5] = event.vid;
-  }
+  blobs[5] = event.vid || '';
   blobs[6] = event.dev ? 'dev' : '';
   if (event.devId) {
     blobs[7] = event.devId;
