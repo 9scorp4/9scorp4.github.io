@@ -8,6 +8,9 @@
  *   blob3: country code (from CF-IPCountry)
  *   blob4: referrer domain (pageview), series (specimen_open), context (outbound_click)
  *   blob5: device_type (pageview), node_label (node_click)
+ *   blob6: visitor ID (anonymous UUID, 36 chars) — for unique visitor counting
+ *   blob7: dev flag ('dev' or '') — marks developer traffic to exclude from stats
+ *   blob8: device name (for dev traffic only, e.g. 'macbook-work', 'iphone-main')
  *   double1: read time (article_read), viewport_width (pageview)
  *   double2: scroll depth (article_read)
  *   double3: hour_local (pageview, 0-23)
@@ -22,7 +25,14 @@ export type EventType =
   | 'specimen_open'
   | 'outbound_click';
 
-export interface PageviewEvent {
+// Common fields for visitor tracking (all events)
+interface VisitorFields {
+  vid?: string;    // anonymous visitor ID (UUID)
+  dev?: boolean;   // is this a developer visit?
+  devId?: string;  // device name (only for dev traffic)
+}
+
+export interface PageviewEvent extends VisitorFields {
   type: 'pageview';
   path: string;
   referrer?: string;
@@ -31,37 +41,37 @@ export interface PageviewEvent {
   hourLocal?: number; // 0-23
 }
 
-export interface CommandEvent {
+export interface CommandEvent extends VisitorFields {
   type: 'command';
   command: string;
   isSecret?: boolean;
 }
 
-export interface ArticleReadEvent {
+export interface ArticleReadEvent extends VisitorFields {
   type: 'article_read';
   path: string;
   readTime: number; // seconds
   scrollDepth: number; // 0-100 percentage
 }
 
-export interface SubmissionEvent {
+export interface SubmissionEvent extends VisitorFields {
   type: 'submission';
   status: 'received' | 'rate_limited';
 }
 
-export interface NodeClickEvent {
+export interface NodeClickEvent extends VisitorFields {
   type: 'node_click';
   nodeType: 'track' | 'article' | 'cultivation';
   nodeLabel: string;
 }
 
-export interface SpecimenOpenEvent {
+export interface SpecimenOpenEvent extends VisitorFields {
   type: 'specimen_open';
   specimenName: string;
   series?: string;
 }
 
-export interface OutboundClickEvent {
+export interface OutboundClickEvent extends VisitorFields {
   type: 'outbound_click';
   domain: string;
   context: string; // page path where click occurred
@@ -170,12 +180,49 @@ export function trackEvent(
       break;
   }
 
+  // Visitor tracking fields (all events)
+  // blob6: visitor ID (UUID)
+  // blob7: dev flag
+  // blob8: device name (dev only)
+  if (event.vid) {
+    blobs[5] = event.vid;
+  }
+  blobs[6] = event.dev ? 'dev' : '';
+  if (event.devId) {
+    blobs[7] = event.devId;
+  }
+
   analytics.writeDataPoint({
     blobs,
     doubles: doubles.length > 0 ? doubles : undefined,
     // Index by event type for efficient querying
     indexes: [event.type],
   });
+}
+
+/**
+ * Parse and validate visitor tracking fields from request data.
+ * Returns an object with vid, dev, and devId fields.
+ */
+function parseVisitorFields(data: Record<string, unknown>): VisitorFields {
+  const fields: VisitorFields = {};
+
+  // Visitor ID: must be a valid UUID (36 chars with dashes)
+  if (typeof data.vid === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(data.vid)) {
+    fields.vid = data.vid.toLowerCase();
+  }
+
+  // Dev flag: boolean
+  if (data.dev === true) {
+    fields.dev = true;
+  }
+
+  // Device ID: alphanumeric + dashes, max 50 chars (only meaningful for dev traffic)
+  if (typeof data.devId === 'string' && data.devId.length <= 50 && /^[a-z0-9-]+$/i.test(data.devId)) {
+    fields.devId = data.devId.toLowerCase();
+  }
+
+  return fields;
 }
 
 /**
@@ -189,6 +236,7 @@ export function parseEvent(body: unknown): AnalyticsEvent | null {
 
   const data = body as Record<string, unknown>;
   const type = data.type;
+  const visitorFields = parseVisitorFields(data);
 
   switch (type) {
     case 'pageview': {
@@ -222,6 +270,7 @@ export function parseEvent(body: unknown): AnalyticsEvent | null {
         deviceType,
         viewportWidth,
         hourLocal,
+        ...visitorFields,
       };
     }
 
@@ -238,6 +287,7 @@ export function parseEvent(body: unknown): AnalyticsEvent | null {
         type: 'command',
         command: command.toLowerCase(),
         isSecret: data.isSecret === true,
+        ...visitorFields,
       };
     }
 
@@ -261,6 +311,7 @@ export function parseEvent(body: unknown): AnalyticsEvent | null {
         path: path.split('?')[0].split('#')[0],
         readTime: Math.round(readTime),
         scrollDepth: Math.round(scrollDepth),
+        ...visitorFields,
       };
     }
 
@@ -279,6 +330,7 @@ export function parseEvent(body: unknown): AnalyticsEvent | null {
         type: 'node_click',
         nodeType,
         nodeLabel: nodeLabel.slice(0, 200),
+        ...visitorFields,
       };
     }
 
@@ -292,6 +344,7 @@ export function parseEvent(body: unknown): AnalyticsEvent | null {
         type: 'specimen_open',
         specimenName: specimenName.slice(0, 100),
         series: typeof data.series === 'string' ? data.series.slice(0, 50) : undefined,
+        ...visitorFields,
       };
     }
 
@@ -310,6 +363,7 @@ export function parseEvent(body: unknown): AnalyticsEvent | null {
         type: 'outbound_click',
         domain: domain.slice(0, 100),
         context: context.split('?')[0].split('#')[0],
+        ...visitorFields,
       };
     }
 

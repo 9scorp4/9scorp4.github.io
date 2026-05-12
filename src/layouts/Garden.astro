@@ -76,8 +76,96 @@ const fullImageUrl = `${siteUrl}${ogImagePath}`;
       <Footer />
     </div>
     <script define:vars={{ workerUrl }}>
+      // Developer marking via URL param (mobile-friendly)
+      // Usage: ?tend=password&device=name to mark, ?tend=off to unmark
+      (async () => {
+        const params = new URLSearchParams(location.search);
+        const tendParam = params.get('tend');
+        const deviceParam = params.get('device');
+
+        // Hash for dev password verification (not the password itself)
+        const DEV_HASH = '7bdcba3cdc9ae3b270bc11d6f5a74b815c1decdea373e167de77bbfdd6c481d7';
+        const MAX_FAILED_ATTEMPTS = 3;
+        const BAN_KEY = 'jardin-dev-banned';
+        const ATTEMPTS_KEY = 'jardin-dev-attempts';
+        const DEV_ID_KEY = 'jardin-dev-id';
+
+        async function sha256(message) {
+          const encoder = new TextEncoder();
+          const data = encoder.encode(message);
+          const hash = await crypto.subtle.digest('SHA-256', data);
+          return Array.from(new Uint8Array(hash))
+            .map(b => b.toString(16).padStart(2, '0'))
+            .join('');
+        }
+
+        const cleanUrl = () => {
+          const clean = location.pathname + location.hash;
+          history.replaceState(null, '', clean);
+        };
+
+        if (!tendParam) return;
+
+        // Handle ?tend=off to unmark
+        if (tendParam === 'off') {
+          try {
+            localStorage.removeItem('jardin-dev');
+            localStorage.removeItem(DEV_ID_KEY);
+          } catch {}
+          cleanUrl();
+          return;
+        }
+
+        // Check if banned
+        try {
+          if (localStorage.getItem(BAN_KEY) === '1') {
+            cleanUrl();
+            return;
+          }
+        } catch {}
+
+        // Hash and compare
+        const inputHash = await sha256(tendParam);
+        if (inputHash === DEV_HASH) {
+          try {
+            localStorage.removeItem(ATTEMPTS_KEY);
+            localStorage.setItem('jardin-dev', '1');
+            localStorage.setItem(DEV_ID_KEY, deviceParam || 'mobile-unnamed');
+          } catch {}
+          cleanUrl();
+        } else {
+          // Track failed attempt
+          try {
+            const attempts = Number(localStorage.getItem(ATTEMPTS_KEY) || 0) + 1;
+            localStorage.setItem(ATTEMPTS_KEY, String(attempts));
+            if (attempts >= MAX_FAILED_ATTEMPTS) {
+              localStorage.setItem(BAN_KEY, '1');
+            }
+          } catch {}
+          cleanUrl();
+        }
+      })();
+
       // Privacy-respecting pageview tracking with enhanced metadata
       if (workerUrl && navigator.doNotTrack !== '1') {
+        // Get or create anonymous visitor ID
+        let vid = null;
+        let isDev = false;
+        let devId = null;
+        try {
+          vid = localStorage.getItem('jardin-vid');
+          if (!vid) {
+            vid = crypto.randomUUID();
+            localStorage.setItem('jardin-vid', vid);
+          }
+          isDev = localStorage.getItem('jardin-dev') === '1';
+          if (isDev) {
+            devId = localStorage.getItem('jardin-dev-id') || 'unnamed';
+          }
+        } catch {
+          // localStorage unavailable
+        }
+
         try {
           // Detect device type from viewport width
           const vw = window.innerWidth;
@@ -94,6 +182,9 @@ const fullImageUrl = `${siteUrl}${ogImagePath}`;
               deviceType,
               viewportWidth: vw,
               hourLocal: new Date().getHours(),
+              vid: vid || undefined,
+              dev: isDev || undefined,
+              devId: isDev ? devId : undefined,
             })
           );
         } catch {
@@ -116,6 +207,9 @@ const fullImageUrl = `${siteUrl}${ogImagePath}`;
                 type: 'outbound_click',
                 domain: url.hostname,
                 context: location.pathname,
+                vid: vid || undefined,
+                dev: isDev || undefined,
+                devId: isDev ? devId : undefined,
               })
             );
           } catch {
@@ -413,7 +507,7 @@ const fullImageUrl = `${siteUrl}${ogImagePath}`;
           console.log('%c🌿 garden.reflect()', styles.header);
           console.log('%c\ncome as you are.', styles.muted);
           console.log('%cthis garden keeps nothing that doesn\'t stay in your browser.', styles.muted);
-          console.log('%cno cookies. no analytics. no IP tracking. localStorage only.', styles.muted);
+          console.log('%cno cookies. localStorage only. a random ID counts visits — nothing more.', styles.muted);
           console.log('%cwhat you tend here stays here — or clears when you forget.', styles.muted);
 
           const raw = localStorage.getItem('jardin-visitor');
@@ -633,6 +727,95 @@ const fullImageUrl = `${siteUrl}${ogImagePath}`;
           console.log('%c\nesc or garden.xray(false) to turn off', styles.muted);
         }
 
+        // Developer marking functions
+        const DEV_HASH = '7bdcba3cdc9ae3b270bc11d6f5a74b815c1decdea373e167de77bbfdd6c481d7';
+        const AMNESTY_HASH = '1203c4451e85e6b1f3e4ae3de8bbc35d205852518713e04ec41685d0af1f99c8';
+        const MAX_FAILED_ATTEMPTS = 3;
+        const BAN_KEY = 'jardin-dev-banned';
+        const ATTEMPTS_KEY = 'jardin-dev-attempts';
+        const DEV_ID_KEY = 'jardin-dev-id';
+
+        async function sha256(message) {
+          const encoder = new TextEncoder();
+          const data = encoder.encode(message);
+          const hash = await crypto.subtle.digest('SHA-256', data);
+          return Array.from(new Uint8Array(hash))
+            .map(b => b.toString(16).padStart(2, '0'))
+            .join('');
+        }
+
+        async function tend(password, deviceName) {
+          try {
+            // Check if banned
+            if (localStorage.getItem(BAN_KEY) === '1') {
+              console.log('%c🌿 access revoked.', styles.body);
+              console.log('%cthe gate is closed to this browser.', styles.muted);
+              return;
+            }
+
+            // Hash the input and compare
+            const inputHash = await sha256(password || '');
+            if (inputHash !== DEV_HASH) {
+              // Track failed attempt
+              const attempts = Number(localStorage.getItem(ATTEMPTS_KEY) || 0) + 1;
+              localStorage.setItem(ATTEMPTS_KEY, String(attempts));
+
+              if (attempts >= MAX_FAILED_ATTEMPTS) {
+                localStorage.setItem(BAN_KEY, '1');
+                console.log('%c🌿 the garden does not recognize you.', styles.body);
+                console.log('%cthe gate is now closed.', styles.muted);
+              } else {
+                console.log('%c🌿 the garden does not recognize you.', styles.body);
+                console.log(`%c${MAX_FAILED_ATTEMPTS - attempts} attempt(s) remaining.`, styles.muted);
+              }
+              return;
+            }
+
+            // Success - clear failed attempts and set dev mode
+            localStorage.removeItem(ATTEMPTS_KEY);
+            localStorage.setItem('jardin-dev', '1');
+
+            // Set device name (prompt if not provided)
+            let devId = deviceName;
+            if (!devId) {
+              devId = prompt('Name this device (for your own tracking):') || 'unnamed';
+            }
+            localStorage.setItem(DEV_ID_KEY, devId);
+
+            console.log('%c🌿 the gardener is recognized.', styles.header);
+            console.log(`%cdevice: ${devId}`, styles.body);
+            console.log('%cyour visits are now tracked as dev traffic.', styles.muted);
+          } catch {
+            console.log('%c🌿 the garden cannot remember.', styles.body);
+          }
+        }
+
+        function untend() {
+          try {
+            localStorage.removeItem('jardin-dev');
+            localStorage.removeItem(DEV_ID_KEY);
+            console.log('%c🌿 the gardener steps away.', styles.header);
+            console.log('%cyour visits are counted as regular traffic again.', styles.muted);
+          } catch {
+            console.log('%c🌿 the garden cannot forget.', styles.body);
+          }
+        }
+
+        async function amnesty(recoveryPhrase) {
+          try {
+            const inputHash = await sha256(recoveryPhrase || '');
+            if (inputHash === AMNESTY_HASH) {
+              localStorage.removeItem(BAN_KEY);
+              localStorage.removeItem(ATTEMPTS_KEY);
+              console.log('%c🌿 the gate reopens.', styles.header);
+            } else {
+              console.log('%c🌿 ...', styles.muted);
+            }
+          } catch {
+            console.log('%c🌿 ...', styles.muted);
+          }
+        }
+
         function explore() {
           if (exploreActive) {
             console.log('%calready in explore mode. q to quit.', styles.body);
@@ -738,6 +921,9 @@ const fullImageUrl = `${siteUrl}${ogImagePath}`;
           ecology,
           xray,
           explore,
+          tend,    // mark as dev (requires password, optional device name)
+          untend,  // unmark as dev
+          amnesty, // recovery for banned browsers (hidden, not documented)
         };
 
         // Announce after devtools greeting (~3500ms)

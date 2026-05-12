@@ -1736,6 +1736,19 @@ const batesonQuotes = [
   function trackCommand(name: string): void {
     if (!contentData.workerUrl || navigator.doNotTrack === '1') return;
     const isSecret = name in secretCommands;
+
+    // Get visitor tracking fields
+    let vid: string | undefined;
+    let isDev = false;
+    let devId: string | undefined;
+    try {
+      vid = localStorage.getItem('jardin-vid') || undefined;
+      isDev = localStorage.getItem('jardin-dev') === '1';
+      if (isDev) {
+        devId = localStorage.getItem('jardin-dev-id') || 'unnamed';
+      }
+    } catch {}
+
     try {
       navigator.sendBeacon?.(
         contentData.workerUrl + '/track',
@@ -1743,6 +1756,9 @@ const batesonQuotes = [
           type: 'command',
           command: name,
           isSecret,
+          vid,
+          dev: isDev || undefined,
+          devId: isDev ? devId : undefined,
         })
       );
     } catch {

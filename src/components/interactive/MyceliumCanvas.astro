@@ -87,6 +87,19 @@ const workerUrl = import.meta.env.PUBLIC_VISITORS_WORKER_URL || '';
    */
   function trackNodeClick(node: SimNode) {
     if (!_workerUrl || navigator.doNotTrack === '1') return;
+
+    // Get visitor tracking fields
+    let vid: string | undefined;
+    let isDev = false;
+    let devId: string | undefined;
+    try {
+      vid = localStorage.getItem('jardin-vid') || undefined;
+      isDev = localStorage.getItem('jardin-dev') === '1';
+      if (isDev) {
+        devId = localStorage.getItem('jardin-dev-id') || 'unnamed';
+      }
+    } catch {}
+
     try {
       const label = node.type === 'track'
         ? `${node.artist} — ${node.title}`
@@ -98,6 +111,9 @@ const workerUrl = import.meta.env.PUBLIC_VISITORS_WORKER_URL || '';
           type: 'node_click',
           nodeType: node.type,
           nodeLabel: label,
+          vid,
+          dev: isDev || undefined,
+          devId: isDev ? devId : undefined,
         })
       );
     } catch {
