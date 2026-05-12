@@ -124,6 +124,7 @@ export async function run(args: string[]): Promise<void> {
       SELECT blob2 as path, count() as views
       FROM garden_metrics
       WHERE blob1 = 'pageview'
+        AND blob7 != 'dev'
         AND timestamp > NOW() - INTERVAL '${days}' DAY
       GROUP BY blob2
       ORDER BY views DESC
@@ -150,6 +151,7 @@ export async function run(args: string[]): Promise<void> {
       SELECT blob2 as command, count() as uses, blob5 as is_secret
       FROM garden_metrics
       WHERE blob1 = 'command'
+        AND blob7 != 'dev'
         AND timestamp > NOW() - INTERVAL '${days}' DAY
       GROUP BY blob2, blob5
       ORDER BY uses DESC
@@ -181,6 +183,7 @@ export async function run(args: string[]): Promise<void> {
         avg(double2) as avg_scroll_depth
       FROM garden_metrics
       WHERE blob1 = 'article_read'
+        AND blob7 != 'dev'
         AND timestamp > NOW() - INTERVAL '${days}' DAY
       GROUP BY blob2
       ORDER BY reads DESC
@@ -209,6 +212,7 @@ export async function run(args: string[]): Promise<void> {
       SELECT blob3 as country, count() as events
       FROM garden_metrics
       WHERE blob1 = 'pageview'
+        AND blob7 != 'dev'
         AND timestamp > NOW() - INTERVAL '${days}' DAY
         AND blob3 != ''
       GROUP BY blob3
@@ -260,6 +264,7 @@ export async function run(args: string[]): Promise<void> {
       SELECT blob4 as referrer, count() as visits
       FROM garden_metrics
       WHERE blob1 = 'pageview'
+        AND blob7 != 'dev'
         AND timestamp > NOW() - INTERVAL '${days}' DAY
       GROUP BY blob4
       ORDER BY visits DESC
@@ -309,6 +314,7 @@ export async function run(args: string[]): Promise<void> {
       SELECT blob5 as device_type, count() as visits
       FROM garden_metrics
       WHERE blob1 = 'pageview'
+        AND blob7 != 'dev'
         AND timestamp > NOW() - INTERVAL '${days}' DAY
         AND blob5 != ''
       GROUP BY blob5
@@ -335,6 +341,7 @@ export async function run(args: string[]): Promise<void> {
       SELECT double3, count() as visits
       FROM garden_metrics
       WHERE blob1 = 'pageview'
+        AND blob7 != 'dev'
         AND timestamp > NOW() - INTERVAL '${days}' DAY
         AND double3 >= 0
         AND double3 < 24
@@ -372,6 +379,7 @@ export async function run(args: string[]): Promise<void> {
       SELECT blob2 as node_type, blob5 as node_label, count() as clicks
       FROM garden_metrics
       WHERE blob1 = 'node_click'
+        AND blob7 != 'dev'
         AND timestamp > NOW() - INTERVAL '${days}' DAY
       GROUP BY blob2, blob5
       ORDER BY clicks DESC
@@ -399,6 +407,7 @@ export async function run(args: string[]): Promise<void> {
       SELECT blob2 as specimen_name, blob4 as series, count() as opens
       FROM garden_metrics
       WHERE blob1 = 'specimen_open'
+        AND blob7 != 'dev'
         AND timestamp > NOW() - INTERVAL '${days}' DAY
       GROUP BY blob2, blob4
       ORDER BY opens DESC
@@ -426,6 +435,7 @@ export async function run(args: string[]): Promise<void> {
       SELECT blob2 as domain, count() as clicks
       FROM garden_metrics
       WHERE blob1 = 'outbound_click'
+        AND blob7 != 'dev'
         AND timestamp > NOW() - INTERVAL '${days}' DAY
       GROUP BY blob2
       ORDER BY clicks DESC
