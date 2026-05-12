@@ -187,6 +187,18 @@ const jsonLd = JSON.stringify({
       let maxScrollDepth = 0;
       let tracked = false;
 
+      // Get visitor tracking fields
+      let vid = null;
+      let isDev = false;
+      let devId = null;
+      try {
+        vid = localStorage.getItem('jardin-vid');
+        isDev = localStorage.getItem('jardin-dev') === '1';
+        if (isDev) {
+          devId = localStorage.getItem('jardin-dev-id') || 'unnamed';
+        }
+      } catch {}
+
       // Track scroll depth
       function updateScrollDepth() {
         const scrollTop = window.scrollY;
@@ -215,6 +227,9 @@ const jsonLd = JSON.stringify({
               path: '/cuaderno/' + slug,
               readTime,
               scrollDepth: maxScrollDepth,
+              vid: vid || undefined,
+              dev: isDev || undefined,
+              devId: isDev ? devId : undefined,
             })
           );
 

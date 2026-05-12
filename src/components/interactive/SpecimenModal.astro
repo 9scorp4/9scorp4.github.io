@@ -245,6 +245,19 @@ const workerUrl = import.meta.env.PUBLIC_VISITORS_WORKER_URL || '';
    */
   function trackSpecimenOpen(specimen: { name: string; series?: string }) {
     if (!_workerUrl || navigator.doNotTrack === '1') return;
+
+    // Get visitor tracking fields
+    let vid: string | undefined;
+    let isDev = false;
+    let devId: string | undefined;
+    try {
+      vid = localStorage.getItem('jardin-vid') || undefined;
+      isDev = localStorage.getItem('jardin-dev') === '1';
+      if (isDev) {
+        devId = localStorage.getItem('jardin-dev-id') || 'unnamed';
+      }
+    } catch {}
+
     try {
       navigator.sendBeacon?.(
         _workerUrl + '/track',
@@ -252,6 +265,9 @@ const workerUrl = import.meta.env.PUBLIC_VISITORS_WORKER_URL || '';
           type: 'specimen_open',
           specimenName: specimen.name,
           series: specimen.series,
+          vid,
+          dev: isDev || undefined,
+          devId: isDev ? devId : undefined,
         })
       );
     } catch {
