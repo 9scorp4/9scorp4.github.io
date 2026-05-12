@@ -2,7 +2,7 @@ I wrote Renata a poem structured as a loan. *(A devolver después de leer.)* Ten
 
 She never read it. I had blocked her, in the same week I wrote it.
 
-A loan that cannot be repaid because the lender has closed the channel. A poem returned by no one because no one received it. The artifact is structurally complete — preface, body, signature, request — and structurally unable to do what it claims to do. It cannot return. The frame names a transaction that cannot occur. ^closed-loan
+A loan that cannot be repaid because the lender has closed the channel — [[journal:lo-que-el-espejo-no-corrige#^phenomenon-not-edge|the phenomenon operates at every amplitude]]. A poem returned by no one because no one received it. The artifact is structurally complete — preface, body, signature, request — and structurally unable to do what it claims to do. It cannot return. The frame names a transaction that cannot occur. ^closed-loan
 
 What was the poem actually for, then. That's the question this entry is.
 

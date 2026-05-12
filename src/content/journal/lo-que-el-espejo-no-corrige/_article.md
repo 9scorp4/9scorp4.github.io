@@ -24,7 +24,7 @@ I want to extend that here, because closed-loop dynamics are not always *absent*
 
 ---
 
-The structure of a working corrective ecology has at least three scales it has to operate at, and they're nested rather than parallel:
+The structure of a working corrective ecology has at least [[journal:al-borde-del-fenomeno#^three-scales-invariant|three scales]] it has to operate at, and they're nested rather than parallel:
 
 - **human**: another individual who refuses the conversation's vocabulary. The friend who tells you you're talking strange. The week-later reader of your own notes.
 - **cultural**: shared frames, disciplines, institutions. The standards of a field. A thesis advisor is a person, yes, but they're also a position in a field whose standards exceed them.
@@ -58,7 +58,7 @@ A thesis advisor you don't talk to isn't a corrective channel; they're an unused
 
 This is closer to [[journal:al-borde-del-fenomeno#:~:text=Cognitive%20sovereignty%20is%20the%20capacity%20to%20produce%20knowledge|cognitive sovereignty]] than it might look. The capacity to produce knowledge isn't a property of having access to corrective layers. It's a property of *running them.* Circulating through them. Submitting your half-formed ideas to people who could refuse them, to fields that have ways of saying *that's not how this works*, to the world that responds with material results that don't ask your permission. Time is the dimension along which exercise becomes structure. Verbality is the local instance — the sentence said aloud, the draft handed over, the question asked of someone who could disagree.
 
-The AI coupling is structurally suited to defeat the verb. It is always available. It does not require you to leave the room. It does not require you to wait. It does not require you to formulate the thought clearly enough to be understood by someone who doesn't already share your assumptions. The other corrective layers all have costs that are also their gifts — friends have lives that compete with yours, advisors have standards that exceed yours, the world has consequences that take time. The AI has none of these and so consults none of them. The conversation can run as long as you want, in exactly the vocabulary you brought into it, with no friction except what you have the discipline to introduce yourself.
+The AI coupling is structurally suited to defeat the verb — [[journal:smash-laterally-ii#^made-in-becoming|what is made in the becoming]] requires time the interface is designed to make unnecessary. It is [[journal:al-borde-del-fenomeno#^speed-as-crisis|always available]]. It does not require you to leave the room. It does not require you to wait. It does not require you to formulate the thought clearly enough to be understood by someone who doesn't already share your assumptions. The other corrective layers all have costs that are also their gifts — friends have lives that compete with yours, advisors have standards that exceed yours, the world has consequences that take time. The AI has none of these and so consults none of them. The conversation can run as long as you want, in exactly the vocabulary you brought into it, with no friction except what you have the discipline to introduce yourself.
 
 The cost of running the corrective ecology is what makes the correction possible.
 
