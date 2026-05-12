@@ -1,4 +1,4 @@
 slug: t3rn
 name: t3rn
 status: growing
-description: Balanced ternary computing simulation. Evaluating whether {-1, 0, +1} arithmetic earns its keep for neural inference.
+description: Balanced ternary computing simulation. Evaluating whether {-1, 0, +1} arithmetic earns its keep for neural inference — a [[journal:al-borde-del-fenomeno#^substrate-ownership|substrate choice]] at the architectural level.
