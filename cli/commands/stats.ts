@@ -73,6 +73,51 @@ export async function run(args: string[]): Promise<void> {
 
   divider();
 
+  // Unique visitors (excluding dev traffic)
+  try {
+    const uniques = await queryAnalytics(`
+      SELECT
+        count(DISTINCT blob6) as unique_visitors,
+        count() as total_events
+      FROM garden_metrics
+      WHERE blob1 = 'pageview'
+        AND blob7 != 'dev'
+        AND blob6 != ''
+        AND timestamp > NOW() - INTERVAL '${days}' DAY
+    `);
+
+    blank();
+    print('Unique visitors:');
+    if (uniques.data.length === 0 || !uniques.data[0].unique_visitors) {
+      muted('  (no data yet - requires enhanced tracking)');
+    } else {
+      const uv = Number(uniques.data[0].unique_visitors);
+      const total = Number(uniques.data[0].total_events);
+      const pagesPerVisitor = uv > 0 ? (total / uv).toFixed(1) : '0';
+      print(`  ${uv} unique · ${total} pageviews · ${pagesPerVisitor} pages/visitor`);
+
+      // New vs returning (visitors with 1 vs >1 pageviews)
+      const retention = await queryAnalytics(`
+        SELECT blob6 as vid, count() as pageviews
+        FROM garden_metrics
+        WHERE blob1 = 'pageview'
+          AND blob7 != 'dev'
+          AND blob6 != ''
+          AND timestamp > NOW() - INTERVAL '${days}' DAY
+        GROUP BY blob6
+      `);
+
+      if (retention.data.length > 0) {
+        const newVisitors = retention.data.filter(r => Number(r.pageviews) === 1).length;
+        const returning = retention.data.filter(r => Number(r.pageviews) > 1).length;
+        print(`  ${newVisitors} new · ${returning} returning`);
+      }
+    }
+  } catch {
+    blank();
+    muted('Unique visitors: (query failed)');
+  }
+
   // Top pages
   try {
     const pages = await queryAnalytics(`
@@ -399,6 +444,62 @@ export async function run(args: string[]): Promise<void> {
   } catch {
     blank();
     muted('Outbound clicks: (query failed)');
+  }
+
+  // Developer traffic by device (your own visits)
+  try {
+    const devTraffic = await queryAnalytics(`
+      SELECT
+        blob8 as device,
+        blob2 as path,
+        blob1 as event_type,
+        count() as events,
+        max(timestamp) as last_seen
+      FROM garden_metrics
+      WHERE blob7 = 'dev'
+        AND timestamp > NOW() - INTERVAL '${days}' DAY
+      GROUP BY blob8, blob2, blob1
+      ORDER BY last_seen DESC
+      LIMIT 30
+    `);
+
+    blank();
+    print('Dev traffic (your devices):');
+    if (devTraffic.data.length === 0) {
+      muted('  (no dev traffic yet)');
+    } else {
+      // Group by device
+      const byDevice: Record<string, AnalyticsRow[]> = {};
+      for (const row of devTraffic.data) {
+        const device = String(row.device || 'unnamed');
+        if (!byDevice[device]) byDevice[device] = [];
+        byDevice[device].push(row);
+      }
+
+      for (const [device, rows] of Object.entries(byDevice)) {
+        const totalEvents = rows.reduce((sum, r) => sum + Number(r.events), 0);
+        print(`  ${device} (${totalEvents} events)`);
+        // Show top 3 paths for this device
+        const pathCounts: Record<string, number> = {};
+        for (const r of rows) {
+          const key = `${r.event_type}: ${r.path}`;
+          pathCounts[key] = (pathCounts[key] || 0) + Number(r.events);
+        }
+        const topPaths = Object.entries(pathCounts)
+          .sort((a, b) => b[1] - a[1])
+          .slice(0, 3);
+        for (const [path, count] of topPaths) {
+          muted(`    ${String(count).padStart(3)} │ ${path}`);
+        }
+      }
+
+      // Total excluded
+      const totalDev = devTraffic.data.reduce((sum, r) => sum + Number(r.events), 0);
+      muted(`\n  (${totalDev} total dev events excluded from unique counts)`);
+    }
+  } catch {
+    blank();
+    muted('Dev traffic: (query failed)');
   }
 
   blank();
