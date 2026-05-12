@@ -205,8 +205,8 @@ export function trackEvent(
 function parseVisitorFields(data: Record<string, unknown>): VisitorFields {
   const fields: VisitorFields = {};
 
-  // Visitor ID: must be a valid UUID (36 chars with dashes)
-  if (typeof data.vid === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(data.vid)) {
+  // Visitor ID: alphanumeric string, 16-36 chars (UUID or fallback format)
+  if (typeof data.vid === 'string' && data.vid.length >= 16 && data.vid.length <= 36 && /^[a-z0-9-]+$/i.test(data.vid)) {
     fields.vid = data.vid.toLowerCase();
   }
 

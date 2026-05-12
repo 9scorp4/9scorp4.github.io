@@ -155,7 +155,9 @@ const fullImageUrl = `${siteUrl}${ogImagePath}`;
         try {
           vid = localStorage.getItem('jardin-vid');
           if (!vid) {
-            vid = crypto.randomUUID();
+            // Use crypto.randomUUID if available, otherwise fallback
+            vid = crypto.randomUUID?.() ??
+              (Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2) + Date.now().toString(36)).slice(0, 36);
             localStorage.setItem('jardin-vid', vid);
           }
           isDev = localStorage.getItem('jardin-dev') === '1';
