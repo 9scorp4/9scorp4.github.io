@@ -15,6 +15,7 @@ export interface InterpolationContext {
   object: string;
   subject: string;
   event: string;
+  season: string;
   metric: string;
   cadence: string;
   minimalPair1: [string, string];
@@ -64,6 +65,7 @@ export function interpolatePrompt(): InterpolatedPrompt {
     object: pickRandom(dictionaries.objects),
     subject: pickRandom(dictionaries.subjects),
     event: pickRandom(dictionaries.events),
+    season: pickRandom(dictionaries.seasons),
     metric: pickRandom(dictionaries.metrics),
     cadence: pickRandom(dictionaries.cadences),
     minimalPair1: pickRandom(dictionaries.minimal_pairs) as [string, string],
@@ -79,6 +81,7 @@ export function interpolatePrompt(): InterpolatedPrompt {
     .replace('{{OBJECT}}', context.object)
     .replace('{{SUBJECT}}', context.subject)
     .replace('{{EVENT}}', context.event)
+    .replace('{{SEASON}}', context.season)
     .replace('{{METRIC}}', context.metric)
     .replace('{{CADENCE}}', context.cadence)
     .replace('{{MINIMAL_PAIR_1}}', formatMinimalPair(context.minimalPair1))

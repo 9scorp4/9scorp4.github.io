@@ -10,7 +10,7 @@ import {
 } from './prompt';
 
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
-const DAILY_POEM_TTL = 93600; // 26 hours
+// No TTL — poems persist until pruned by rating system or admin
 
 /**
  * Generate a 12-character hash from poem text for identification
@@ -132,9 +132,7 @@ export async function storeDailyPoem(
     generatedAt: new Date().toISOString(),
   };
 
-  await kv.put(`bonjour:daily:${dateKey}`, JSON.stringify(stored), {
-    expirationTtl: DAILY_POEM_TTL,
-  });
+  await kv.put(`bonjour:daily:${dateKey}`, JSON.stringify(stored));
 }
 
 /**
