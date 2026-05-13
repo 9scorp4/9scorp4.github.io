@@ -251,7 +251,7 @@ export default function myceliumDataIntegration(): AstroIntegration {
               if (frontmatter.draft) continue; // Skip drafts
 
               // Collect all markdown bodies for wikilink extraction
-              const wikilinks: string[] = [];
+              const wikilinks: WikilinkData[] = [];
 
               // Read _article.md if exists
               try {
