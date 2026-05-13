@@ -74,11 +74,14 @@ export interface CommandContext {
   getAwaitingConfirmation: () => 'olvidar' | null;
 }
 
-// Command handler signature
+// Raw handler signature (used by command modules)
 export type CommandHandler = (args: string, ctx: CommandContext) => void | Promise<void>;
 
-// Command registry type
-export type CommandRegistry = Record<string, CommandHandler>;
+// Wrapped handler signature (stored in registry after context injection)
+export type WrappedCommandHandler = (args: string) => void | Promise<void>;
+
+// Command registry stores wrapped handlers
+export type CommandRegistry = Record<string, WrappedCommandHandler>;
 
 // Parsed command structure
 export interface ParsedCommand {
