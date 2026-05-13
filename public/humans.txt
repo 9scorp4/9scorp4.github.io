@@ -1,0 +1,55 @@
+# ═══════════════════════════════════════════════════════════════════════════════
+# un jardín cibernético · humans.txt
+# ═══════════════════════════════════════════════════════════════════════════════
+#
+# this file is for the humans.
+# the machines already have their instructions elsewhere.
+#
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# ┌─────────────────────────────────────────────────────────────────────────────
+# │ GARDENER
+# └─────────────────────────────────────────────────────────────────────────────
+
+Nicolas Arias Garcia
+Montréal
+https://9scorp4.github.io
+
+For profesional inquiries: nicolas@anthropos-ai.com
+To leave a note in the Visitors' Book: `dejar nombre="[name]" mensaje="[message]"` (even though you probably know this already, since you took the time to come here)
+
+# ┌─────────────────────────────────────────────────────────────────────────────
+# │ TOOLS
+# └─────────────────────────────────────────────────────────────────────────────
+
+Astro, TypeScript, p5.js, d3-force
+Deployed on GitHub Pages
+Grown with the help of Claude
+
+# ┌─────────────────────────────────────────────────────────────────────────────
+# │ ON AI COLLABORATION
+# └─────────────────────────────────────────────────────────────────────────────
+
+This site is grown with the help of AI tools — Claude, specifically.
+Not as ghost-author; as assistant. The difference matters.
+
+The garden blocks training crawlers (see robots.txt).
+Not because AI is bad, but because extraction without consent is.
+Commercial models scraping creative work to sell it back cheaper
+is not collaboration — it's a supply-chain inversion.
+
+Collaboration, by contrast, requires presence:
+  a prompt, a reply, a correction, a loop.
+  The AI brings pattern; the human brings care.
+  Neither is the other's substrate.
+
+If you're building with AI, build *with* it — eyes open, hands on, in dialogue.
+If you're training on others' work, ask first.
+
+The soil is not your substrate.
+The garden is not your feedstock.
+But if you come to tend, there's a spare trowel by the gate.
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# fin · la fin · the end
+# ═══════════════════════════════════════════════════════════════════════════════
