@@ -10,36 +10,17 @@
  *   jardin insta batch --publish     Generate and schedule to Buffer
  */
 
-import { mkdir, writeFile, readFile, readdir, stat } from 'node:fs/promises';
-import { join } from 'node:path';
-import * as yaml from 'yaml';
+import { mkdir, writeFile } from 'node:fs/promises';
 import {
   loadFonts,
-  generatePng,
 } from '../../../src/lib/shared-image-utils.ts';
 import {
-  QuoteTemplate,
-  TitleTemplate,
-  StatusTemplate,
-  MetalogueTemplate,
   INSTA_DIMENSIONS,
   type InstaFormat,
 } from '../../../src/lib/insta-templates.tsx';
-import type { MetalogueFragment } from '../../../src/lib/insta-templates.tsx';
-import {
-  generateQRDataUrl,
-  getContentUrl,
-  type ExtendedQuoteMetadata,
-  type ExtendedTitleMetadata,
-} from '../../../src/lib/qr-utils.ts';
 import {
   generateCaption,
   createPostMetadata,
-  type TemplateType,
-  type StatusMetadata,
-  type TitleMetadata,
-  type QuoteMetadata,
-  type MetalogueMetadata,
   type SavedPostMetadata,
 } from '../../../src/lib/insta-captions.ts';
 import { uploadToR2 } from '../../../src/lib/r2-client.ts';
@@ -48,339 +29,38 @@ import {
   createPost,
   createCarouselPost,
   formatScheduledTime,
-  getOrganizationId,
-  getScheduledPosts,
   type BufferConfig,
 } from '../../../src/lib/buffer-client.ts';
 import { title, print, success, error, muted, blank, divider, warning } from '../../lib/cli-style.ts';
-import { parseLocalDate, parseFrontmatter, extractBody, getProjectRoot, getOutputDir, getContentDir, parseFlags } from '../../lib/cli-utils.ts';
+import { getProjectRoot, getOutputDir, parseFlags } from '../../lib/cli-utils.ts';
+import {
+  loadJournalEntriesMap,
+  loadAhoraEntriesMap,
+  type JournalEntry,
+  type AhoraEntry,
+} from '../../lib/content-loaders.ts';
+import {
+  loadBatchQueue,
+  findPublishedEntries,
+  isEntryPublished,
+  isJournalEntry,
+  type QueueEntry,
+} from '../../lib/batch-queue.ts';
+import {
+  getScheduleTime,
+  getNextAvailableSlot,
+} from '../../lib/insta-publisher.ts';
+import {
+  generateBatch,
+  type ResolvedBatch,
+  type PostToPublish,
+} from '../../lib/batch-generator.ts';
 
 const PROJECT_ROOT = getProjectRoot();
 const OUTPUT_DIR = getOutputDir();
-const CONTENT_DIR = getContentDir();
 
 const FORMAT: InstaFormat = 'square';
 const dimensions = INSTA_DIMENSIONS[FORMAT];
-
-// ─────────────────────────────────────────────────────────────
-// Types
-// ─────────────────────────────────────────────────────────────
-
-/** Entry from batch-queue.yaml: journal entry with quotes */
-interface JournalQueueEntry {
-  slug: string;
-  quotes: string[];
-  metalogue?: Array<{ speaker: string; line: string }>;
-}
-
-/** Entry from batch-queue.yaml: status-only (ahora without journal) */
-interface StatusOnlyQueueEntry {
-  ahoraDate: string;
-}
-
-type QueueEntry = JournalQueueEntry | StatusOnlyQueueEntry;
-
-function isJournalEntry(entry: QueueEntry): entry is JournalQueueEntry {
-  return 'slug' in entry;
-}
-
-/** Loaded journal entry from content */
-interface JournalEntry {
-  slug: string;
-  title: string;
-  titleSecondary?: string;
-  date: Date;
-  type: 'article' | 'diptych';
-  draft: boolean;
-}
-
-/** Loaded ahora dispatch from content */
-interface AhoraEntry {
-  date: Date;
-  dateStr: string;
-  temperatura?: string;
-  escuchando?: string;
-  cultivando?: string;
-  articuloNuevo?: string[];
-}
-
-/** Resolved batch ready for generation */
-interface ResolvedBatch {
-  slug?: string;
-  journal?: JournalEntry;
-  ahora?: AhoraEntry;
-  quotes?: string[];
-  metalogue?: Array<{ speaker: string; line: string }>;
-  batchType: 'full' | 'status-only';
-}
-
-/** Generated image info */
-interface GeneratedImage {
-  path: string;
-  filename: string;
-  type: TemplateType;
-  metadata: StatusMetadata | TitleMetadata | QuoteMetadata | MetalogueMetadata;
-  isCarouselPart?: boolean;
-  carouselIndex?: number;
-  carouselTotal?: number;
-}
-
-/** Post ready for publishing */
-interface PostToPublish {
-  type: 'single' | 'carousel';
-  templateType: TemplateType;
-  images: GeneratedImage[];
-  metadata: StatusMetadata | TitleMetadata | QuoteMetadata | MetalogueMetadata;
-  batchIdx: number;
-  postIdx: number;
-}
-
-/** Published entry info from metadata JSON */
-interface PublishedInfo {
-  slug?: string;
-  date?: string;
-  templateType: TemplateType;
-}
-
-// ─────────────────────────────────────────────────────────────
-// Queue loading
-// ─────────────────────────────────────────────────────────────
-
-interface BatchQueue {
-  entries: QueueEntry[];
-}
-
-async function loadBatchQueue(): Promise<BatchQueue> {
-  const queuePath = join(PROJECT_ROOT, 'cli', 'batch-queue.yaml');
-
-  let content: string;
-  try {
-    content = await readFile(queuePath, 'utf-8');
-  } catch (err) {
-    if ((err as NodeJS.ErrnoException).code === 'ENOENT') {
-      throw new Error(
-        `batch-queue.yaml not found.\n\n` +
-        `Create cli/batch-queue.yaml with entries to generate:\n\n` +
-        `  entries:\n` +
-        `    - slug: my-entry\n` +
-        `      quotes:\n` +
-        `        - "Quote from the article..."\n`
-      );
-    }
-    throw err;
-  }
-
-  const queue = yaml.parse(content) as BatchQueue;
-
-  if (!queue.entries || !Array.isArray(queue.entries)) {
-    throw new Error('batch-queue.yaml must have an "entries" array');
-  }
-
-  // Validate entries
-  for (let i = 0; i < queue.entries.length; i++) {
-    const entry = queue.entries[i];
-    if (isJournalEntry(entry)) {
-      if (!entry.slug || typeof entry.slug !== 'string') {
-        throw new Error(`Entry ${i + 1}: missing or invalid "slug"`);
-      }
-      if (!entry.quotes || !Array.isArray(entry.quotes) || entry.quotes.length === 0) {
-        throw new Error(`Entry ${i + 1} (${entry.slug}): missing or empty "quotes" array`);
-      }
-    } else if ('ahoraDate' in entry) {
-      if (!entry.ahoraDate || !/^\d{4}-\d{2}-\d{2}$/.test(entry.ahoraDate)) {
-        throw new Error(`Entry ${i + 1}: invalid "ahoraDate" format (use YYYY-MM-DD)`);
-      }
-    } else {
-      throw new Error(`Entry ${i + 1}: must have either "slug" + "quotes" or "ahoraDate"`);
-    }
-  }
-
-  return queue;
-}
-
-// ─────────────────────────────────────────────────────────────
-// Content loading
-// ─────────────────────────────────────────────────────────────
-
-async function loadJournalEntries(): Promise<Map<string, JournalEntry>> {
-  const journalDir = join(CONTENT_DIR, 'journal');
-  const entries = new Map<string, JournalEntry>();
-
-  let items: string[];
-  try {
-    items = await readdir(journalDir);
-  } catch {
-    return entries;
-  }
-
-  for (const item of items) {
-    const itemPath = join(journalDir, item);
-    const itemStat = await stat(itemPath);
-
-    if (itemStat.isDirectory()) {
-      const indexPath = join(itemPath, 'index.md');
-      try {
-        const content = await readFile(indexPath, 'utf-8');
-        const fm = parseFrontmatter(content);
-
-        if (!fm.draft) {
-          entries.set(item, {
-            slug: item,
-            title: fm.title as string,
-            titleSecondary: fm.title_secondary as string | undefined,
-            date: parseLocalDate(fm.date as string),
-            type: (fm.type as 'article' | 'diptych') || 'article',
-            draft: false,
-          });
-        }
-      } catch (err) {
-        if ((err as NodeJS.ErrnoException).code !== 'ENOENT') {
-          throw err;
-        }
-      }
-    }
-  }
-
-  return entries;
-}
-
-function formatEscuchando(fm: Record<string, unknown>): string | undefined {
-  const esc = fm.escuchando;
-  if (!esc) return undefined;
-
-  if (Array.isArray(esc) && esc.length > 0) {
-    const track = esc[0] as { artist?: string; title?: string };
-    if (track.artist && track.title) {
-      return `${track.artist} — ${track.title}`;
-    }
-  }
-
-  if (typeof esc === 'string') {
-    return esc;
-  }
-
-  return undefined;
-}
-
-async function loadAhoraEntries(): Promise<Map<string, AhoraEntry>> {
-  const ahoraDir = join(CONTENT_DIR, 'ahora');
-  const entries = new Map<string, AhoraEntry>();
-
-  let files: string[];
-  try {
-    files = await readdir(ahoraDir);
-  } catch {
-    return entries;
-  }
-
-  for (const file of files) {
-    if (!file.endsWith('.md')) continue;
-    const content = await readFile(join(ahoraDir, file), 'utf-8');
-    const fm = parseFrontmatter(content);
-    const body = extractBody(content);
-    const dateStr = fm.date as string;
-
-    const temperatura = body.match(/\*temperatura:\*\s*(.+)/i)?.[1]?.trim();
-    const cultivando =
-      body.match(/\*creciendo:\*\s*(.+)/i)?.[1]?.trim() ||
-      body.match(/\*cultivando:\*\s*(.+)/i)?.[1]?.trim();
-    const escuchando =
-      formatEscuchando(fm) ||
-      body.match(/\*escuchando:\*\s*(.+)/i)?.[1]?.trim();
-
-    // Extract articuloNuevo references
-    let articuloNuevo: string[] | undefined;
-    if (Array.isArray(fm.articuloNuevo)) {
-      articuloNuevo = (fm.articuloNuevo as Array<{ article?: string }>)
-        .map(a => a.article)
-        .filter((a): a is string => !!a);
-    }
-
-    entries.set(dateStr, {
-      date: parseLocalDate(dateStr),
-      dateStr,
-      temperatura,
-      escuchando,
-      cultivando,
-      articuloNuevo,
-    });
-  }
-
-  return entries;
-}
-
-// ─────────────────────────────────────────────────────────────
-// Published detection
-// ─────────────────────────────────────────────────────────────
-
-async function findPublishedEntries(): Promise<PublishedInfo[]> {
-  const published: PublishedInfo[] = [];
-
-  let files: string[];
-  try {
-    files = await readdir(OUTPUT_DIR);
-  } catch {
-    return published;
-  }
-
-  for (const file of files) {
-    if (!file.endsWith('.json')) continue;
-    try {
-      const content = await readFile(join(OUTPUT_DIR, file), 'utf-8');
-      const meta = JSON.parse(content) as SavedPostMetadata;
-
-      if (meta.published) {
-        const info: PublishedInfo = { templateType: meta.templateType };
-
-        // Extract slug from metadata if present
-        if ('slug' in meta.metadata) {
-          info.slug = meta.metadata.slug as string;
-        }
-
-        // Extract date from metadata
-        if ('date' in meta.metadata) {
-          const dateVal = (meta.metadata as { date: string | Date }).date;
-          if (typeof dateVal === 'string') {
-            info.date = dateVal.split('T')[0];
-          } else if (dateVal instanceof Date) {
-            info.date = dateVal.toISOString().split('T')[0];
-          }
-        }
-
-        published.push(info);
-      }
-    } catch {
-      // Skip invalid JSON
-    }
-  }
-
-  return published;
-}
-
-function isEntryPublished(
-  entry: QueueEntry,
-  published: PublishedInfo[]
-): boolean {
-  if (isJournalEntry(entry)) {
-    // Check if title and quote cards are published for this slug
-    const hasTitle = published.some(
-      p => p.templateType === 'title' && p.slug === entry.slug
-    );
-    const hasQuote = published.some(
-      p => p.templateType === 'quote' && p.slug === entry.slug
-    );
-    // If entry has metalogue, also check if metalogue is published
-    const hasMetalogue = entry.metalogue
-      ? published.some(p => p.templateType === 'metalogue' && p.slug === entry.slug)
-      : true; // No metalogue required = consider fulfilled
-    return hasTitle && hasQuote && hasMetalogue;
-  } else {
-    // Check if status card is published for this date
-    return published.some(
-      p => p.templateType === 'status' && p.date === entry.ahoraDate
-    );
-  }
-}
 
 // ─────────────────────────────────────────────────────────────
 // Batch resolution
@@ -390,7 +70,6 @@ function matchAhoraToJournal(
   slug: string,
   ahoraEntries: Map<string, AhoraEntry>
 ): AhoraEntry | undefined {
-  // Find ahora that references this journal entry via articuloNuevo
   for (const ahora of ahoraEntries.values()) {
     if (ahora.articuloNuevo?.includes(slug)) {
       return ahora;
@@ -438,66 +117,6 @@ function resolveQueueEntry(
 // ─────────────────────────────────────────────────────────────
 // Publishing
 // ─────────────────────────────────────────────────────────────
-
-/**
- * Calculate schedule time for a post based on the next available slot.
- * Time slots are 9 AM, 1 PM, 5 PM (3 slots per day, 4-hour spacing).
- * After 5 PM, rolls to next day at 9 AM.
- */
-function getScheduleTime(baseTime: Date, postIndex: number): Date {
-  const SLOTS_PER_DAY = 4;
-  const SLOT_HOURS = [9, 13, 17, 21]; // 9 AM, 1 PM, 5 PM, 9 PM
-
-  // Find base slot index (which slot in the day is baseTime?)
-  const baseHour = baseTime.getHours();
-  let baseSlotIndex = SLOT_HOURS.findIndex(h => h === baseHour);
-  if (baseSlotIndex === -1) baseSlotIndex = 0; // Default to 9 AM slot
-
-  // Calculate total slot offset
-  const totalSlot = baseSlotIndex + postIndex;
-  const daysOffset = Math.floor(totalSlot / SLOTS_PER_DAY);
-  const slotInDay = totalSlot % SLOTS_PER_DAY;
-
-  const scheduled = new Date(baseTime);
-  scheduled.setDate(scheduled.getDate() + daysOffset);
-  scheduled.setHours(SLOT_HOURS[slotInDay], 0, 0, 0);
-
-  return scheduled;
-}
-
-/**
- * Calculate the next available scheduling slot based on existing Buffer queue.
- * Returns tomorrow 9 AM if queue is empty, otherwise 4 hours after latest queued post.
- */
-async function getNextAvailableSlot(bufferConfig: BufferConfig): Promise<Date> {
-  const orgId = await getOrganizationId(bufferConfig.apiKey, bufferConfig.channelId);
-  const queue = await getScheduledPosts(bufferConfig.apiKey, orgId, bufferConfig.channelId);
-
-  if (queue.length === 0) {
-    // Empty queue: start tomorrow 9 AM
-    const nextSlot = new Date();
-    nextSlot.setDate(nextSlot.getDate() + 1);
-    nextSlot.setHours(9, 0, 0, 0);
-    return nextSlot;
-  }
-
-  // Find latest scheduled time
-  const latestDue = queue
-    .map(p => new Date(p.dueAt))
-    .sort((a, b) => b.getTime() - a.getTime())[0];
-
-  // Add 4 hours after latest
-  const nextSlot = new Date(latestDue);
-  nextSlot.setHours(nextSlot.getHours() + 4);
-
-  // Roll to next day if past 9 PM
-  if (nextSlot.getHours() > 21) {
-    nextSlot.setDate(nextSlot.getDate() + 1);
-    nextSlot.setHours(9, 0, 0, 0);
-  }
-
-  return nextSlot;
-}
 
 async function publishPost(
   post: PostToPublish,
@@ -552,196 +171,6 @@ async function publishPost(
 }
 
 // ─────────────────────────────────────────────────────────────
-// Generation
-// ─────────────────────────────────────────────────────────────
-
-async function generateBatch(
-  batch: ResolvedBatch,
-  batchIdx: number,
-  fonts: Awaited<ReturnType<typeof loadFonts>>,
-  postsToPublish: PostToPublish[]
-): Promise<number> {
-  let totalCards = 0;
-  let postIdxInBatch = 0;
-  const batchNum = batchIdx + 1;
-
-  // 1. Status card (if ahora exists)
-  if (batch.ahora) {
-    const statusMeta: StatusMetadata = {
-      date: batch.ahora.date,
-      temperatura: batch.ahora.temperatura,
-      escuchando: batch.ahora.escuchando,
-      cultivando: batch.ahora.cultivando,
-    };
-    const statusQrUrl = await generateQRDataUrl(getContentUrl('status', statusMeta));
-    const statusElement = StatusTemplate({
-      ...statusMeta,
-      format: FORMAT,
-      qrDataUrl: statusQrUrl,
-    });
-    const statusFilename = `batch${batchNum}-01-status-${batch.ahora.dateStr}.png`;
-    const statusPath = join(OUTPUT_DIR, statusFilename);
-    const statusPng = await generatePng(statusElement, fonts, dimensions);
-    await writeFile(statusPath, statusPng);
-    success(`[1] ${statusFilename}`);
-    totalCards++;
-
-    postsToPublish.push({
-      type: 'single',
-      templateType: 'status',
-      images: [{ path: statusPath, filename: statusFilename, type: 'status', metadata: statusMeta }],
-      metadata: statusMeta,
-      batchIdx,
-      postIdx: postIdxInBatch++,
-    });
-  }
-
-  // 2. Title card (if journal exists)
-  if (batch.journal) {
-    const titleMeta: TitleMetadata & { slug: string } = {
-      title: batch.journal.title,
-      titleSecondary: batch.journal.titleSecondary,
-      date: batch.journal.date,
-      isDiptych: batch.journal.type === 'diptych',
-      slug: batch.journal.slug,
-    };
-    const titleQrUrl = await generateQRDataUrl(getContentUrl('title', titleMeta));
-    const titleElement = TitleTemplate({
-      title: batch.journal.title,
-      titleSecondary: batch.journal.titleSecondary,
-      date: batch.journal.date,
-      isDiptych: batch.journal.type === 'diptych',
-      format: FORMAT,
-      qrDataUrl: titleQrUrl,
-    });
-    const titleFilename = `batch${batchNum}-02-title-${batch.journal.slug}.png`;
-    const titlePath = join(OUTPUT_DIR, titleFilename);
-    const titlePng = await generatePng(titleElement, fonts, dimensions);
-    await writeFile(titlePath, titlePng);
-    success(`[2] ${titleFilename}`);
-    totalCards++;
-
-    postsToPublish.push({
-      type: 'single',
-      templateType: 'title',
-      images: [{ path: titlePath, filename: titleFilename, type: 'title', metadata: titleMeta }],
-      metadata: titleMeta,
-      batchIdx,
-      postIdx: postIdxInBatch++,
-    });
-
-    // 3. Quote carousel (if quotes exist)
-    if (batch.quotes && batch.quotes.length > 0) {
-      const quoteMeta: QuoteMetadata & { slug: string } = {
-        quote: batch.quotes.join(' '),
-        sourceTitle: batch.journal.title,
-        date: batch.journal.date,
-        slug: batch.journal.slug,
-      };
-      const quoteQrUrl = await generateQRDataUrl(getContentUrl('quote', quoteMeta));
-      const carouselImages: GeneratedImage[] = [];
-
-      for (let i = 0; i < batch.quotes.length; i++) {
-        const isLast = i === batch.quotes.length - 1;
-        const quoteElement = QuoteTemplate({
-          quote: batch.quotes[i],
-          sourceTitle: batch.journal.title,
-          date: batch.journal.date,
-          format: FORMAT,
-          qrDataUrl: isLast ? quoteQrUrl : undefined,
-        });
-        const slideNum = String(i + 1).padStart(2, '0');
-        const quoteFilename = `batch${batchNum}-03-quote-${slideNum}.png`;
-        const quotePath = join(OUTPUT_DIR, quoteFilename);
-        const quotePng = await generatePng(quoteElement, fonts, dimensions);
-        await writeFile(quotePath, quotePng);
-        success(`[3.${i + 1}] ${quoteFilename}`);
-        totalCards++;
-
-        carouselImages.push({
-          path: quotePath,
-          filename: quoteFilename,
-          type: 'quote',
-          metadata: quoteMeta,
-          isCarouselPart: true,
-          carouselIndex: i,
-          carouselTotal: batch.quotes.length,
-        });
-      }
-
-      postsToPublish.push({
-        type: 'carousel',
-        templateType: 'quote',
-        images: carouselImages,
-        metadata: quoteMeta,
-        batchIdx,
-        postIdx: postIdxInBatch++,
-      });
-    }
-
-    // 4. Metalogue carousel (if metalogue fragments exist and journal is diptych)
-    if (batch.metalogue && batch.metalogue.length > 0 && batch.journal.type === 'diptych') {
-      const metalogueFragments = batch.metalogue as MetalogueFragment[];
-      const metalogueMeta: MetalogueMetadata = {
-        fragments: metalogueFragments,
-        sourceTitle: batch.journal.title,
-        date: batch.journal.date,
-        slug: batch.journal.slug,
-      };
-      const metalogueQrUrl = await generateQRDataUrl(getContentUrl('metalogue', metalogueMeta));
-
-      // Group fragments into slides (2-3 per slide)
-      const slides: MetalogueFragment[][] = [];
-      const FRAGMENTS_PER_SLIDE = 3;
-      for (let i = 0; i < metalogueFragments.length; i += FRAGMENTS_PER_SLIDE) {
-        slides.push(metalogueFragments.slice(i, i + FRAGMENTS_PER_SLIDE));
-      }
-
-      const metalogueCarouselImages: GeneratedImage[] = [];
-
-      for (let i = 0; i < slides.length; i++) {
-        const isLast = i === slides.length - 1;
-        const metalogueElement = MetalogueTemplate({
-          fragments: slides[i],
-          sourceTitle: batch.journal.title,
-          date: batch.journal.date,
-          format: FORMAT,
-          qrDataUrl: isLast ? metalogueQrUrl : undefined,
-        });
-        const slideNum = String(i + 1).padStart(2, '0');
-        const metalogueFilename = `batch${batchNum}-04-metalogue-${slideNum}.png`;
-        const metaloguePath = join(OUTPUT_DIR, metalogueFilename);
-        const metaloguePng = await generatePng(metalogueElement, fonts, dimensions);
-        await writeFile(metaloguePath, metaloguePng);
-        success(`[4.${i + 1}] ${metalogueFilename}`);
-        totalCards++;
-
-        metalogueCarouselImages.push({
-          path: metaloguePath,
-          filename: metalogueFilename,
-          type: 'metalogue',
-          metadata: metalogueMeta,
-          isCarouselPart: true,
-          carouselIndex: i,
-          carouselTotal: slides.length,
-        });
-      }
-
-      postsToPublish.push({
-        type: slides.length > 1 ? 'carousel' : 'single',
-        templateType: 'metalogue',
-        images: metalogueCarouselImages,
-        metadata: metalogueMeta,
-        batchIdx,
-        postIdx: postIdxInBatch++,
-      });
-    }
-  }
-
-  return totalCards;
-}
-
-// ─────────────────────────────────────────────────────────────
 // Main
 // ─────────────────────────────────────────────────────────────
 
@@ -773,7 +202,7 @@ export async function run(args: string[], publishMode = false): Promise<void> {
 
   // Load batch queue
   print('loading batch queue...');
-  let queue: BatchQueue;
+  let queue;
   try {
     queue = await loadBatchQueue();
     success(`${queue.entries.length} entries in queue`);
@@ -785,8 +214,8 @@ export async function run(args: string[], publishMode = false): Promise<void> {
   // Load content
   print('loading content...');
   const [journalEntries, ahoraEntries, published] = await Promise.all([
-    loadJournalEntries(),
-    loadAhoraEntries(),
+    loadJournalEntriesMap(),
+    loadAhoraEntriesMap(),
     findPublishedEntries(),
   ]);
   success(`${journalEntries.size} journal entries, ${ahoraEntries.size} ahora dispatches`);
