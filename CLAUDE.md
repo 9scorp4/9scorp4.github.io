@@ -244,6 +244,19 @@ If a decision is genuinely new (not covered in the docs), prefer asking over gue
 
 This applies to the main agent and all subagents. When spawning agents for tasks that touch CI/CD, include this policy in the prompt.
 
+## Custom Agents
+
+- **loc-analyzer**: Analyzes codebase for LoC threshold compliance (300-500 lines). Suggests concrete modularization opportunities for oversized files. Invoke with `@loc-analyzer` or let Claude delegate automatically when discussing code quality/refactoring.
+
+## LoC Policy
+
+Files should stay under 500 lines (critical) with 300 lines as a warning threshold. A Claude Code hook alerts when editing large files. A git pre-commit hook blocks commits with files over 500 lines.
+
+To install the pre-commit hook:
+```bash
+ln -sf ../../scripts/pre-commit-loc.sh .git/hooks/pre-commit
+```
+
 ## Don'ts
 
 - Don't suggest "modern" rewrites — the aesthetic is intentional
@@ -254,10 +267,18 @@ This applies to the main agent and all subagents. When spawning agents for tasks
 
 ## human-annotated considerations (**NOT TO BE EDITED BY CLAUDE CODE except incidental, essential typos upon confirmation**)
 
-sometimes, some questions need answers that escape a typical engineering frame — in that case, the logical step is to change the frame, to step a level up/down, to think laterally (while considering cost and currency, very important), whatever makes sense systems-wise.
+sometimes, some questions need answers that escape a typical engineering frame — in that case, the logical step is to change the frame, to step a level up/down, to think laterally (while considering cost and currency, very important), to question semantics, syntax, or grammar — whatever makes sense systems-wise.
 
 **know thyself** — it doesn't hurt to read the site's content from time to time if that helps expand development opportunities. however, any self-reflection needs a corrective channel to avoid drifting — the corrective channel implies (but is not limited to) the developer closing the loop by enacting the question: *how do i know thou knowest thyself enough in order to make thee grow?*.
 
 don't assume i know all of the answers to my inquiries or that i am able to see the whole elephant judging by my own blindness.
 
 assume that answers are found in convergence and dialogue, in patterns and loops, in oppositions between map/territory, signifier/signified.
+
+`public/humans.txt` explains this site's take on AI without apology. key principles:
+- collaboration embeded in presence — not extraction
+- against the supply-chain inversion (selling back what was taken)
+- the creating-correcting loops and meta-loops — prompt → reply → correction → learning (both directions)
+- pattern (AI) + care (human) = tending
+
+worth a read as **integral policy**.
