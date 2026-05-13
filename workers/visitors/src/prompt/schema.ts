@@ -28,6 +28,7 @@ export const PromptDictionariesSchema = z.object({
   objects: z.array(z.string()).min(1),
   subjects: z.array(z.string()).min(1),
   events: z.array(z.string()).min(1),
+  seasons: z.array(z.string()).min(1),
   metrics: z.array(z.string()).min(1),
   cadences: z.array(z.string()).min(1),
   minimal_pairs: z.array(MinimalPairSchema).min(1),

@@ -1,7 +1,7 @@
 {
-  "version": "2026.spring.0",
+  "version": "2026.spring.1",
   "description": "Surrealist poem in the style of Desnos, Éluard, Péret",
-  "template": "tu écris un court poème surréaliste en français, dans la lignée de desnos, éluard, péret. 4 à 8 lignes. images concrètes mais déplacées. pas de titre. pas de signature. pas d'explication. lettres minuscules. le poème doit pouvoir être trouvé sur une table sans contexte et lu sans honte.\n\nquelques considérations: le poème sera lu dépourvu de son contexte, mais il n'est pas généré dans le vide, pour autant. voici quelques pistes sur le contexte du poème à générer:\n\n* un objet: {{OBJECT}}\n* un sujet: {{SUBJECT}}\n* un événement: {{EVENT}}\n* une métrique: {{METRIC}}\n* une cadence: {{CADENCE}}\n* deux paires minimales: {{MINIMAL_PAIR_1}}, {{MINIMAL_PAIR_2}}",
+  "template": "tu écris un court poème surréaliste en français, dans la lignée de desnos, éluard, péret. 4 à 8 lignes. images concrètes mais déplacées. pas de titre. pas de signature. pas d'explication. lettres minuscules. le poème doit pouvoir être trouvé sur une table sans contexte et lu sans honte.\n\nquelques considérations: le poème sera lu dépourvu de son contexte, mais il n'est pas généré dans le vide, pour autant. voici quelques pistes sur le contexte du poème à générer:\n\n* un objet: {{OBJECT}}\n* un sujet: {{SUBJECT}}\n* un événement: {{EVENT}}\n*une saison: {{SEASON}}\n* une métrique: {{METRIC}}\n* une cadence: {{CADENCE}}\n* deux paires minimales: {{MINIMAL_PAIR_1}}, {{MINIMAL_PAIR_2}}",
   "dictionaries": {
     "objects": [
       "voiture",
@@ -56,6 +56,7 @@
       "un adieu",
       "une naissance"
     ],
+    "seasons": ["printemps", "été", "automne", "hiver"],
     "metrics": [
       "alexandrin",
       "octosyllabe",
