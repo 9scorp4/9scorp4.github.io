@@ -1,0 +1,290 @@
+/**
+ * Output styles for VisitorsBook console.
+ * Extracted from VisitorsBook.astro for modularity.
+ *
+ * These styles target dynamically generated content in the console output.
+ * Import into VisitorsBook.astro via global scope.
+ */
+
+/* Output content styles */
+.visitors-book .console-output .output-line {
+  margin: 0 0 4px 0;
+}
+
+.visitors-book .console-output .output-line:last-child {
+  margin-bottom: 0;
+}
+
+.visitors-book .console-output .output-muted {
+  color: var(--ink-faint);
+  font-style: italic;
+}
+
+.visitors-book .console-output .output-fern {
+  color: var(--fern);
+}
+
+.visitors-book .console-output .output-ochre {
+  color: var(--ochre);
+}
+
+.visitors-book .console-output .output-sun {
+  color: var(--sun);
+}
+
+.visitors-book .console-output .output-quote {
+  font-style: italic;
+  color: var(--ink-soft);
+  padding-left: 12px;
+  border-left: 2px solid var(--paper-line);
+}
+
+.visitors-book .console-output .output-mono {
+  font-family: var(--font-mono);
+  font-size: 13px;
+}
+
+/* Season collapsibles */
+.visitors-book .console-output .season-header {
+  cursor: pointer;
+  padding: 4px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  user-select: none;
+}
+
+.visitors-book .console-output .season-header:hover {
+  color: var(--fern);
+}
+
+.visitors-book .console-output .season-chevron {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 14px;
+  color: var(--ink-faint);
+  min-width: 1ch;
+}
+
+.visitors-book .console-output .season-items {
+  display: none;
+  padding-left: 24px;
+  margin: 4px 0 8px 0;
+}
+
+.visitors-book .console-output .season-header.expanded + .season-items {
+  display: block;
+}
+
+.visitors-book .console-output .season-item {
+  padding: 2px 0;
+  color: var(--ink-soft);
+  display: flex;
+  gap: 1em;
+  align-items: baseline;
+}
+
+.visitors-book .console-output .season-item::before {
+  content: '·';
+  color: var(--ink-faint);
+}
+
+.visitors-book .console-output .season-item .output-mono {
+  color: var(--ink-faint);
+  flex-shrink: 0;
+}
+
+.visitors-book .console-output .season-item a {
+  color: var(--fern);
+  text-decoration: none;
+}
+
+.visitors-book .console-output .season-item a:hover {
+  text-decoration: underline;
+}
+
+/* Search results */
+.visitors-book .console-output .search-result {
+  padding: 6px 0;
+  border-bottom: 1px solid var(--paper-line);
+}
+
+.visitors-book .console-output .search-result:last-child {
+  border-bottom: none;
+}
+
+.visitors-book .console-output .search-result a {
+  color: var(--fern);
+  text-decoration: none;
+  font-style: italic;
+}
+
+.visitors-book .console-output .search-result a:hover {
+  text-decoration: underline;
+}
+
+.visitors-book .console-output .search-result .result-meta {
+  font-size: 13px;
+  color: var(--ink-faint);
+  margin-top: 2px;
+}
+
+/* Dismiss button */
+.visitors-book .console-output .dismiss-row {
+  margin-top: 12px;
+  padding-top: 8px;
+  border-top: 1px solid var(--paper-line);
+}
+
+.visitors-book .console-output .dismiss-btn {
+  font-family: var(--font-serif);
+  font-size: 13px;
+  font-style: italic;
+  color: var(--ink-faint);
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+.visitors-book .console-output .dismiss-btn:hover {
+  color: var(--fern);
+}
+
+.visitors-book .console-output .dismiss-btn:focus-visible {
+  outline: 2px solid var(--fern);
+  outline-offset: 2px;
+}
+
+/* Engagement counts */
+.visitors-book .console-output .engagement-line {
+  margin-top: 10px;
+  font-size: 13px;
+  font-family: var(--font-mono);
+}
+
+/* Poem rating row */
+.visitors-book .console-output .rating-row {
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.visitors-book .console-output .rating-btn {
+  font-family: var(--font-serif);
+  font-size: 13px;
+  font-style: italic;
+  color: var(--ink-faint);
+  background: none;
+  border: none;
+  padding: 2px 6px;
+  cursor: pointer;
+}
+
+.visitors-book .console-output .rating-btn[data-rating="bien"]:hover {
+  color: var(--fern);
+}
+
+.visitors-book .console-output .rating-btn[data-rating="bof"]:hover {
+  color: var(--ink);
+}
+
+.visitors-book .console-output .rating-btn[data-rating="nul"]:hover {
+  color: var(--terracotta);
+}
+
+.visitors-book .console-output .rating-sep {
+  color: var(--ink-faint);
+  font-size: 13px;
+}
+
+.visitors-book .console-output .rating-confirmed {
+  font-family: var(--font-serif);
+  font-size: 13px;
+  font-style: italic;
+  color: var(--ink-faint);
+}
+
+/* Jardin modal */
+.jardin-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(var(--ink-rgb, 45, 42, 38), 0.85);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.25s ease, visibility 0.25s ease;
+}
+
+.jardin-modal-backdrop[aria-hidden="false"] {
+  opacity: 1;
+  visibility: visible;
+}
+
+.jardin-modal {
+  background: var(--paper);
+  border: 2px solid var(--fern);
+  padding: 24px 32px;
+  max-width: 320px;
+  text-align: center;
+  transform: scale(0.96);
+  transition: transform 0.25s ease;
+}
+
+.jardin-modal-backdrop[aria-hidden="false"] .jardin-modal {
+  transform: scale(1);
+}
+
+.jardin-modal-title {
+  font-family: var(--font-serif);
+  font-size: 18px;
+  font-style: italic;
+  color: var(--fern);
+  margin: 0 0 8px 0;
+}
+
+.jardin-modal-body {
+  font-family: var(--font-serif);
+  font-size: 15px;
+  color: var(--ink-soft);
+  margin: 0 0 16px 0;
+  line-height: 1.5;
+}
+
+.jardin-modal-dismiss {
+  font-family: var(--font-serif);
+  font-size: 14px;
+  font-style: italic;
+  color: var(--ink-faint);
+  background: none;
+  border: none;
+  padding: 4px 12px;
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.jardin-modal-dismiss:hover {
+  color: var(--fern);
+}
+
+.jardin-modal-dismiss:focus-visible {
+  outline: 2px solid var(--fern);
+  outline-offset: 2px;
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .jardin-modal-backdrop {
+    backdrop-filter: none;
+    transition: none;
+  }
+
+  .jardin-modal {
+    transition: none;
+  }
+}
