@@ -1,0 +1,209 @@
+/**
+ * Legend styles for MyceliumCanvas.
+ * Extracted from MyceliumCanvas.astro for modularity.
+ */
+
+.mycelium-container .legend {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: var(--paper-deep);
+  border: 1px solid var(--paper-line);
+  font-family: var(--font-serif);
+  font-size: 12px;
+  color: var(--ink-soft);
+  opacity: 0.9;
+}
+
+.mycelium-container .legend-toggle {
+  padding: 6px 12px;
+  cursor: pointer;
+  font-style: italic;
+  color: var(--ink-faint);
+  list-style: none;
+  user-select: none;
+}
+
+.mycelium-container .legend-toggle::-webkit-details-marker {
+  display: none;
+}
+
+.mycelium-container .legend-toggle::before {
+  content: '\25b8 ';
+  font-style: normal;
+  font-size: 10px;
+}
+
+.mycelium-container .legend[open] .legend-toggle::before {
+  content: '\25be ';
+}
+
+.mycelium-container .legend-toggle:hover {
+  color: var(--ink-soft);
+}
+
+.mycelium-container .legend-content {
+  padding: 0 12px 8px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.mycelium-container .legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mycelium-container .legend-shape {
+  flex-shrink: 0;
+}
+
+.mycelium-container .legend-shape.circle {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.mycelium-container .legend-shape.square {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+}
+
+.mycelium-container .legend-shape.track {
+  background: var(--fern);
+}
+
+.mycelium-container .legend-shape.article {
+  background: #b8860b;
+}
+
+.mycelium-container .legend-shape.cultivation {
+  background: #9a7209;
+  width: 8px;
+  height: 8px;
+}
+
+.mycelium-container .legend-shape.dispatch {
+  background: #6b5435;
+  width: 8px;
+  height: 8px;
+}
+
+.mycelium-container .legend-shape.circle-hollow {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 1.5px solid;
+  box-sizing: border-box;
+}
+
+.mycelium-container .legend-shape.exit {
+  border-color: #8a7350;
+}
+
+.mycelium-container .legend-divider {
+  height: 1px;
+  background: var(--paper-line);
+  margin: 2px 0;
+}
+
+.mycelium-container .legend-line {
+  width: 16px;
+  height: 2px;
+  flex-shrink: 0;
+}
+
+.mycelium-container .legend-line.musical {
+  background: var(--paper-line);
+}
+
+.mycelium-container .legend-line.cite-section {
+  background: #b8860b;
+}
+
+.mycelium-container .legend-line.cite-text {
+  background: repeating-linear-gradient(
+    to right,
+    #b8860b 0px,
+    #b8860b 3px,
+    transparent 3px,
+    transparent 6px
+  );
+}
+
+.mycelium-container .legend-line.cite-block {
+  background: repeating-linear-gradient(
+    to right,
+    #b8860b 0px,
+    #b8860b 5px,
+    transparent 5px,
+    transparent 8px
+  );
+}
+
+.mycelium-container .legend-line.cite-heading {
+  background: repeating-linear-gradient(
+    to right,
+    #b8860b 0px,
+    #b8860b 2px,
+    transparent 2px,
+    transparent 5px,
+    #b8860b 5px,
+    #b8860b 9px,
+    transparent 9px,
+    transparent 12px
+  );
+}
+
+.mycelium-container .legend-line.exit-edge {
+  background: repeating-linear-gradient(
+    to right,
+    #8a7350 0px,
+    #8a7350 3px,
+    transparent 3px,
+    transparent 6px
+  );
+}
+
+.mycelium-container .legend-label {
+  color: var(--ink-faint);
+  font-style: italic;
+}
+
+@media (max-width: 500px) {
+  .mycelium-container .legend {
+    font-size: 11px;
+  }
+
+  .mycelium-container .legend-toggle {
+    padding: 5px 10px;
+  }
+
+  .mycelium-container .legend-content {
+    padding: 0 10px 6px 10px;
+    gap: 4px;
+  }
+
+  .mycelium-container .legend-shape.circle,
+  .mycelium-container .legend-shape.square {
+    width: 8px;
+    height: 8px;
+  }
+
+  .mycelium-container .legend-shape.circle-hollow {
+    width: 8px;
+    height: 8px;
+  }
+
+  .mycelium-container .legend-shape.cultivation,
+  .mycelium-container .legend-shape.dispatch {
+    width: 6px;
+    height: 6px;
+  }
+
+  .mycelium-container .legend-line {
+    width: 12px;
+  }
+}
