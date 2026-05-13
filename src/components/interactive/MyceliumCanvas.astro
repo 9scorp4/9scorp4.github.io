@@ -8,7 +8,7 @@ const workerUrl = import.meta.env.PUBLIC_VISITORS_WORKER_URL || '';
 ---
 
 <div class="mycelium-container">
-  <canvas id="mycelium-canvas" aria-label="Network visualization of connected songs and writings"></canvas>
+  <canvas id="mycelium-canvas" data-worker-url={workerUrl} aria-label="Network visualization of connected songs and writings"></canvas>
   <div id="mycelium-detail" class="detail-panel" aria-live="polite"></div>
   <details class="legend">
     <summary class="legend-toggle">legend</summary>
@@ -63,9 +63,6 @@ const workerUrl = import.meta.env.PUBLIC_VISITORS_WORKER_URL || '';
 </div>
 <div id="mycelium-attribution" class="mycelium-footer-attribution"></div>
 
-<script define:vars={{ workerUrl }}>
-  const _workerUrl = workerUrl;
-</script>
 <script>
   import type { Simulation } from 'd3-force';
   import {
@@ -79,9 +76,8 @@ const workerUrl = import.meta.env.PUBLIC_VISITORS_WORKER_URL || '';
     attachTouchHandlers,
   } from '../../lib/mycelium-canvas';
 
-  declare const _workerUrl: string;
-
   const canvas = document.getElementById('mycelium-canvas') as HTMLCanvasElement;
+  const workerUrl = canvas.dataset.workerUrl || '';
   const detailPanel = document.getElementById('mycelium-detail') as HTMLDivElement;
   const ctx = canvas.getContext('2d')!;
   const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -135,7 +131,7 @@ const workerUrl = import.meta.env.PUBLIC_VISITORS_WORKER_URL || '';
     getDraggedNode: () => draggedNode,
     setDraggedNode: (n: SimNode | null) => { draggedNode = n; },
     render,
-    workerUrl: _workerUrl,
+    workerUrl,
   };
 
   // Attach event handlers
