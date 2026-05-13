@@ -10,921 +10,137 @@ const workerUrl = import.meta.env.PUBLIC_VISITORS_WORKER_URL || '';
 <div class="mycelium-container">
   <canvas id="mycelium-canvas" aria-label="Network visualization of connected songs and writings"></canvas>
   <div id="mycelium-detail" class="detail-panel" aria-live="polite"></div>
-  <div class="legend">
-    <div class="legend-item">
-      <span class="legend-shape circle track"></span>
-      <span class="legend-label">track</span>
+  <details class="legend">
+    <summary class="legend-toggle">legend</summary>
+    <div class="legend-content">
+      <div class="legend-item">
+        <span class="legend-shape circle track"></span>
+        <span class="legend-label">track</span>
+      </div>
+      <div class="legend-item">
+        <span class="legend-shape square article"></span>
+        <span class="legend-label">article</span>
+      </div>
+      <div class="legend-item">
+        <span class="legend-shape square cultivation"></span>
+        <span class="legend-label">cultivation</span>
+      </div>
+      <div class="legend-item">
+        <span class="legend-shape square dispatch"></span>
+        <span class="legend-label">dispatch</span>
+      </div>
+      <div class="legend-item">
+        <span class="legend-shape circle-hollow exit"></span>
+        <span class="legend-label">exit</span>
+      </div>
+      <div class="legend-divider"></div>
+      <div class="legend-item">
+        <span class="legend-line musical"></span>
+        <span class="legend-label">musical</span>
+      </div>
+      <div class="legend-item">
+        <span class="legend-line cite-section"></span>
+        <span class="legend-label">cites &sect;</span>
+      </div>
+      <div class="legend-item">
+        <span class="legend-line cite-text"></span>
+        <span class="legend-label">cites text</span>
+      </div>
+      <div class="legend-item">
+        <span class="legend-line cite-block"></span>
+        <span class="legend-label">cites ^block</span>
+      </div>
+      <div class="legend-item">
+        <span class="legend-line cite-heading"></span>
+        <span class="legend-label">cites #heading</span>
+      </div>
+      <div class="legend-item">
+        <span class="legend-line exit-edge"></span>
+        <span class="legend-label">exit link</span>
+      </div>
     </div>
-    <div class="legend-item">
-      <span class="legend-shape square article"></span>
-      <span class="legend-label">article</span>
-    </div>
-    <div class="legend-item">
-      <span class="legend-shape square cultivation"></span>
-      <span class="legend-label">cultivation</span>
-    </div>
-    <div class="legend-item">
-      <span class="legend-shape square dispatch"></span>
-      <span class="legend-label">dispatch</span>
-    </div>
-    <div class="legend-item">
-      <span class="legend-shape circle-hollow exit"></span>
-      <span class="legend-label">exit</span>
-    </div>
-    <div class="legend-divider"></div>
-    <div class="legend-item">
-      <span class="legend-line musical"></span>
-      <span class="legend-label">musical</span>
-    </div>
-    <div class="legend-item">
-      <span class="legend-line cite-section"></span>
-      <span class="legend-label">cites §</span>
-    </div>
-    <div class="legend-item">
-      <span class="legend-line cite-text"></span>
-      <span class="legend-label">cites text</span>
-    </div>
-    <div class="legend-item">
-      <span class="legend-line cite-block"></span>
-      <span class="legend-label">cites ^block</span>
-    </div>
-    <div class="legend-item">
-      <span class="legend-line cite-heading"></span>
-      <span class="legend-label">cites #heading</span>
-    </div>
-    <div class="legend-item">
-      <span class="legend-line exit-edge"></span>
-      <span class="legend-label">exit link</span>
-    </div>
-  </div>
+  </details>
 </div>
 <div id="mycelium-attribution" class="mycelium-footer-attribution"></div>
 
 <script define:vars={{ workerUrl }}>
-  // workerUrl is injected via define:vars from the frontmatter
   const _workerUrl = workerUrl;
 </script>
 <script>
+  import type { Simulation } from 'd3-force';
   import {
-    forceSimulation,
-    forceLink,
-    forceManyBody,
-    forceCenter,
-    forceCollide,
-    forceRadial,
-    forceX,
-    forceY,
-    type Simulation,
-    type SimulationNodeDatum,
-    type SimulationLinkDatum,
-  } from 'd3-force';
+    type SimNode,
+    type SimLink,
+    type Transform,
+    draw,
+    loadGraph,
+    updateSimulationForResize,
+    attachMouseHandlers,
+    attachTouchHandlers,
+  } from '../../lib/mycelium-canvas';
 
-  // Get workerUrl from the inline script above
   declare const _workerUrl: string;
-
-  /**
-   * Track node click for analytics
-   */
-  function trackNodeClick(node: SimNode) {
-    if (!_workerUrl || navigator.doNotTrack === '1') return;
-
-    // Get visitor tracking fields
-    let vid: string | undefined;
-    let isDev = false;
-    let devId: string | undefined;
-    try {
-      vid = localStorage.getItem('jardin-vid') || undefined;
-      isDev = localStorage.getItem('jardin-dev') === '1';
-      if (isDev) {
-        devId = localStorage.getItem('jardin-dev-id') || 'unnamed';
-      }
-    } catch {}
-
-    try {
-      const label = node.type === 'track'
-        ? `${node.artist} — ${node.title}`
-        : node.articleTitle || node.cultivationName || node.slug || node.id;
-
-      navigator.sendBeacon?.(
-        _workerUrl + '/track',
-        JSON.stringify({
-          type: 'node_click',
-          nodeType: node.type,
-          nodeLabel: label,
-          vid,
-          dev: isDev || undefined,
-          devId: isDev ? devId : undefined,
-        })
-      );
-    } catch {
-      // Silently fail
-    }
-  }
-
-  type NodeType = 'track' | 'article' | 'cultivation' | 'dispatch' | 'exit';
-  type EdgeType = 'musical' | 'wikilink' | 'announced' | 'context' | 'exit';
-  type CitationType = 'section' | 'text' | 'block' | 'heading';
-
-  interface MyceliumNodeData {
-    id: string;
-    type: NodeType;
-    // Common
-    firstSeen: string;
-    appearances: number;
-    // Track-specific
-    artist?: string;
-    title?: string;
-    url?: string;
-    bpm?: number;
-    key?: string;
-    openKey?: string;
-    timeSignature?: string;
-    danceability?: number;
-    songbpmId?: string;
-    sourceVerified?: boolean;
-    corrections?: string;
-    energy?: number;
-    // Article-specific
-    slug?: string;
-    articleTitle?: string;
-    excerpt?: string;
-    // Cultivation-specific
-    cultivationName?: string;
-    status?: 'growing' | 'dormant' | 'wild' | 'composted';
-    // Dispatch-specific
-    date?: string;
-    announcements?: number;
-    hasProseLinks?: boolean;
-    // Exit-specific
-    platform?: 'spotify' | 'youtube' | 'bandcamp' | 'soundcloud' | 'github' | 'external';
-    label?: string;
-  }
-
-  interface MyceliumEdgeData {
-    source: string;
-    target: string;
-    weight: number;
-    reasons: string[];
-    edgeType: EdgeType;
-    citationType?: CitationType;
-    citationCount?: number;
-  }
-
-  interface MyceliumGraph {
-    nodes: MyceliumNodeData[];
-    edges: MyceliumEdgeData[];
-    generated: string;
-    meta?: {
-      tracksFromSongbpm: number;
-      articleCount: number;
-      cultivationCount: number;
-    };
-  }
-
-  // Simulation node with d3 position data
-  interface SimNode extends SimulationNodeDatum, MyceliumNodeData {
-    x: number;
-    y: number;
-    fx?: number | null;
-    fy?: number | null;
-  }
-
-  // Simulation link with resolved node references
-  interface SimLink extends SimulationLinkDatum<SimNode> {
-    source: SimNode;
-    target: SimNode;
-    weight: number;
-    reasons: string[];
-    edgeType: EdgeType;
-    citationType?: CitationType;
-    citationCount?: number;
-  }
 
   const canvas = document.getElementById('mycelium-canvas') as HTMLCanvasElement;
   const detailPanel = document.getElementById('mycelium-detail') as HTMLDivElement;
   const ctx = canvas.getContext('2d')!;
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  // Colors from tokens.css
-  const COLORS = {
-    paper: '#efe2c2',
-    paperLine: '#c9b886',
-    fern: '#2d5a3d',
-    ochre: '#b8860b',
-    ochreMuted: '#9a7209',
-    sun: '#c93f7a',
-    ink: '#3d2f1a',
-    inkSoft: '#6b5435',
-    inkFaint: '#8a7350',
-  };
-
-  // Dash patterns for citation types
-  const CITATION_DASH_PATTERNS: Record<CitationType, number[]> = {
-    section: [],           // solid
-    text: [4, 4],          // short dash
-    block: [8, 4],         // long dash
-    heading: [2, 4, 6, 4], // dot-dash
-  };
-
-  // Zoom threshold for showing weight labels
-  const WEIGHT_LABEL_THRESHOLD = 1.5;
-
+  // State
   let nodes: SimNode[] = [];
   let links: SimLink[] = [];
   let simulation: Simulation<SimNode, SimLink> | null = null;
+  let transform: Transform = { x: 0, y: 0, scale: 1 };
   let selectedNode: SimNode | null = null;
   let hoveredNode: SimNode | null = null;
   let draggedNode: SimNode | null = null;
 
-  // Transform state for pan/zoom
-  let transform = { x: 0, y: 0, scale: 1 };
-  let isPanning = false;
-  let panStart = { x: 0, y: 0 };
-  let transformStart = { x: 0, y: 0 };
+  function getCanvasSize() {
+    return {
+      width: canvas.width / (window.devicePixelRatio || 1),
+      height: canvas.height / (window.devicePixelRatio || 1),
+    };
+  }
 
-  // Zoom constraints
-  const MIN_ZOOM = 0.3;
-  const MAX_ZOOM = 3;
-  const ZOOM_SENSITIVITY = 0.002;
-
-  // Touch state for pinch-to-zoom
-  let lastPinchDistance = 0;
-  let lastPinchCenter = { x: 0, y: 0 };
-
-  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function render() {
+    const { width, height } = getCanvasSize();
+    draw({ ctx, nodes, links, transform, hoveredNode, selectedNode, canvasWidth: width, canvasHeight: height });
+  }
 
   function resize() {
     const container = canvas.parentElement!;
     const rect = container.getBoundingClientRect();
     const dpr = window.devicePixelRatio || 1;
-
     canvas.width = rect.width * dpr;
     canvas.height = rect.height * dpr;
     canvas.style.width = `${rect.width}px`;
     canvas.style.height = `${rect.height}px`;
-
     ctx.scale(dpr, dpr);
-
-    // Update force centers
-    if (simulation) {
-      const w = rect.width;
-      const h = rect.height;
-      simulation.force('center', forceCenter(w / 2, h / 2));
-      simulation.force('gravityX', forceX(w / 2).strength(0.05));
-      simulation.force('gravityY', forceY(h / 2).strength(0.05));
-      simulation.alpha(0.3).restart();
-    }
+    if (simulation) updateSimulationForResize(simulation, rect.width, rect.height);
   }
 
-  function getNodeSize(node: SimNode): number {
-    // Tracks: 6 + appearances*2, max 14
-    // Articles: 10 base
-    // Cultivations: 8 base
-    // Dispatches: 7 base (small squares)
-    // Exits: 6 fixed (hollow circles)
-    if (node.type === 'track') {
-      return 6 + Math.min(node.appearances * 2, 8);
-    } else if (node.type === 'article') {
-      return 10;
-    } else if (node.type === 'dispatch') {
-      return 7;
-    } else if (node.type === 'exit') {
-      return 6;
-    } else {
-      return 8;
-    }
-  }
-
-  function getNodeColor(node: SimNode, isActive: boolean): string {
-    if (isActive) return COLORS.sun;
-    if (node.type === 'track') return COLORS.fern;
-    if (node.type === 'cultivation') return COLORS.ochreMuted;
-    if (node.type === 'dispatch') return COLORS.inkSoft;
-    if (node.type === 'exit') return COLORS.inkFaint;
-    return COLORS.ochre; // article
-  }
-
-  function getEdgeColor(edgeType: EdgeType): string {
-    // Musical edges: paper-line (warm neutral)
-    // Wikilink/announced edges: ochre (citation color)
-    if (edgeType === 'wikilink' || edgeType === 'announced' || edgeType === 'context') {
-      return COLORS.ochre;
-    }
-    return COLORS.paperLine;
-  }
-
-  function getNodeLabel(node: SimNode): { primary: string; secondary?: string } {
-    if (node.type === 'track') {
-      return { primary: node.title || '', secondary: node.artist };
-    } else if (node.type === 'article') {
-      return { primary: node.articleTitle || node.slug || '' };
-    } else if (node.type === 'dispatch') {
-      // Format date as "May 8" or similar
-      const date = new Date(node.date + 'T00:00:00');
-      const formatted = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-      return { primary: formatted };
-    } else if (node.type === 'exit') {
-      return { primary: node.label || 'external' };
-    } else {
-      return { primary: node.cultivationName || node.slug || '' };
-    }
-  }
-
-  function draw() {
-    const w = canvas.width / (window.devicePixelRatio || 1);
-    const h = canvas.height / (window.devicePixelRatio || 1);
-
-    ctx.clearRect(0, 0, w, h);
-
-    // Apply transform
-    ctx.save();
-    ctx.translate(transform.x, transform.y);
-    ctx.scale(transform.scale, transform.scale);
-
-    // Draw edges (grouped by type for consistent layering)
-    for (const link of links) {
-      if (link.source.x == null || link.target.x == null) continue;
-
-      ctx.beginPath();
-      ctx.moveTo(link.source.x, link.source.y);
-      ctx.lineTo(link.target.x, link.target.y);
-      ctx.strokeStyle = getEdgeColor(link.edgeType);
-      ctx.lineWidth = Math.min(link.weight, 2) / transform.scale; // Keep consistent line width
-
-      // Dashed lines based on edge type
-      if (link.edgeType === 'exit') {
-        const dashLength = 4 / transform.scale;
-        ctx.setLineDash([dashLength, dashLength]);
-      } else if (link.edgeType === 'wikilink' && link.citationType) {
-        const pattern = CITATION_DASH_PATTERNS[link.citationType];
-        ctx.setLineDash(pattern.map(v => v / transform.scale));
-      } else {
-        ctx.setLineDash([]);
-      }
-
-      ctx.stroke();
-    }
-    // Reset line dash
-    ctx.setLineDash([]);
-
-    // Draw weight labels when zoomed in
-    if (transform.scale >= WEIGHT_LABEL_THRESHOLD) {
-      const fontSize = 10 / transform.scale;
-      ctx.font = `${fontSize}px Junicode, "IM Fell DW Pica", Georgia, serif`;
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-
-      for (const link of links) {
-        const source = link.source as SimNode;
-        const target = link.target as SimNode;
-        if (!isInViewport(source) && !isInViewport(target)) continue;
-
-        // Midpoint in world coords
-        const mx = (source.x! + target.x!) / 2;
-        const my = (source.y! + target.y!) / 2;
-
-        // Format weight as decimal
-        const label = link.weight.toFixed(1);
-        const metrics = ctx.measureText(label);
-        const pad = 2 / transform.scale;
-
-        // Background pill (semi-transparent paper)
-        ctx.fillStyle = COLORS.paper + 'cc';
-        ctx.fillRect(
-          mx - metrics.width / 2 - pad,
-          my - fontSize / 2 - pad,
-          metrics.width + pad * 2,
-          fontSize + pad * 2
-        );
-
-        // Label text
-        ctx.fillStyle = COLORS.inkFaint;
-        ctx.fillText(label, mx, my);
-      }
-    }
-
-    // Draw nodes
-    for (const node of nodes) {
-      if (node.x == null) continue;
-
-      const isHovered = node === hoveredNode;
-      const isSelected = node === selectedNode;
-      const size = getNodeSize(node);
-      const color = getNodeColor(node, isSelected || isHovered);
-
-      ctx.fillStyle = color;
-
-      if (node.type === 'track') {
-        // Circle for tracks
-        ctx.beginPath();
-        ctx.arc(node.x, node.y, size, 0, Math.PI * 2);
-        ctx.fill();
-      } else if (node.type === 'exit') {
-        // Hollow circle for exit nodes (portal aesthetic)
-        ctx.beginPath();
-        ctx.arc(node.x, node.y, size, 0, Math.PI * 2);
-        ctx.strokeStyle = color;
-        ctx.lineWidth = 1.5 / transform.scale;
-        ctx.stroke();
-      } else if (node.type === 'dispatch') {
-        // Small square for dispatches
-        const halfSize = size;
-        const cornerRadius = 1;
-        ctx.beginPath();
-        ctx.roundRect(node.x - halfSize, node.y - halfSize, halfSize * 2, halfSize * 2, cornerRadius);
-        ctx.fill();
-      } else {
-        // Rounded square for articles and cultivations
-        const halfSize = size;
-        const cornerRadius = 2;
-        ctx.beginPath();
-        ctx.roundRect(node.x - halfSize, node.y - halfSize, halfSize * 2, halfSize * 2, cornerRadius);
-        ctx.fill();
-      }
-
-      // Draw label on hover/select
-      if (isHovered || isSelected) {
-        const label = getNodeLabel(node);
-        // Scale font inversely to keep readable
-        const fontSize = 14 / transform.scale;
-        const smallFontSize = 12 / transform.scale;
-        ctx.font = `${fontSize}px "IM Fell DW Pica", Georgia, serif`;
-        ctx.fillStyle = COLORS.ink;
-        ctx.textAlign = 'center';
-        ctx.fillText(label.primary, node.x, node.y - size - 8 / transform.scale);
-        if (label.secondary) {
-          ctx.font = `${smallFontSize}px "IM Fell DW Pica", Georgia, serif`;
-          ctx.fillStyle = COLORS.inkSoft;
-          ctx.fillText(label.secondary, node.x, node.y - size - 22 / transform.scale);
-        }
-      }
-    }
-
-    ctx.restore();
-  }
-
-  function findNodeAt(screenX: number, screenY: number): SimNode | null {
-    // Convert screen coords to world coords
-    const { x, y } = screenToWorld(screenX, screenY);
-
-    // Search in reverse order (top nodes first)
-    for (let i = nodes.length - 1; i >= 0; i--) {
-      const node = nodes[i];
-      if (node.x == null) continue;
-      const size = getNodeSize(node);
-
-      if (node.type === 'track' || node.type === 'exit') {
-        // Circle hit test (tracks are filled, exits are hollow but still clickable)
-        const dx = node.x - x;
-        const dy = node.y - y;
-        if (dx * dx + dy * dy <= size * size) {
-          return node;
-        }
-      } else {
-        // Square hit test
-        if (Math.abs(node.x - x) <= size && Math.abs(node.y - y) <= size) {
-          return node;
-        }
-      }
-    }
-    return null;
-  }
-
-  function getStatusSymbol(status?: string): string {
-    switch (status) {
-      case 'growing': return '▲';
-      case 'dormant': return '◐';
-      case 'wild': return '○';
-      case 'composted': return '✕';
-      default: return '';
-    }
-  }
-
-  function showDetail(node: SimNode) {
-    let html = '';
-
-    if (node.type === 'track') {
-      // Track detail
-      const hasBpm = node.bpm !== undefined;
-      const hasKey = node.key !== undefined;
-      const hasOpenKey = node.openKey !== undefined;
-      const hasDanceability = node.danceability !== undefined;
-      const hasEnriched = hasBpm || hasKey || hasOpenKey || hasDanceability;
-
-      html = `
-        <p class="detail-title"><a href="${node.url}" target="_blank" rel="noopener">${node.artist} — ${node.title}</a></p>
-        <p class="detail-meta">first heard: ${node.firstSeen}</p>
-      `;
-
-      if (hasEnriched) {
-        const parts: string[] = [];
-        if (hasBpm) parts.push(`${node.bpm} bpm`);
-        if (hasKey) parts.push(node.openKey ? `${node.key} (${node.openKey})` : node.key!);
-        if (hasDanceability) parts.push(`dance: ${node.danceability}`);
-        if (node.timeSignature && node.timeSignature !== '4/4') parts.push(node.timeSignature);
-        html += `<p class="detail-meta">${parts.join(' · ')}</p>`;
-      }
-
-      if (node.songbpmId) {
-        html += `<p class="detail-attribution">via <a href="https://getsongbpm.com/song/${node.songbpmId}" target="_blank" rel="noopener">getsongbpm.com</a>`;
-        if (node.sourceVerified) html += ` · verified`;
-        html += `</p>`;
-        if (node.corrections) {
-          html += `<p class="detail-attribution">corrections: ${node.corrections}</p>`;
-        }
-      } else if (hasEnriched) {
-        html += `<p class="detail-attribution">metadata harvested manually</p>`;
-      }
-    } else if (node.type === 'article') {
-      // Article detail
-      html = `
-        <p class="detail-title">${node.articleTitle || node.slug}</p>
-        <p class="detail-meta">published: ${node.firstSeen}</p>
-      `;
-
-      // Find citation edges
-      const citedBy: string[] = [];
-      const cites: string[] = [];
-      for (const link of links) {
-        if (link.edgeType !== 'wikilink') continue;
-        const sourceNode = link.source as SimNode;
-        const targetNode = link.target as SimNode;
-        if (sourceNode.id === node.id && targetNode.type === 'article') {
-          cites.push(targetNode.articleTitle || targetNode.slug || '');
-        } else if (targetNode.id === node.id && sourceNode.type === 'article') {
-          citedBy.push(sourceNode.articleTitle || sourceNode.slug || '');
-        }
-      }
-
-      if (cites.length > 0) {
-        html += `<p class="detail-meta">cites: ${cites.join(', ')}</p>`;
-      }
-      if (citedBy.length > 0) {
-        html += `<p class="detail-meta">cited by: ${citedBy.join(', ')}</p>`;
-      }
-
-      html += `<p class="detail-action"><a href="/cuaderno/${node.slug}/">→ read article</a></p>`;
-    } else if (node.type === 'cultivation') {
-      // Cultivation detail
-      const symbol = getStatusSymbol(node.status);
-      html = `
-        <p class="detail-title">${node.cultivationName || node.slug}</p>
-        <p class="detail-meta">${symbol} ${node.status}</p>
-      `;
-
-      // Find connected articles
-      const connectedArticles: string[] = [];
-      for (const link of links) {
-        if (link.edgeType !== 'wikilink') continue;
-        const sourceNode = link.source as SimNode;
-        const targetNode = link.target as SimNode;
-        if (sourceNode.id === node.id && targetNode.type === 'article') {
-          connectedArticles.push(targetNode.articleTitle || targetNode.slug || '');
-        } else if (targetNode.id === node.id && sourceNode.type === 'article') {
-          connectedArticles.push(sourceNode.articleTitle || sourceNode.slug || '');
-        }
-      }
-
-      if (connectedArticles.length > 0) {
-        html += `<p class="detail-meta">connects to: ${connectedArticles.join(', ')}</p>`;
-      }
-
-      html += `<p class="detail-action"><a href="/#cultivations">→ view cultivation</a></p>`;
-    } else if (node.type === 'dispatch') {
-      // Dispatch detail
-      const date = new Date(node.date + 'T00:00:00');
-      const formatted = date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
-      html = `
-        <p class="detail-title">${formatted}</p>
-      `;
-
-      const parts: string[] = [];
-      if (node.announcements && node.announcements > 0) {
-        parts.push(`${node.announcements} announcement${node.announcements > 1 ? 's' : ''}`);
-      }
-      if (node.hasProseLinks) {
-        parts.push('prose links');
-      }
-      if (parts.length > 0) {
-        html += `<p class="detail-meta">${parts.join(' · ')}</p>`;
-      }
-
-      // Count connected edges
-      let trackCount = 0;
-      let articleCount = 0;
-      for (const link of links) {
-        const sourceNode = link.source as SimNode;
-        const targetNode = link.target as SimNode;
-        const otherNode = sourceNode.id === node.id ? targetNode : (targetNode.id === node.id ? sourceNode : null);
-        if (otherNode) {
-          if (otherNode.type === 'track') trackCount++;
-          if (otherNode.type === 'article') articleCount++;
-        }
-      }
-
-      const connectionParts: string[] = [];
-      if (trackCount > 0) connectionParts.push(`${trackCount} track${trackCount > 1 ? 's' : ''}`);
-      if (articleCount > 0) connectionParts.push(`${articleCount} article${articleCount > 1 ? 's' : ''}`);
-      if (connectionParts.length > 0) {
-        html += `<p class="detail-meta">connects: ${connectionParts.join(', ')}</p>`;
-      }
-
-      html += `<p class="detail-action"><a href="/ahora#${node.date}">→ view dispatch</a></p>`;
-    } else if (node.type === 'exit') {
-      // Exit node detail
-      html = `
-        <p class="detail-title"><a href="${node.url}" target="_blank" rel="noopener">${node.label}</a></p>
-        <p class="detail-meta">external link</p>
-      `;
-
-      // Count how many nodes link here
-      let linkCount = 0;
-      for (const link of links) {
-        const sourceNode = link.source as SimNode;
-        const targetNode = link.target as SimNode;
-        if ((sourceNode.id === node.id || targetNode.id === node.id) && link.edgeType === 'exit') {
-          linkCount++;
-        }
-      }
-      if (linkCount > 0) {
-        html += `<p class="detail-meta">${linkCount} connection${linkCount > 1 ? 's' : ''}</p>`;
-      }
-    }
-
-    detailPanel.innerHTML = html;
-    detailPanel.classList.add('visible');
-  }
-
-  function hideDetail() {
-    detailPanel.classList.remove('visible');
-  }
-
-  // Event handlers
-  function getCanvasCoords(e: MouseEvent | Touch): { x: number; y: number } {
-    const rect = canvas.getBoundingClientRect();
-    return {
-      x: e.clientX - rect.left,
-      y: e.clientY - rect.top,
-    };
-  }
-
-  // Convert screen coords to world coords (accounting for pan/zoom)
-  function screenToWorld(screenX: number, screenY: number): { x: number; y: number } {
-    return {
-      x: (screenX - transform.x) / transform.scale,
-      y: (screenY - transform.y) / transform.scale,
-    };
-  }
-
-  // Convert world coords to screen coords
-  function worldToScreen(worldX: number, worldY: number): { x: number; y: number } {
-    return {
-      x: worldX * transform.scale + transform.x,
-      y: worldY * transform.scale + transform.y,
-    };
-  }
-
-  // Check if a world point is visible in the viewport
-  function isInViewport(node: SimNode): boolean {
-    const screen = worldToScreen(node.x, node.y);
-    const w = canvas.width / (window.devicePixelRatio || 1);
-    const h = canvas.height / (window.devicePixelRatio || 1);
-    const margin = 50; // buffer for labels
-    return screen.x >= -margin && screen.x <= w + margin &&
-           screen.y >= -margin && screen.y <= h + margin;
-  }
-
-  // Zoom centered on a point
-  function zoomAt(centerX: number, centerY: number, delta: number) {
-    const oldScale = transform.scale;
-    const newScale = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, oldScale * (1 - delta)));
-
-    // Adjust translation to zoom toward the cursor
-    transform.x = centerX - (centerX - transform.x) * (newScale / oldScale);
-    transform.y = centerY - (centerY - transform.y) * (newScale / oldScale);
-    transform.scale = newScale;
-
-    draw();
-  }
-
-  // Reset view to fit all nodes
-  function resetView() {
-    transform = { x: 0, y: 0, scale: 1 };
-    draw();
-  }
-
-  canvas.addEventListener('mousemove', (e) => {
-    const { x, y } = getCanvasCoords(e);
-
-    // Handle panning
-    if (isPanning) {
-      transform.x = transformStart.x + (x - panStart.x);
-      transform.y = transformStart.y + (y - panStart.y);
-      draw();
-      return;
-    }
-
-    // Handle node dragging
-    if (draggedNode) {
-      const world = screenToWorld(x, y);
-      draggedNode.fx = world.x;
-      draggedNode.fy = world.y;
-      simulation?.alpha(0.3).restart();
-      return;
-    }
-
-    const node = findNodeAt(x, y);
-    if (node !== hoveredNode) {
-      hoveredNode = node;
-      canvas.style.cursor = node ? 'pointer' : 'grab';
-      draw();
-    }
-  });
-
-  canvas.addEventListener('mousedown', (e) => {
-    const { x, y } = getCanvasCoords(e);
-    const node = findNodeAt(x, y);
-
-    if (node) {
-      // Drag node
-      draggedNode = node;
-      selectedNode = node;
-      const world = screenToWorld(x, y);
-      node.fx = world.x;
-      node.fy = world.y;
-      showDetail(node);
-      simulation?.alphaTarget(0.3).restart();
-      canvas.style.cursor = 'grabbing';
-    } else {
-      // Start panning
-      isPanning = true;
-      panStart = { x, y };
-      transformStart = { x: transform.x, y: transform.y };
-      canvas.style.cursor = 'grabbing';
-    }
-  });
-
-  canvas.addEventListener('mouseup', () => {
-    if (draggedNode) {
-      draggedNode.fx = null;
-      draggedNode.fy = null;
-      draggedNode = null;
-      simulation?.alphaTarget(0);
-    }
-    isPanning = false;
-    canvas.style.cursor = hoveredNode ? 'pointer' : 'grab';
-  });
-
-  canvas.addEventListener('mouseleave', () => {
-    if (draggedNode) {
-      draggedNode.fx = null;
-      draggedNode.fy = null;
-      draggedNode = null;
-      simulation?.alphaTarget(0);
-    }
-    isPanning = false;
-    hoveredNode = null;
-    draw();
-  });
-
-  canvas.addEventListener('click', (e) => {
-    // Don't trigger click after panning
-    if (isPanning) return;
-
-    const { x, y } = getCanvasCoords(e);
-    const node = findNodeAt(x, y);
-
-    if (node) {
-      selectedNode = node;
-      showDetail(node);
-      trackNodeClick(node);
-    } else {
-      selectedNode = null;
-      hideDetail();
-    }
-    draw();
-  });
-
-  // Mouse wheel zoom
-  canvas.addEventListener('wheel', (e) => {
-    e.preventDefault();
-    const { x, y } = getCanvasCoords(e);
-    const delta = e.deltaY * ZOOM_SENSITIVITY;
-    zoomAt(x, y, delta);
-  }, { passive: false });
-
-  // Double-click to reset view
-  canvas.addEventListener('dblclick', (e) => {
-    e.preventDefault();
-    resetView();
-  });
-
-  // Touch support with pan and pinch-to-zoom
-  function getTouchDistance(touches: TouchList): number {
-    if (touches.length < 2) return 0;
-    const dx = touches[0].clientX - touches[1].clientX;
-    const dy = touches[0].clientY - touches[1].clientY;
-    return Math.sqrt(dx * dx + dy * dy);
-  }
-
-  function getTouchCenter(touches: TouchList): { x: number; y: number } {
-    if (touches.length < 2) {
-      const { x, y } = getCanvasCoords(touches[0]);
-      return { x, y };
-    }
-    const rect = canvas.getBoundingClientRect();
-    return {
-      x: (touches[0].clientX + touches[1].clientX) / 2 - rect.left,
-      y: (touches[0].clientY + touches[1].clientY) / 2 - rect.top,
-    };
-  }
-
-  canvas.addEventListener('touchstart', (e) => {
-    e.preventDefault();
-
-    if (e.touches.length === 2) {
-      // Start pinch-to-zoom
-      lastPinchDistance = getTouchDistance(e.touches);
-      lastPinchCenter = getTouchCenter(e.touches);
-      isPanning = false;
-      draggedNode = null;
-    } else if (e.touches.length === 1) {
-      const touch = e.touches[0];
-      const { x, y } = getCanvasCoords(touch);
-      const node = findNodeAt(x, y);
-
-      if (node) {
-        // Drag node
-        draggedNode = node;
-        selectedNode = node;
-        const world = screenToWorld(x, y);
-        node.fx = world.x;
-        node.fy = world.y;
-        showDetail(node);
-        simulation?.alphaTarget(0.3).restart();
-      } else {
-        // Start panning
-        isPanning = true;
-        panStart = { x, y };
-        transformStart = { x: transform.x, y: transform.y };
-      }
-    }
-  }, { passive: false });
-
-  canvas.addEventListener('touchmove', (e) => {
-    e.preventDefault();
-
-    if (e.touches.length === 2) {
-      // Pinch-to-zoom
-      const newDistance = getTouchDistance(e.touches);
-      const newCenter = getTouchCenter(e.touches);
-
-      if (lastPinchDistance > 0) {
-        const scaleDelta = (lastPinchDistance - newDistance) * 0.01;
-        zoomAt(newCenter.x, newCenter.y, scaleDelta);
-      }
-
-      lastPinchDistance = newDistance;
-      lastPinchCenter = newCenter;
-    } else if (e.touches.length === 1) {
-      const touch = e.touches[0];
-      const { x, y } = getCanvasCoords(touch);
-
-      if (isPanning) {
-        // Pan
-        transform.x = transformStart.x + (x - panStart.x);
-        transform.y = transformStart.y + (y - panStart.y);
-        draw();
-      } else if (draggedNode) {
-        // Drag node
-        const world = screenToWorld(x, y);
-        draggedNode.fx = world.x;
-        draggedNode.fy = world.y;
-        simulation?.alpha(0.3).restart();
-      }
-    }
-  }, { passive: false });
-
-  canvas.addEventListener('touchend', (e) => {
-    if (e.touches.length === 0) {
-      // All touches ended
-      if (draggedNode) {
-        draggedNode.fx = null;
-        draggedNode.fy = null;
-        draggedNode = null;
-        simulation?.alphaTarget(0);
-      }
-      isPanning = false;
-      lastPinchDistance = 0;
-    } else if (e.touches.length === 1) {
-      // Went from 2 fingers to 1 — start panning from current position
-      lastPinchDistance = 0;
-      const touch = e.touches[0];
-      const { x, y } = getCanvasCoords(touch);
-      isPanning = true;
-      panStart = { x, y };
-      transformStart = { x: transform.x, y: transform.y };
-    }
-  });
+  // Context for event handlers
+  const handlerCtx = {
+    canvas,
+    detailPanel,
+    getNodes: () => nodes,
+    getLinks: () => links,
+    getTransform: () => transform,
+    setTransform: (t: Transform) => { transform = t; },
+    getSimulation: () => simulation,
+    getSelectedNode: () => selectedNode,
+    setSelectedNode: (n: SimNode | null) => { selectedNode = n; },
+    getHoveredNode: () => hoveredNode,
+    setHoveredNode: (n: SimNode | null) => { hoveredNode = n; },
+    getDraggedNode: () => draggedNode,
+    setDraggedNode: (n: SimNode | null) => { draggedNode = n; },
+    render,
+    workerUrl: _workerUrl,
+  };
+
+  // Attach event handlers
+  attachMouseHandlers(handlerCtx);
+  attachTouchHandlers(handlerCtx);
 
   // Initialize
   async function init() {
@@ -932,99 +148,30 @@ const workerUrl = import.meta.env.PUBLIC_VISITORS_WORKER_URL || '';
     window.addEventListener('resize', resize);
 
     try {
-      const response = await fetch('/mycelium-data.json');
-      const data: MyceliumGraph = await response.json();
+      const { width, height } = getCanvasSize();
+      const result = await loadGraph({
+        canvasWidth: width,
+        canvasHeight: height,
+        prefersReducedMotion,
+        onTick: render,
+      });
 
-      if (data.nodes.length === 0) {
+      if (!result) {
         detailPanel.innerHTML = '<p class="detail-meta">the network is quiet. songs will appear as dispatches accumulate.</p>';
         detailPanel.classList.add('visible');
         return;
       }
 
+      nodes = result.nodes;
+      links = result.links;
+      simulation = result.simulation;
+
       // Show footer attribution if any tracks came from songbpm
-      const songbpmCount = data.nodes.filter(n => n.songbpmId).length;
+      const songbpmCount = nodes.filter(n => n.songbpmId).length;
       const attrEl = document.getElementById('mycelium-attribution');
       if (songbpmCount > 0 && attrEl) {
         attrEl.innerHTML = `some tempo data via <a href="https://getsongbpm.com" target="_blank" rel="noopener">GetSongBPM</a>`;
         attrEl.classList.add('visible');
-      }
-
-      const w = canvas.width / (window.devicePixelRatio || 1);
-      const h = canvas.height / (window.devicePixelRatio || 1);
-
-      // Create simulation nodes
-      nodes = data.nodes.map(n => ({
-        ...n,
-        x: w / 2 + (Math.random() - 0.5) * 100,
-        y: h / 2 + (Math.random() - 0.5) * 100,
-      }));
-
-      // Create node lookup for link resolution
-      const nodeById = new Map(nodes.map(n => [n.id, n]));
-
-      // Create simulation links
-      links = data.edges
-        .map(e => ({
-          source: nodeById.get(e.source)!,
-          target: nodeById.get(e.target)!,
-          weight: e.weight,
-          reasons: e.reasons,
-          edgeType: e.edgeType || 'musical', // fallback for old data
-          citationType: e.citationType,
-          citationCount: e.citationCount,
-        }))
-        .filter(l => l.source && l.target);
-
-      // Create simulation with tuned parameters for unified graph
-      // Balance: repulsion keeps nodes apart, gravity keeps them together
-      simulation = forceSimulation<SimNode>(nodes)
-        .force('link', forceLink<SimNode, SimLink>(links)
-          .id(d => d.id)
-          .distance(l => {
-            // Wikilink edges - slightly longer to accommodate weight labels
-            if (l.edgeType === 'wikilink') return 60;
-            // Announced edges medium distance
-            if (l.edgeType === 'announced') return 70;
-            // Exit edges stretch to periphery - longer distance
-            if (l.edgeType === 'exit') return 120;
-            // Context edges (dispatch↔track) looser
-            if (l.edgeType === 'context') return 80;
-            // Musical edges default
-            return 60;
-          })
-          .strength(l => {
-            // Exit edges pull harder to stretch the membrane
-            if (l.edgeType === 'exit') return 0.8;
-            return l.weight * 0.3;
-          }))
-        .force('charge', forceManyBody<SimNode>()
-          .strength(d => {
-            // Exit nodes have weaker repulsion (they're pulled by radial)
-            if (d.type === 'exit') return -50;
-            return -150;
-          }))
-        .force('center', forceCenter(w / 2, h / 2))
-        // Gentle gravity toward center - keeps disconnected nodes from floating away
-        // Exit nodes exempt from gravity (radial handles them)
-        .force('gravityX', forceX<SimNode>(w / 2).strength(d => d.type === 'exit' ? 0 : 0.05))
-        .force('gravityY', forceY<SimNode>(h / 2).strength(d => d.type === 'exit' ? 0 : 0.05))
-        // Radial force pushes exit nodes to the periphery
-        .force('radial', forceRadial<SimNode>(
-          d => d.type === 'exit' ? Math.max(w, h) * 0.4 : 0,
-          w / 2,
-          h / 2
-        ).strength(d => d.type === 'exit' ? 0.3 : 0))
-        .force('collide', forceCollide<SimNode>()
-          .radius(d => getNodeSize(d) + 4))
-        .on('tick', draw);
-
-      // For reduced motion, run simulation silently then stop
-      if (prefersReducedMotion) {
-        simulation.stop();
-        for (let i = 0; i < 300; i++) {
-          simulation.tick();
-        }
-        draw();
       }
     } catch (error) {
       console.error('[mycelium] Failed to load data:', error);
@@ -1167,175 +314,9 @@ const workerUrl = import.meta.env.PUBLIC_VISITORS_WORKER_URL || '';
       transition: none;
     }
   }
+</style>
 
-  /* Legend */
-  .legend {
-    position: absolute;
-    top: 12px;
-    right: 12px;
-    background: var(--paper-deep);
-    border: 1px solid var(--paper-line);
-    padding: 8px 12px;
-    font-family: var(--font-serif);
-    font-size: 12px;
-    color: var(--ink-soft);
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    opacity: 0.9;
-  }
-
-  .legend-item {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .legend-shape {
-    flex-shrink: 0;
-  }
-
-  .legend-shape.circle {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-  }
-
-  .legend-shape.square {
-    width: 10px;
-    height: 10px;
-    border-radius: 2px;
-  }
-
-  .legend-shape.track {
-    background: var(--fern);
-  }
-
-  .legend-shape.article {
-    background: #b8860b; /* ochre */
-  }
-
-  .legend-shape.cultivation {
-    background: #9a7209; /* ochre muted */
-    width: 8px;
-    height: 8px;
-  }
-
-  .legend-shape.dispatch {
-    background: #6b5435; /* ink-soft */
-    width: 8px;
-    height: 8px;
-  }
-
-  .legend-shape.circle-hollow {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    border: 1.5px solid;
-    box-sizing: border-box;
-  }
-
-  .legend-shape.exit {
-    border-color: #8a7350; /* ink-faint */
-  }
-
-  .legend-divider {
-    height: 1px;
-    background: var(--paper-line);
-    margin: 2px 0;
-  }
-
-  .legend-line {
-    width: 16px;
-    height: 2px;
-    flex-shrink: 0;
-  }
-
-  .legend-line.musical {
-    background: var(--paper-line);
-  }
-
-  /* Citation types - all ochre, different dash patterns */
-  .legend-line.cite-section {
-    background: #b8860b; /* solid */
-  }
-
-  .legend-line.cite-text {
-    background: repeating-linear-gradient(
-      to right,
-      #b8860b 0px,
-      #b8860b 3px,
-      transparent 3px,
-      transparent 6px
-    ); /* short dash [4,4] */
-  }
-
-  .legend-line.cite-block {
-    background: repeating-linear-gradient(
-      to right,
-      #b8860b 0px,
-      #b8860b 5px,
-      transparent 5px,
-      transparent 8px
-    ); /* long dash [8,4] */
-  }
-
-  .legend-line.cite-heading {
-    background: repeating-linear-gradient(
-      to right,
-      #b8860b 0px,
-      #b8860b 2px,
-      transparent 2px,
-      transparent 5px,
-      #b8860b 5px,
-      #b8860b 9px,
-      transparent 9px,
-      transparent 12px
-    ); /* dot-dash [2,4,6,4] */
-  }
-
-  .legend-line.exit-edge {
-    background: repeating-linear-gradient(
-      to right,
-      #8a7350 0px,
-      #8a7350 3px,
-      transparent 3px,
-      transparent 6px
-    );
-  }
-
-  .legend-label {
-    color: var(--ink-faint);
-    font-style: italic;
-  }
-
-  /* Compact legend on small screens */
-  @media (max-width: 500px) {
-    .legend {
-      padding: 6px 10px;
-      font-size: 11px;
-      gap: 4px;
-    }
-
-    .legend-shape.circle,
-    .legend-shape.square {
-      width: 8px;
-      height: 8px;
-    }
-
-    .legend-shape.circle-hollow {
-      width: 8px;
-      height: 8px;
-    }
-
-    .legend-shape.cultivation,
-    .legend-shape.dispatch {
-      width: 6px;
-      height: 6px;
-    }
-
-    .legend-line {
-      width: 12px;
-    }
-  }
+<!-- Legend styles imported globally -->
+<style is:global>
+  @import '../../styles/mycelium-legend.css';
 </style>
