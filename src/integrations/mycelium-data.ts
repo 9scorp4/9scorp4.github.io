@@ -18,6 +18,7 @@ import {
   type ArticleData,
   type CultivationData,
   type AhoraLink,
+  type CultivandoLink,
   type DispatchData,
   type WikilinkData,
   type CitationType,
@@ -149,6 +150,7 @@ export default function myceliumDataIntegration(): AstroIntegration {
           const allArticles: ArticleData[] = [];
           const allCultivations: CultivationData[] = [];
           const allAhoraLinks: AhoraLink[] = [];
+          const allCultivandoLinks: CultivandoLink[] = [];
           const allDispatches: DispatchData[] = [];
 
           // === Read ahora dispatches ===
@@ -193,6 +195,16 @@ export default function myceliumDataIntegration(): AstroIntegration {
                 allAhoraLinks.push({
                   date: dateStr,
                   articleSlug: announcement.article,
+                });
+              }
+            }
+
+            // Extract cultivation announcements
+            if (frontmatter.cultivando) {
+              for (const announcement of frontmatter.cultivando) {
+                allCultivandoLinks.push({
+                  date: dateStr,
+                  cultivationSlug: announcement.cultivation,
                 });
               }
             }
@@ -325,6 +337,7 @@ export default function myceliumDataIntegration(): AstroIntegration {
             articles: allArticles,
             cultivations: allCultivations,
             ahoraLinks: allAhoraLinks,
+            cultivandoLinks: allCultivandoLinks,
             dispatches: allDispatches,
           });
 
