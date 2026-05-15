@@ -1,0 +1,9 @@
+id: pj-006
+name: sin sombra
+grown: 2026-05-15
+sketch: psychedelic-julia/sin-sombra
+description: 'Blazing Julia fractals. The sun with no shadow to cool it.'
+status: wild
+series: julia
+seriesIndex: 6
+aspectRatio: '9:16'
