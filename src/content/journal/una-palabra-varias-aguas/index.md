@@ -2,7 +2,7 @@
 title: "una palabra, varias aguas"
 title_secondary: "one word, several waters"
 date: 2026-05-12
-entry: 7
+entry: 8
 language: en
 summary: "On a word doing different work at different positions, on the cartographer and the navigator at the same port, and on what the word multipolaridad cannot hold."
 draft: false

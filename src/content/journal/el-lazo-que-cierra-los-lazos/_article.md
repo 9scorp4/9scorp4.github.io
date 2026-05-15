@@ -12,7 +12,7 @@ Watch what AI specifically removes.
 
 Before AI, building a meta-audit was expensive. If your research group needed to check its own methodology, somebody had to do the work — write the protocol, run the cross-validation, draft the critique. That work took time and human attention, both bounded. The thermodynamic cost of generating recursive auditing structures was a forcing function. Organizations kept their meta-structures parsimonious because variety was *expensive*. Beer designed the VSM with five recursive levels, not infinity, because he understood the cost. [[journal:smash-laterally-iii#^requisite-variety|Ashby formalized the constraint as law]]: a regulator must have at least as much variety as what it regulates. Each meta-level demands more representational capacity than the level below. The cost compounds.
 
-AI lowers the cost.
+AI [[journal:lo-que-la-formula-no-contiene#^commodification-operation|lowers the cost]].
 
 You can now produce meta-audits cheaply. Meta-meta-audits, also cheaply. The structures of reflection — protocols, reviews, reports about reviews, frameworks for evaluating reports — can be generated at a marginal cost approaching zero. What used to be effortful now scales. So the parsimony pressure disappears. The natural limit that kept meta-structures honest by making them costly is gone, and what you get is more elaborate closure structures, more impressive-looking reflection, fewer real consequences, more drift. The system becomes very good at *looking like* it's correcting itself. ^entropy-budget
 
