@@ -2,7 +2,7 @@
 title: "el lazo que cierra los lazos"
 title_secondary: "the loop that closes loops"
 date: 2026-05-14
-entry: 8
+entry: 10
 language: en
 summary: "On AI as accelerant of an old closure condition, the regress of meta-audits, and what comes from outside the mill."
 draft: false
