@@ -1,0 +1,9 @@
+id: pj-001
+name: el bucle
+grown: 2026-05-14
+sketch: psychedelic-julia/el-bucle
+description: 'Morphing Julia set. The mind that won''t stop looping.'
+status: wild
+series: julia
+seriesIndex: 1
+aspectRatio: '9:16'
