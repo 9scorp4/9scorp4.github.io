@@ -1,8 +1,14 @@
 import rss from '@astrojs/rss';
-import { getCollection } from 'astro:content';
+import { getCollection, type CollectionEntry } from 'astro:content';
 import type { APIContext } from 'astro';
 import MarkdownIt from 'markdown-it';
 import sanitizeHtml from 'sanitize-html';
+
+type AhoraLookups = {
+  journal: Map<string, CollectionEntry<'journal'>>;
+  specimens: Map<string, CollectionEntry<'specimens'>>;
+  cultivations: Map<string, CollectionEntry<'cultivations'>>;
+};
 
 const md = new MarkdownIt();
 
@@ -62,9 +68,65 @@ function formatAhoraDate(date: Date): string {
   return `${day} ${month}`;
 }
 
+/**
+ * Build rich content for ahora dispatch by combining prose body with structured frontmatter.
+ */
+function buildAhoraContent(entry: CollectionEntry<'ahora'>, lookups: AhoraLookups): string {
+  const parts: string[] = [];
+
+  // Prose body first
+  if (entry.body) {
+    parts.push(entry.body);
+  }
+
+  // Music tracks
+  if (entry.data.escuchando?.length) {
+    const tracks = entry.data.escuchando
+      .map((t) => `[${t.artist} — ${t.title}](${t.url})`)
+      .join(', ');
+    parts.push(`*escuchando:* ${tracks}`);
+  }
+
+  // Article announcements
+  for (const item of entry.data.articuloNuevo ?? []) {
+    const journalEntry = lookups.journal.get(item.article);
+    if (journalEntry) {
+      const note = item.note ? ` — ${item.note}` : '';
+      parts.push(`*artículo nuevo:* [${journalEntry.data.title}](/cuaderno/${item.article}/)${note}`);
+    }
+  }
+
+  // Specimen announcements
+  for (const item of entry.data.specimenNuevo ?? []) {
+    const specimen = lookups.specimens.get(item.specimen);
+    if (specimen) {
+      const note = item.note ? ` — ${item.note}` : '';
+      parts.push(`*specimen nuevo:* [${specimen.data.name}](/#conservatorio)${note}`);
+    }
+  }
+
+  // Cultivation updates
+  for (const item of entry.data.cultivando ?? []) {
+    const cultivation = lookups.cultivations.get(item.cultivation);
+    if (cultivation) {
+      const note = item.note ? ` — ${item.note}` : '';
+      parts.push(`*cultivando:* [${cultivation.data.name}](/#cultivos)${note}`);
+    }
+  }
+
+  return parts.join('\n\n');
+}
+
 export async function GET(context: APIContext) {
   const journal = await getCollection('journal', ({ data }) => !data.draft);
   const ahora = await getCollection('ahora');
+  const specimens = await getCollection('specimens');
+  const cultivations = await getCollection('cultivations');
+
+  // Lookup maps for ahora content enrichment
+  const journalBySlug = new Map(journal.map((e) => [e.slug, e]));
+  const specimensById = new Map(specimens.map((s) => [s.data.id, s]));
+  const cultivationsBySlug = new Map(cultivations.map((c) => [c.data.slug, c]));
 
   // Pre-load diptych markdown (raw content)
   const articleModules = import.meta.glob<{ rawContent: () => string }>(
@@ -112,12 +174,18 @@ export async function GET(context: APIContext) {
     };
   });
 
+  const lookups: AhoraLookups = {
+    journal: journalBySlug,
+    specimens: specimensById,
+    cultivations: cultivationsBySlug,
+  };
+
   const ahoraItems: FeedItem[] = ahora.map((entry) => ({
     title: `ahora · ${formatAhoraDate(entry.data.date)}`,
     pubDate: entry.data.date,
     description: 'dispatch from the now',
     link: '/#now',
-    content: sanitizeHtml(md.render(entry.body ?? ''), {
+    content: sanitizeHtml(md.render(buildAhoraContent(entry, lookups)), {
       allowedTags: sanitizeHtml.defaults.allowedTags.concat(['img']),
     }),
   }));
