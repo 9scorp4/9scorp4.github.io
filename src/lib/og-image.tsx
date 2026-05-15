@@ -26,52 +26,117 @@ const containerStyle = {
 
 /**
  * Simplified sun mandala SVG for OG images.
- * Outer circle + rays + star + central seed.
+ * Golden ratio proportions matching the p5 animated version.
  */
 function SunMandala({ size = 160 }: { size?: number }) {
   const cx = size / 2;
   const cy = size / 2;
-  const outerRadius = size * 0.45;
-  const innerRadius = size * 0.25;
-  const seedRadius = size * 0.08;
-  const rayLength = size * 0.12;
-  const dotRadius = size * 0.025;
 
-  // Generate 12 rays
+  // Golden ratio proportions (scaled from 80px base)
+  const scale = size / 80;
+  const outerRadius = 37 * scale;
+  const diamondRadius = 35 * scale;
+  const rayInner = 23 * scale;
+  const rayOuter = 29 * scale;
+  const petalInner = 12 * scale;
+  const petalOuter = 18 * scale;
+  const starRadius = 14 * scale;
+  const seedRadius = 2.25 * scale;
+  const diamondSize = 2 * scale;
+
+  // Generate 12 tapered rays (inside outer circle)
   const rays: ReactNode[] = [];
   for (let i = 0; i < 12; i++) {
     const angle = (i * 30 * Math.PI) / 180;
-    const x1 = cx + Math.cos(angle) * (outerRadius + 4);
-    const y1 = cy + Math.sin(angle) * (outerRadius + 4);
-    const x2 = cx + Math.cos(angle) * (outerRadius + rayLength);
-    const y2 = cy + Math.sin(angle) * (outerRadius + rayLength);
+    const innerWidth = 0.8 * scale;
+    const outerWidth = 0.3 * scale;
+
+    const perpX = -Math.sin(angle);
+    const perpY = Math.cos(angle);
+
+    const innerX = cx + Math.cos(angle) * rayInner;
+    const innerY = cy + Math.sin(angle) * rayInner;
+    const outerX = cx + Math.cos(angle) * rayOuter;
+    const outerY = cy + Math.sin(angle) * rayOuter;
+
+    const points = [
+      `${innerX + perpX * innerWidth},${innerY + perpY * innerWidth}`,
+      `${outerX + perpX * outerWidth},${outerY + perpY * outerWidth}`,
+      `${outerX - perpX * outerWidth},${outerY - perpY * outerWidth}`,
+      `${innerX - perpX * innerWidth},${innerY - perpY * innerWidth}`,
+    ].join(' ');
+
     rays.push(
-      <line
+      <polygon
         key={`ray-${i}`}
-        x1={x1}
-        y1={y1}
-        x2={x2}
-        y2={y2}
-        stroke={colors.sun}
-        strokeWidth="2"
+        points={points}
+        fill={colors.sun}
       />
     );
   }
 
-  // 4 cardinal dots
-  const dots: ReactNode[] = [];
-  const cardinalAngles = [0, 90, 180, 270];
+  // 4 cardinal diamonds
+  const diamonds: ReactNode[] = [];
+  const cardinalAngles = [-90, 0, 90, 180]; // N, E, S, W
   for (const deg of cardinalAngles) {
     const angle = (deg * Math.PI) / 180;
-    const x = cx + Math.cos(angle) * (outerRadius + rayLength + 8);
-    const y = cy + Math.sin(angle) * (outerRadius + rayLength + 8);
-    dots.push(
-      <circle
-        key={`dot-${deg}`}
-        cx={x}
-        cy={y}
-        r={dotRadius}
+    const x = cx + Math.cos(angle) * diamondRadius;
+    const y = cy + Math.sin(angle) * diamondRadius;
+    const points = [
+      `${x},${y - diamondSize}`,
+      `${x + diamondSize},${y}`,
+      `${x},${y + diamondSize}`,
+      `${x - diamondSize},${y}`,
+    ].join(' ');
+    diamonds.push(
+      <polygon
+        key={`diamond-${deg}`}
+        points={points}
         fill={colors.sun}
+      />
+    );
+  }
+
+  // 6 petal corona (bezier curves)
+  const petals: ReactNode[] = [];
+  const petalWidth = 3 * scale;
+  const bulgePoint = 0.6;
+  for (let i = 0; i < 6; i++) {
+    const angle = (i * 60 * Math.PI) / 180;
+
+    const innerX = cx + Math.cos(angle) * petalInner;
+    const innerY = cy + Math.sin(angle) * petalInner;
+    const outerX = cx + Math.cos(angle) * petalOuter;
+    const outerY = cy + Math.sin(angle) * petalOuter;
+
+    const bulgeR = petalInner + (petalOuter - petalInner) * bulgePoint;
+    const perpX = -Math.sin(angle);
+    const perpY = Math.cos(angle);
+
+    const bulgeLeftX = cx + Math.cos(angle) * bulgeR + perpX * petalWidth;
+    const bulgeLeftY = cy + Math.sin(angle) * bulgeR + perpY * petalWidth;
+    const bulgeRightX = cx + Math.cos(angle) * bulgeR - perpX * petalWidth;
+    const bulgeRightY = cy + Math.sin(angle) * bulgeR - perpY * petalWidth;
+
+    const ctrlOffset = 1.5 * scale;
+
+    const d = [
+      `M ${innerX} ${innerY}`,
+      `C ${innerX + perpX * ctrlOffset} ${innerY + perpY * ctrlOffset}`,
+      `${bulgeLeftX} ${bulgeLeftY}`,
+      `${outerX} ${outerY}`,
+      `C ${bulgeRightX} ${bulgeRightY}`,
+      `${innerX - perpX * ctrlOffset} ${innerY - perpY * ctrlOffset}`,
+      `${innerX} ${innerY}`,
+    ].join(' ');
+
+    petals.push(
+      <path
+        key={`petal-${i}`}
+        d={d}
+        fill="none"
+        stroke={colors.sun}
+        strokeWidth={0.8 * scale}
       />
     );
   }
@@ -79,12 +144,12 @@ function SunMandala({ size = 160 }: { size?: number }) {
   // 6-pointed star (two triangles)
   const starPoints1 = [0, 120, 240].map((deg) => {
     const angle = ((deg - 90) * Math.PI) / 180;
-    return `${cx + Math.cos(angle) * innerRadius},${cy + Math.sin(angle) * innerRadius}`;
+    return `${cx + Math.cos(angle) * starRadius},${cy + Math.sin(angle) * starRadius}`;
   }).join(' ');
 
   const starPoints2 = [60, 180, 300].map((deg) => {
     const angle = ((deg - 90) * Math.PI) / 180;
-    return `${cx + Math.cos(angle) * innerRadius},${cy + Math.sin(angle) * innerRadius}`;
+    return `${cx + Math.cos(angle) * starRadius},${cy + Math.sin(angle) * starRadius}`;
   }).join(' ');
 
   return (
@@ -96,24 +161,26 @@ function SunMandala({ size = 160 }: { size?: number }) {
         r={outerRadius}
         fill="none"
         stroke={colors.sun}
-        strokeWidth="2"
+        strokeWidth={1.0 * scale}
       />
-      {/* Rays */}
+      {/* Cardinal diamonds */}
+      {diamonds}
+      {/* Tapered rays */}
       {rays}
-      {/* Cardinal dots */}
-      {dots}
+      {/* Petal corona */}
+      {petals}
       {/* 6-pointed star */}
       <polygon
         points={starPoints1}
         fill="none"
         stroke={colors.sun}
-        strokeWidth="1.5"
+        strokeWidth={1.2 * scale}
       />
       <polygon
         points={starPoints2}
         fill="none"
         stroke={colors.sun}
-        strokeWidth="1.5"
+        strokeWidth={1.2 * scale}
       />
       {/* Central seed */}
       <circle
@@ -128,31 +195,44 @@ function SunMandala({ size = 160 }: { size?: number }) {
 
 /**
  * Mini sun accent for article OG images.
+ * Simplified version with proportional scaling.
  */
 function SunAccent({ size = 48 }: { size?: number }) {
   const cx = size / 2;
   const cy = size / 2;
-  const outerRadius = size * 0.35;
-  const seedRadius = size * 0.12;
-  const rayLength = size * 0.15;
+  const scale = size / 80;
+  const outerRadius = 28 * scale;
+  const rayInner = 18 * scale;
+  const rayOuter = 24 * scale;
+  const seedRadius = 2.25 * scale;
 
-  // 8 rays
+  // 8 tapered rays
   const rays: ReactNode[] = [];
   for (let i = 0; i < 8; i++) {
     const angle = (i * 45 * Math.PI) / 180;
-    const x1 = cx + Math.cos(angle) * (outerRadius + 2);
-    const y1 = cy + Math.sin(angle) * (outerRadius + 2);
-    const x2 = cx + Math.cos(angle) * (outerRadius + rayLength);
-    const y2 = cy + Math.sin(angle) * (outerRadius + rayLength);
+    const innerWidth = 0.6 * scale;
+    const outerWidth = 0.2 * scale;
+
+    const perpX = -Math.sin(angle);
+    const perpY = Math.cos(angle);
+
+    const innerX = cx + Math.cos(angle) * rayInner;
+    const innerY = cy + Math.sin(angle) * rayInner;
+    const outerX = cx + Math.cos(angle) * rayOuter;
+    const outerY = cy + Math.sin(angle) * rayOuter;
+
+    const points = [
+      `${innerX + perpX * innerWidth},${innerY + perpY * innerWidth}`,
+      `${outerX + perpX * outerWidth},${outerY + perpY * outerWidth}`,
+      `${outerX - perpX * outerWidth},${outerY - perpY * outerWidth}`,
+      `${innerX - perpX * innerWidth},${innerY - perpY * innerWidth}`,
+    ].join(' ');
+
     rays.push(
-      <line
+      <polygon
         key={`ray-${i}`}
-        x1={x1}
-        y1={y1}
-        x2={x2}
-        y2={y2}
-        stroke={colors.sun}
-        strokeWidth="2"
+        points={points}
+        fill={colors.sun}
       />
     );
   }
@@ -165,7 +245,7 @@ function SunAccent({ size = 48 }: { size?: number }) {
         r={outerRadius}
         fill="none"
         stroke={colors.sun}
-        strokeWidth="1.5"
+        strokeWidth={1.5 * scale}
       />
       {rays}
       <circle
