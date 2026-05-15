@@ -172,6 +172,23 @@ function renderExitDetail(node: SimNode, links: SimLink[]): string {
   return html;
 }
 
+/** Render specimen detail panel HTML */
+function renderSpecimenDetail(node: SimNode): string {
+  const symbol = getStatusSymbol(node.specimenStatus);
+  let html = `
+    <p class="detail-title">${node.specimenName || node.slug}</p>
+    <p class="detail-meta">${symbol} ${node.specimenStatus}</p>
+  `;
+
+  if (node.specimenSeries) {
+    html += `<p class="detail-meta">series: ${node.specimenSeries}</p>`;
+  }
+
+  html += `<p class="detail-meta">grown: ${node.firstSeen}</p>`;
+  html += `<p class="detail-action"><a href="/#${node.slug}">\u2192 view specimen</a></p>`;
+  return html;
+}
+
 /** Show detail panel for a node */
 export function showDetail(panel: HTMLDivElement, node: SimNode, links: SimLink[]): void {
   let html = '';
@@ -185,6 +202,9 @@ export function showDetail(panel: HTMLDivElement, node: SimNode, links: SimLink[
       break;
     case 'cultivation':
       html = renderCultivationDetail(node, links);
+      break;
+    case 'specimen':
+      html = renderSpecimenDetail(node);
       break;
     case 'dispatch':
       html = renderDispatchDetail(node, links);

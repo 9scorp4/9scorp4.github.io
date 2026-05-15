@@ -17,8 +17,10 @@ import {
   type TrackData,
   type ArticleData,
   type CultivationData,
+  type SpecimenData,
   type AhoraLink,
   type CultivandoLink,
+  type SpecimenLink,
   type DispatchData,
   type WikilinkData,
   type CitationType,
@@ -72,6 +74,14 @@ interface CultivationYaml {
   name: string;
   status: 'growing' | 'dormant' | 'wild' | 'composted';
   description: string;
+}
+
+interface SpecimenYaml {
+  id: string;
+  name: string;
+  status: 'wild' | 'growing' | 'dormant' | 'composted';
+  series?: string;
+  grown: string;
 }
 
 /**
@@ -141,6 +151,7 @@ export default function myceliumDataIntegration(): AstroIntegration {
         const ahoraDir = join(projectRoot, 'src', 'content', 'ahora');
         const journalDir = join(projectRoot, 'src', 'content', 'journal');
         const cultivationsDir = join(projectRoot, 'src', 'content', 'cultivations');
+        const specimensDir = join(projectRoot, 'src', 'content', 'specimens');
         const publicDir = join(projectRoot, 'public');
 
         console.log('[mycelium] Building unified graph data...');
@@ -149,8 +160,10 @@ export default function myceliumDataIntegration(): AstroIntegration {
           const allTracks: TrackData[] = [];
           const allArticles: ArticleData[] = [];
           const allCultivations: CultivationData[] = [];
+          const allSpecimens: SpecimenData[] = [];
           const allAhoraLinks: AhoraLink[] = [];
           const allCultivandoLinks: CultivandoLink[] = [];
+          const allSpecimenLinks: SpecimenLink[] = [];
           const allDispatches: DispatchData[] = [];
 
           // === Read ahora dispatches ===
@@ -205,6 +218,16 @@ export default function myceliumDataIntegration(): AstroIntegration {
                 allCultivandoLinks.push({
                   date: dateStr,
                   cultivationSlug: announcement.cultivation,
+                });
+              }
+            }
+
+            // Extract specimen announcements
+            if (frontmatter.specimenNuevo) {
+              for (const announcement of frontmatter.specimenNuevo) {
+                allSpecimenLinks.push({
+                  date: dateStr,
+                  specimenId: announcement.specimen,
                 });
               }
             }
@@ -331,13 +354,36 @@ export default function myceliumDataIntegration(): AstroIntegration {
             });
           }
 
+          // === Read specimens ===
+          const specimenFiles = await readdir(specimensDir);
+          const specYamlFiles = specimenFiles.filter(f => f.endsWith('.yaml'));
+
+          for (const file of specYamlFiles) {
+            const content = await readFile(join(specimensDir, file), 'utf-8');
+            const data = parseYaml(content) as SpecimenYaml;
+
+            const grownStr = typeof data.grown === 'string'
+              ? data.grown
+              : new Date(data.grown).toISOString().slice(0, 10);
+
+            allSpecimens.push({
+              id: data.id,
+              name: data.name,
+              status: data.status,
+              series: data.series,
+              grown: grownStr,
+            });
+          }
+
           // === Build unified graph ===
           const graph: MyceliumGraph = buildGraph({
             tracks: allTracks,
             articles: allArticles,
             cultivations: allCultivations,
+            specimens: allSpecimens,
             ahoraLinks: allAhoraLinks,
             cultivandoLinks: allCultivandoLinks,
+            specimenLinks: allSpecimenLinks,
             dispatches: allDispatches,
           });
 
@@ -351,9 +397,10 @@ export default function myceliumDataIntegration(): AstroIntegration {
           const trackCount = graph.nodes.filter(n => n.type === 'track').length;
           const articleCount = graph.nodes.filter(n => n.type === 'article').length;
           const cultCount = graph.nodes.filter(n => n.type === 'cultivation').length;
+          const specCount = graph.nodes.filter(n => n.type === 'specimen').length;
           const dispatchCount = graph.nodes.filter(n => n.type === 'dispatch').length;
           const exitCount = graph.nodes.filter(n => n.type === 'exit').length;
-          console.log(`[mycelium] Generated ${graph.nodes.length} nodes (${trackCount} tracks, ${articleCount} articles, ${cultCount} cultivations, ${dispatchCount} dispatches, ${exitCount} exits), ${graph.edges.length} edges`);
+          console.log(`[mycelium] Generated ${graph.nodes.length} nodes (${trackCount} tracks, ${articleCount} articles, ${cultCount} cultivations, ${specCount} specimens, ${dispatchCount} dispatches, ${exitCount} exits), ${graph.edges.length} edges`);
         } catch (error) {
           console.error('[mycelium] Error building graph:', error);
           // Don't fail the build, just write empty data

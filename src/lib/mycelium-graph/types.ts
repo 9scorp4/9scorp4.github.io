@@ -2,7 +2,7 @@
  * Type definitions for the Mycelium graph system.
  */
 
-export type NodeType = 'track' | 'article' | 'cultivation' | 'dispatch' | 'exit';
+export type NodeType = 'track' | 'article' | 'cultivation' | 'dispatch' | 'exit' | 'specimen';
 export type EdgeType = 'musical' | 'wikilink' | 'announced' | 'context' | 'exit';
 export type CitationType = 'section' | 'text' | 'block' | 'heading';
 
@@ -39,6 +39,10 @@ export interface MyceliumNode {
   // Exit-specific
   platform?: 'spotify' | 'youtube' | 'bandcamp' | 'soundcloud' | 'github' | 'external';
   label?: string;
+  // Specimen-specific
+  specimenName?: string;
+  specimenStatus?: 'wild' | 'growing' | 'dormant' | 'composted';
+  specimenSeries?: string;
 }
 
 export interface MyceliumEdge {
@@ -59,6 +63,7 @@ export interface MyceliumGraph {
     tracksFromSongbpm: number;
     articleCount: number;
     cultivationCount: number;
+    specimenCount?: number;
     dispatchCount?: number;
     exitCount?: number;
   };
@@ -112,6 +117,19 @@ export interface CultivandoLink {
   cultivationSlug: string; // cultivation mentioned
 }
 
+export interface SpecimenLink {
+  date: string;          // dispatch date
+  specimenId: string;    // specimen announced
+}
+
+export interface SpecimenData {
+  id: string;
+  name: string;
+  status: 'wild' | 'growing' | 'dormant' | 'composted';
+  series?: string;
+  grown: string;         // ISO date
+}
+
 export interface DispatchData {
   date: string;                    // ISO date
   announcements: number;           // count of articuloNuevo + specimenNuevo + cultivando
@@ -124,8 +142,10 @@ export interface GraphInput {
   tracks: TrackData[];
   articles: ArticleData[];
   cultivations: CultivationData[];
+  specimens?: SpecimenData[];
   ahoraLinks: AhoraLink[]; // articuloNuevo announcements
   cultivandoLinks?: CultivandoLink[]; // cultivando announcements
+  specimenLinks?: SpecimenLink[]; // specimenNuevo announcements
   dispatches?: DispatchData[]; // notable dispatches
 }
 

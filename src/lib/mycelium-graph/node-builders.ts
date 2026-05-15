@@ -2,7 +2,7 @@
  * Node building functions for the Mycelium graph system.
  */
 
-import type { MyceliumNode, TrackData, ArticleData, CultivationData, DispatchData } from './types.ts';
+import type { MyceliumNode, TrackData, ArticleData, CultivationData, DispatchData, SpecimenData } from './types.ts';
 import { createNodeId, createExitNodeId, detectPlatform, getPlatformLabel } from './utilities.ts';
 
 /**
@@ -149,6 +149,28 @@ export function buildDispatchNodes(
       announcements: dispatch.announcements,
       hasProseLinks: dispatch.hasProseLinks,
       firstSeen: dispatch.date,
+      appearances: 1,
+    });
+  }
+}
+
+/**
+ * Build specimen nodes from specimen data
+ */
+export function buildSpecimenNodes(
+  specimens: SpecimenData[],
+  nodeMap: Map<string, MyceliumNode>
+): void {
+  for (const specimen of specimens) {
+    const id = `s:${specimen.id}`;
+    nodeMap.set(id, {
+      id,
+      type: 'specimen',
+      slug: specimen.id,
+      specimenName: specimen.name,
+      specimenStatus: specimen.status,
+      specimenSeries: specimen.series,
+      firstSeen: specimen.grown,
       appearances: 1,
     });
   }

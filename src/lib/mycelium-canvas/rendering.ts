@@ -11,6 +11,8 @@ export function getNodeSize(node: SimNode): number {
     return 6 + Math.min(node.appearances * 2, 8);
   } else if (node.type === 'article') {
     return 10;
+  } else if (node.type === 'specimen') {
+    return 9;
   } else if (node.type === 'dispatch') {
     return 7;
   } else if (node.type === 'exit') {
@@ -24,6 +26,7 @@ export function getNodeSize(node: SimNode): number {
 export function getNodeColor(node: SimNode, isActive: boolean): string {
   if (isActive) return COLORS.sun;
   if (node.type === 'track') return COLORS.fern;
+  if (node.type === 'specimen') return COLORS.fern;
   if (node.type === 'cultivation') return COLORS.ochreMuted;
   if (node.type === 'dispatch') return COLORS.inkSoft;
   if (node.type === 'exit') return COLORS.inkFaint;
@@ -44,6 +47,8 @@ export function getNodeLabel(node: SimNode): { primary: string; secondary?: stri
     return { primary: node.title || '', secondary: node.artist };
   } else if (node.type === 'article') {
     return { primary: node.articleTitle || node.slug || '' };
+  } else if (node.type === 'specimen') {
+    return { primary: node.specimenName || node.slug || '', secondary: node.specimenSeries };
   } else if (node.type === 'dispatch') {
     const date = new Date(node.date + 'T00:00:00');
     const formatted = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
@@ -194,6 +199,10 @@ function drawNodes(
       ctx.strokeStyle = color;
       ctx.lineWidth = 1.5 / transform.scale;
       ctx.stroke();
+    } else if (node.type === 'specimen') {
+      // Hexagon shape for specimens
+      drawHexagon(ctx, node.x, node.y, size);
+      ctx.fill();
     } else if (node.type === 'dispatch') {
       const halfSize = size;
       const cornerRadius = 1;
@@ -213,6 +222,22 @@ function drawNodes(
       drawNodeLabel(ctx, node, size, transform);
     }
   }
+}
+
+/** Draw a hexagon at the given position */
+function drawHexagon(ctx: CanvasRenderingContext2D, x: number, y: number, radius: number): void {
+  ctx.beginPath();
+  for (let i = 0; i < 6; i++) {
+    const angle = (Math.PI / 3) * i - Math.PI / 6; // Start flat-topped
+    const px = x + radius * Math.cos(angle);
+    const py = y + radius * Math.sin(angle);
+    if (i === 0) {
+      ctx.moveTo(px, py);
+    } else {
+      ctx.lineTo(px, py);
+    }
+  }
+  ctx.closePath();
 }
 
 function drawNodeLabel(

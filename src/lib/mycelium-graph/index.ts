@@ -15,8 +15,10 @@ export type {
   WikilinkData,
   ArticleData,
   CultivationData,
+  SpecimenData,
   AhoraLink,
   CultivandoLink,
+  SpecimenLink,
   DispatchData,
   GraphInput,
   EdgeData,
@@ -42,6 +44,7 @@ export {
   buildCultivationNodes,
   buildExitNodesFromTracks,
   buildDispatchNodes,
+  buildSpecimenNodes,
 } from './node-builders.ts';
 
 // Edge builders
