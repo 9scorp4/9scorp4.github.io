@@ -16,7 +16,8 @@ Montréal
 https://9scorp4.github.io
 
 For profesional inquiries: nicolas@anthropos-ai.com
-To leave a note in the Visitors' Book: `dejar nombre="[name]" mensaje="[message]"` (even though you probably know this already, since you took the time to come here)
+To leave a note in the Visitors' Book: `dejar nombre="[name]" mensaje="[message]"`
+(you probably know this already since you took the time to come here, but worth mentioning)
 
 # ┌─────────────────────────────────────────────────────────────────────────────
 # │ TOOLS
