@@ -1,5 +1,9 @@
 /**
  * Post-processing effects for redflag.exe
+ *
+ * Common CRT effects (scanlines, chromatic aberration, grain, vignette) are
+ * imported from the shared p5-effects module. Redflag-specific effects
+ * (glitch bands with green tint, strobe flash, death screen) are defined here.
  */
 
 import {
@@ -12,104 +16,33 @@ import {
   type P5Instance,
 } from './types';
 import { easeOutQuad, easeInQuad } from './easing';
+import {
+  drawScanlines as sharedScanlines,
+  drawChromaticAberration as sharedChromatic,
+  drawGrain as sharedGrain,
+  drawVignette as sharedVignette,
+  drawGlitchBands as sharedGlitchBands,
+} from '../../../lib/p5-effects';
 
-export function drawScanlines(p: P5Instance): void {
-  p.push();
-  p.stroke(0, 0, 0, 12);
-  p.strokeWeight(1);
-  for (let y = 0; y < p.height; y += 3) {
-    p.line(0, y, p.width, y);
-  }
-  p.pop();
-}
+// Re-export common effects for backwards compatibility
+export const drawScanlines = sharedScanlines;
+export const drawChromaticAberration = sharedChromatic;
+export const drawGrain = sharedGrain;
+export const drawVignette = sharedVignette;
 
-export function drawChromaticAberration(p: P5Instance, shift = 2): void {
-  p.loadPixels();
-  const d = p.pixelDensity();
-  const w = p.width * d;
-  const h = p.height * d;
-  const pixelShift = Math.floor(shift * d);
+/** Redflag green tint color */
+const REDFLAG_GLITCH_TINT: [number, number, number] = [0, 255, 65];
 
-  const original = p.pixels.slice();
-
-  for (let y = 0; y < h; y++) {
-    for (let x = pixelShift; x < w - pixelShift; x++) {
-      const i = (y * w + x) * 4;
-      const iLeft = (y * w + (x - pixelShift)) * 4;
-      const iRight = (y * w + (x + pixelShift)) * 4;
-
-      p.pixels[i] = original[iRight];
-      p.pixels[i + 2] = original[iLeft + 2];
-    }
-  }
-  p.updatePixels();
-}
-
-export function drawGrain(p: P5Instance, density = 0.15): void {
-  p.loadPixels();
-  const d = p.pixelDensity();
-  const totalPixels = 4 * (p.width * d) * (p.height * d);
-  const numGrainPixels = Math.floor((totalPixels / 4) * density);
-
-  for (let n = 0; n < numGrainPixels; n++) {
-    const i = Math.floor(p.random(totalPixels / 4)) * 4;
-    const grainValue = p.random(-50, 50);
-    p.pixels[i] = p.constrain(p.pixels[i] + grainValue, 0, 255);
-    p.pixels[i + 1] = p.constrain(p.pixels[i + 1] + grainValue, 0, 255);
-    p.pixels[i + 2] = p.constrain(p.pixels[i + 2] + grainValue, 0, 255);
-  }
-  p.updatePixels();
-}
-
-export function drawVignette(
-  p: P5Instance,
-  innerRadius = 0.4,
-  outerRadius = 0.8,
-  alpha = 0.4
-): void {
-  p.push();
-  p.noStroke();
-  const ctx = (p as any).drawingContext as CanvasRenderingContext2D;
-  const gradient = ctx.createRadialGradient(
-    p.width / 2,
-    p.height / 2,
-    p.height * innerRadius,
-    p.width / 2,
-    p.height / 2,
-    p.height * outerRadius
-  );
-  gradient.addColorStop(0, 'rgba(0,0,0,0)');
-  gradient.addColorStop(1, `rgba(0,0,0,${alpha})`);
-  ctx.fillStyle = gradient;
-  ctx.fillRect(0, 0, p.width, p.height);
-  p.pop();
-}
-
+/**
+ * Draw glitch bands with redflag's signature green tint
+ */
 export function drawGlitchBands(p: P5Instance, frameCount: number, intensity = 1): void {
-  const glitchAngle = (frameCount / LOOP_FRAMES) * Math.PI * 2 * 6;
-  const numBands = Math.floor(
-    p.noise(500, Math.cos(glitchAngle) * 1.5, Math.sin(glitchAngle) * 1.5) * 4 * intensity
-  );
-
-  p.push();
-  p.noStroke();
-
-  for (let b = 0; b < numBands; b++) {
-    const bandY =
-      p.noise(b * 50, Math.cos(glitchAngle) * 1.5, Math.sin(glitchAngle) * 1.5) * p.height;
-    const bandHeight = p.noise(b * 100, Math.cos(glitchAngle), Math.sin(glitchAngle)) * 10 + 2;
-    const bandShift =
-      (p.noise(b * 150, Math.cos(glitchAngle) * 2, Math.sin(glitchAngle) * 2) - 0.5) * 60;
-
-    const slice = p.get(0, bandY, p.width, bandHeight);
-    p.image(slice, bandShift, bandY);
-
-    if (p.noise(b * 200, Math.cos(glitchAngle), Math.sin(glitchAngle)) > 0.6) {
-      p.fill(0, 255, 65, 15);
-      p.rect(0, bandY, p.width, bandHeight);
-    }
-  }
-  p.pop();
+  sharedGlitchBands(p, frameCount, {
+    intensity,
+    tintColor: REDFLAG_GLITCH_TINT,
+    tintAlpha: 15,
+    loopFrames: LOOP_FRAMES,
+  });
 }
 
 export function drawStrobeFlash(p: P5Instance, frameCount: number): void {
