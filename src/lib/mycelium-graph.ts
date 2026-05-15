@@ -20,8 +20,10 @@ export type {
   WikilinkData,
   ArticleData,
   CultivationData,
+  SpecimenData,
   AhoraLink,
   CultivandoLink,
+  SpecimenLink,
   DispatchData,
   GraphInput,
 } from './mycelium-graph/index.ts';
@@ -44,6 +46,7 @@ import {
   buildCultivationNodes,
   buildExitNodesFromTracks,
   buildDispatchNodes,
+  buildSpecimenNodes,
 } from './mycelium-graph/node-builders.ts';
 import {
   buildMusicalEdges,
@@ -62,12 +65,22 @@ export function buildGraph(input: GraphInput): MyceliumGraph {
   const nodeMap = new Map<string, MyceliumNode>();
   const edgeMap = new Map<string, EdgeData>();
 
-  const { tracks, articles, cultivations, ahoraLinks, cultivandoLinks = [], dispatches = [] } = input;
+  const {
+    tracks,
+    articles,
+    cultivations,
+    specimens = [],
+    ahoraLinks,
+    cultivandoLinks = [],
+    specimenLinks = [],
+    dispatches = [],
+  } = input;
 
   // Build all nodes
   buildTrackNodes(tracks, nodeMap);
   buildArticleNodes(articles, nodeMap);
   buildCultivationNodes(cultivations, nodeMap);
+  buildSpecimenNodes(specimens, nodeMap);
   buildExitNodesFromTracks(tracks, nodeMap);
   buildDispatchNodes(dispatches, nodeMap);
 
@@ -77,7 +90,7 @@ export function buildGraph(input: GraphInput): MyceliumGraph {
   buildCultivationWikilinkEdges(cultivations, nodeMap, edgeMap);
   const tracksByDate = buildAnnouncedEdges(tracks, ahoraLinks, cultivandoLinks, nodeMap, edgeMap);
   buildTrackExitEdges(tracks, nodeMap, edgeMap);
-  buildDispatchEdges(dispatches, ahoraLinks, cultivandoLinks, tracksByDate, nodeMap, edgeMap);
+  buildDispatchEdges(dispatches, ahoraLinks, cultivandoLinks, specimenLinks, tracksByDate, nodeMap, edgeMap);
 
   // Finalize
   const edges = finalizeEdges(edgeMap);
@@ -86,6 +99,7 @@ export function buildGraph(input: GraphInput): MyceliumGraph {
   const tracksFromSongbpm = trackNodes.filter(n => n.songbpmId).length;
   const dispatchCount = nodesArray.filter(n => n.type === 'dispatch').length;
   const exitCount = nodesArray.filter(n => n.type === 'exit').length;
+  const specimenCount = nodesArray.filter(n => n.type === 'specimen').length;
 
   return {
     nodes: nodesArray,
@@ -95,6 +109,7 @@ export function buildGraph(input: GraphInput): MyceliumGraph {
       tracksFromSongbpm,
       articleCount: articles.length,
       cultivationCount: cultivations.length,
+      specimenCount,
       dispatchCount,
       exitCount,
     },

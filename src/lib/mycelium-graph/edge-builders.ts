@@ -10,6 +10,7 @@ import type {
   CultivationData,
   AhoraLink,
   CultivandoLink,
+  SpecimenLink,
   DispatchData,
   EdgeData,
   EdgeType,
@@ -135,30 +136,35 @@ export function buildArticleWikilinkEdges(
   for (const article of articles) {
     const sourceId = `a:${article.slug}`;
     for (const wikilink of article.wikilinks) {
-      // Only link to journal articles for now
+      let targetId: string | null = null;
+
       if (wikilink.target.startsWith('journal:')) {
         const slug = wikilink.target.replace('journal:', '');
-        const targetId = `a:${slug}`;
-        if (nodeMap.has(targetId)) {
-          const edgeKey = [sourceId, targetId].sort().join('|');
-          const existing = edgeMap.get(edgeKey);
-          if (existing) {
-            existing.weight = Math.max(existing.weight, 1.0);
-            existing.reasons.add('cites');
-            existing.citationCount = (existing.citationCount || 1) + 1;
-            // Keep most specific citation type
-            if (existing.citationType && citationPriority[wikilink.citationType] > citationPriority[existing.citationType]) {
-              existing.citationType = wikilink.citationType;
-            }
-          } else {
-            edgeMap.set(edgeKey, {
-              weight: 1.0,
-              reasons: new Set(['cites']),
-              edgeType: 'wikilink',
-              citationType: wikilink.citationType,
-              citationCount: 1,
-            });
+        targetId = `a:${slug}`;
+      } else if (wikilink.target.startsWith('specimen:')) {
+        const id = wikilink.target.replace('specimen:', '');
+        targetId = `s:${id}`;
+      }
+
+      if (targetId && nodeMap.has(targetId)) {
+        const edgeKey = [sourceId, targetId].sort().join('|');
+        const existing = edgeMap.get(edgeKey);
+        if (existing) {
+          existing.weight = Math.max(existing.weight, 1.0);
+          existing.reasons.add('cites');
+          existing.citationCount = (existing.citationCount || 1) + 1;
+          // Keep most specific citation type
+          if (existing.citationType && citationPriority[wikilink.citationType] > citationPriority[existing.citationType]) {
+            existing.citationType = wikilink.citationType;
           }
+        } else {
+          edgeMap.set(edgeKey, {
+            weight: 1.0,
+            reasons: new Set(['cites']),
+            edgeType: 'wikilink',
+            citationType: wikilink.citationType,
+            citationCount: 1,
+          });
         }
       }
     }
@@ -285,6 +291,7 @@ export function buildDispatchEdges(
   dispatches: DispatchData[],
   ahoraLinks: AhoraLink[],
   cultivandoLinks: CultivandoLink[],
+  specimenLinks: SpecimenLink[],
   tracksByDate: Map<string, string[]>,
   nodeMap: Map<string, MyceliumNode>,
   edgeMap: Map<string, EdgeData>
@@ -325,6 +332,19 @@ export function buildDispatchEdges(
           const edgeKey = [dispatchId, cultId].sort().join('|');
           if (!edgeMap.has(edgeKey)) {
             edgeMap.set(edgeKey, { weight: 1.0, reasons: new Set(['cultivando']), edgeType: 'announced' });
+          }
+        }
+      }
+    }
+
+    // Dispatch → specimens (specimenNuevo): weight 1.0 via specimenLinks
+    for (const link of specimenLinks) {
+      if (link.date.slice(0, 10) === dateKey) {
+        const specId = `s:${link.specimenId}`;
+        if (nodeMap.has(specId)) {
+          const edgeKey = [dispatchId, specId].sort().join('|');
+          if (!edgeMap.has(edgeKey)) {
+            edgeMap.set(edgeKey, { weight: 1.0, reasons: new Set(['announces']), edgeType: 'announced' });
           }
         }
       }
