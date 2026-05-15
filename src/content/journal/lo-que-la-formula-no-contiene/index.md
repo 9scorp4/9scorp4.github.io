@@ -2,7 +2,7 @@
 title: "lo que la fórmula no devuelve"
 title_secondary: "what the formula doesn't give back"
 date: 2026-05-15
-entry: 8
+entry: 11
 language: en
 summary: "On the commodification operation that dissolves the relational substrate it replaces, traced from a baby-formula scandal to the metering of intelligence."
 draft: false
