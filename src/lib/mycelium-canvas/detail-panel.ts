@@ -189,6 +189,40 @@ function renderSpecimenDetail(node: SimNode): string {
   return html;
 }
 
+/** Render external article detail panel HTML */
+function renderExternalArticleDetail(node: SimNode, links: SimLink[]): string {
+  const title = node.externalTitle || node.externalDomain || 'external article';
+  let html = `
+    <p class="detail-title"><a href="${node.url}" target="_blank" rel="noopener">${title}</a></p>
+    <p class="detail-meta">${node.externalDomain || 'external'}</p>
+  `;
+
+  if (node.externalAuthor) {
+    html += `<p class="detail-meta">by ${node.externalAuthor}</p>`;
+  }
+
+  // Find citing articles
+  const citedBy: string[] = [];
+  for (const link of links) {
+    if (link.edgeType !== 'citation') continue;
+    const sourceNode = link.source;
+    const targetNode = link.target;
+    if (targetNode.id === node.id && sourceNode.type === 'article') {
+      citedBy.push(sourceNode.articleTitle || sourceNode.slug || '');
+    }
+  }
+
+  if (citedBy.length > 0) {
+    html += `<p class="detail-meta">cited by: ${citedBy.join(', ')}</p>`;
+  }
+
+  if (node.appearances && node.appearances > 1) {
+    html += `<p class="detail-meta">${node.appearances} citations</p>`;
+  }
+
+  return html;
+}
+
 /** Show detail panel for a node */
 export function showDetail(panel: HTMLDivElement, node: SimNode, links: SimLink[]): void {
   let html = '';
@@ -211,6 +245,9 @@ export function showDetail(panel: HTMLDivElement, node: SimNode, links: SimLink[
       break;
     case 'exit':
       html = renderExitDetail(node, links);
+      break;
+    case 'externalArticle':
+      html = renderExternalArticleDetail(node, links);
       break;
   }
 

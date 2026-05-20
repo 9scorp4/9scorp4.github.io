@@ -17,6 +17,8 @@ export function getNodeSize(node: SimNode): number {
     return 7;
   } else if (node.type === 'exit') {
     return 6;
+  } else if (node.type === 'externalArticle') {
+    return 8;
   } else {
     return 8; // cultivation
   }
@@ -30,6 +32,7 @@ export function getNodeColor(node: SimNode, isActive: boolean): string {
   if (node.type === 'cultivation') return COLORS.ochreMuted;
   if (node.type === 'dispatch') return COLORS.inkSoft;
   if (node.type === 'exit') return COLORS.inkFaint;
+  if (node.type === 'externalArticle') return COLORS.inkSoft;
   return COLORS.ochre; // article
 }
 
@@ -37,6 +40,9 @@ export function getNodeColor(node: SimNode, isActive: boolean): string {
 export function getEdgeColor(edgeType: EdgeType): string {
   if (edgeType === 'wikilink' || edgeType === 'announced' || edgeType === 'context') {
     return COLORS.ochre;
+  }
+  if (edgeType === 'citation') {
+    return COLORS.inkSoft;
   }
   return COLORS.paperLine;
 }
@@ -55,6 +61,8 @@ export function getNodeLabel(node: SimNode): { primary: string; secondary?: stri
     return { primary: formatted };
   } else if (node.type === 'exit') {
     return { primary: node.label || 'external' };
+  } else if (node.type === 'externalArticle') {
+    return { primary: node.externalTitle || node.externalDomain || 'external', secondary: node.externalAuthor };
   } else {
     return { primary: node.cultivationName || node.slug || '' };
   }
@@ -122,6 +130,10 @@ function drawEdges(ctx: CanvasRenderingContext2D, links: SimLink[], transform: T
     if (link.edgeType === 'exit') {
       const dashLength = 4 / transform.scale;
       ctx.setLineDash([dashLength, dashLength]);
+    } else if (link.edgeType === 'citation') {
+      // Citation to external article: longer dashes
+      const dashLength = 6 / transform.scale;
+      ctx.setLineDash([dashLength, dashLength * 0.5]);
     } else if (link.edgeType === 'wikilink' && link.citationType) {
       const pattern = CITATION_DASH_PATTERNS[link.citationType];
       ctx.setLineDash(pattern.map(v => v / transform.scale));
@@ -209,6 +221,10 @@ function drawNodes(
       ctx.beginPath();
       ctx.roundRect(node.x - halfSize, node.y - halfSize, halfSize * 2, halfSize * 2, cornerRadius);
       ctx.fill();
+    } else if (node.type === 'externalArticle') {
+      // Diamond shape for external articles
+      drawDiamond(ctx, node.x, node.y, size);
+      ctx.fill();
     } else {
       const halfSize = size;
       const cornerRadius = 2;
@@ -237,6 +253,16 @@ function drawHexagon(ctx: CanvasRenderingContext2D, x: number, y: number, radius
       ctx.lineTo(px, py);
     }
   }
+  ctx.closePath();
+}
+
+/** Draw a diamond at the given position */
+function drawDiamond(ctx: CanvasRenderingContext2D, x: number, y: number, size: number): void {
+  ctx.beginPath();
+  ctx.moveTo(x, y - size);      // top
+  ctx.lineTo(x + size, y);      // right
+  ctx.lineTo(x, y + size);      // bottom
+  ctx.lineTo(x - size, y);      // left
   ctx.closePath();
 }
 
