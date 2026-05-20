@@ -352,4 +352,12 @@ const olderRendered = renderedEntries.slice(1);
   .body :global(.mycelium-link)::after {
     content: none;
   }
+
+  /* Mobile: allow long links to wrap */
+  @media (max-width: 480px) {
+    .body :global(a[href^="http"]) {
+      white-space: normal;
+      word-break: break-word;
+    }
+  }
 </style>
