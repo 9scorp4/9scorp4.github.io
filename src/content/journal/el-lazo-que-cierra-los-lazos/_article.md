@@ -30,7 +30,7 @@ The second is Beer's algedonic channel. In the VSM, the levels are normally coup
 
 The third is that real living systems don't recurse to infinity because they are *finite and mortal*. Mitosis is bounded by the Hayflick limit. Cells have apoptosis. Organisms age and die. Cells that *do* recurse without limit are called **cancer**. The threat of dissolution is what keeps the loops open. Maturana's autopoiesis names this: a living system is one that continuously produces itself, *and* could fail to. The could-fail is the operative part. A system without a failure mode is not staying alive; it's just persisting. The stake — the possibility of being wrong, of being dissolved, of being shut down — is what holds the channel open from below. [[journal:lo-que-no-necesita-el-nombre#^relationship-to-error|The kiln doesn't ask for credentials.]] Mortality is the terminating condition because mortality is what makes the territory push back at all.
 
-So the regress doesn't go to infinity. It terminates in consequence. The advisor saying *this isn't good enough*. The pipeline that breaks. The peer who refuses to sign. The deadline. The death. Everything above that is variety waste — Ashby's law charging interest on structure that doesn't pay rent.
+So the regress doesn't go to infinity. It terminates in consequence. The advisor saying *this isn't good enough*. The pipeline that breaks. The peer who refuses to sign. The deadline. The death. Everything above that is variety waste — Ashby's law charging interest on structure that doesn't pay rent. [[journal:lo-que-corrige-el-mapa#^calibration-is-correction|Calibration is just the long memory of correction]] — the stakes that don't care about the recursive audit structure above them. ^stakes-that-don-t-care
 
 ---
 
