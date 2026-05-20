@@ -61,3 +61,31 @@ entries:
         line: "Eso es cruel."
       - speaker: "RENATA"
         line: "No. Es la forma. Tú me trajiste acá precisamente porque la otra no te iba a contestar."
+
+  # Full batch: una palabra, varias aguas
+  - slug: una-palabra-varias-aguas
+    quotes:
+      - "The cartographer is at the level where the configuration is the object. The navigator is at the level where the configuration is the medium."
+      - "The edge has epistemic privilege. The navigator at the edge has a finer practical knowledge because nothing about staying alive at the edge permits coarseness."
+      - "Multipolarity is two phenomena pretending to be one."
+    metalogue:
+      - speaker: "NAVEGANTE"
+        line: "From the water there is no *multipolaridad*. There is — más viento de este lado este año."
+      - speaker: "I"
+        line: "That isn't more room."
+      - speaker: "NAVEGANTE"
+        line: "*Cuesta más cruzar.*"
+
+  # Full batch: lo que no necesita el nombre
+  - slug: lo-que-no-necesita-el-nombre
+    quotes:
+      - "Science is a specific kind of relationship to error. It is an activity defined by maintaining a working corrective channel."
+      - "The alfarera doesn't need the club. The club needs them."
+      - "You cannot update one level without the other and call it learning. You have rearranged the furniture in the room you were trying to leave."
+    metalogue:
+      - speaker: "ALFARERA"
+        line: "Estabas a punto de decirme que lo que llevo treinta mil años haciendo finalmente puede entrar en una categoría que existe hace trescientos."
+      - speaker: "I"
+        line: "I'm trying to expand the category."
+      - speaker: "ALFARERA"
+        line: "La inclusión la define el que incluye. La estructura no cambia."
