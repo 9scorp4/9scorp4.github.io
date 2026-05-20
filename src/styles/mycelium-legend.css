@@ -103,6 +103,14 @@
   border-color: #8a7350;
 }
 
+.mycelium-container .legend-shape.diamond {
+  transform: rotate(45deg);
+}
+
+.mycelium-container .legend-shape.external-article {
+  background: #6b5435;
+}
+
 .mycelium-container .legend-divider {
   height: 1px;
   background: var(--paper-line);
@@ -167,6 +175,16 @@
   );
 }
 
+.mycelium-container .legend-line.citation-edge {
+  background: repeating-linear-gradient(
+    to right,
+    #6b5435 0px,
+    #6b5435 5px,
+    transparent 5px,
+    transparent 7.5px
+  );
+}
+
 .mycelium-container .legend-label {
   color: var(--ink-faint);
   font-style: italic;
@@ -199,6 +217,11 @@
 
   .mycelium-container .legend-shape.cultivation,
   .mycelium-container .legend-shape.dispatch {
+    width: 6px;
+    height: 6px;
+  }
+
+  .mycelium-container .legend-shape.square.diamond {
     width: 6px;
     height: 6px;
   }
