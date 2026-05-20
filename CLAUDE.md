@@ -215,6 +215,13 @@ Two wikilink systems exist: `resolve-wikilinks.ts` (simple string replacement fo
 - Sentence case for everything; ALL CAPS only for the small-caps section banners
 - No new colors without naming them in `PALETTE.md` first
 
+### Astro v6 Content Collections
+
+Content collections use glob loaders in `src/content.config.ts`. Key differences from Astro 5:
+- Entry IDs follow `folder/index` pattern — extract slug with `entry.id.replace(/\/index$/, '')`
+- Use `render(entry)` from `astro:content` instead of `entry.render()`
+- Schemas use `z.coerce.date()` for date fields
+
 ## Build-time integrations
 
 - **OG images** (`src/integrations/og-images.ts`) — generates 1200×630 social preview images at build time using Satori. Templates in `src/lib/og-image.tsx`.
@@ -223,7 +230,7 @@ Two wikilink systems exist: `resolve-wikilinks.ts` (simple string replacement fo
 
 ## Key interactive components
 
-- **MyceliumCanvas** (`src/components/interactive/MyceliumCanvas.astro`) — force-directed graph unifying music, articles, cultivations, dispatches, and exit links. Uses d3-force. Data pipeline: `src/integrations/mycelium-data.ts` extracts tracks/articles/wikilinks at build time → `src/lib/mycelium-graph.ts` builds nodes/edges. Node types: tracks (circles), articles (rounded squares), cultivations (squares), dispatches (small squares), exits (hollow circles). Edge types: `musical` (tempo/key/artist similarity), `wikilink` (article citations with `citationType`), `announced` (articuloNuevo links), `context`, `exit`.
+- **MyceliumCanvas** (`src/components/interactive/MyceliumCanvas.astro`) — force-directed graph unifying music, articles, cultivations, dispatches, and exit links. Uses d3-force. Data pipeline: `src/integrations/mycelium-data.ts` extracts tracks/articles/wikilinks/external article links at build time → `src/lib/mycelium-graph.ts` builds nodes/edges. External articles are detected via domain allowlist in `src/lib/mycelium-graph/external-articles.ts`. Node types: tracks (circles), articles (rounded squares), cultivations (squares), dispatches (small squares), exits (hollow circles), external articles (diamonds). Edge types: `musical` (tempo/key/artist similarity), `wikilink` (article citations with `citationType`), `announced` (articuloNuevo links), `context`, `exit`, `citation` (links to external academic/publication URLs).
 - **VisitorsBook** (`src/components/interactive/VisitorsBook.astro`) — terminal-style console with custom parser. Commands: `ayuda`, `escuchar`, `dejar`, `limpiar`.
 - **SpecimenModal** — lightbox for full-size p5.js sketches.
 
