@@ -10,6 +10,7 @@ import { loadSketch, destroySketch } from './sketch-loader';
 // Modal state
 let isOpen = false;
 let refs: ModalRefs | null = null;
+let previouslyFocusedElement: HTMLElement | null = null;
 
 /**
  * Get and cache DOM element references
@@ -51,6 +52,9 @@ export function openModal(specimen: SpecimenData): void {
 
   isOpen = true;
 
+  // Store the element that had focus before opening
+  previouslyFocusedElement = document.activeElement as HTMLElement | null;
+
   // Track specimen open for analytics
   trackSpecimenOpen({ name: specimen.name, series: specimen.series });
 
@@ -76,6 +80,9 @@ export function openModal(specimen: SpecimenData): void {
   // Show modal
   modalRefs.modal.setAttribute('aria-hidden', 'false');
   document.body.style.overflow = 'hidden';
+
+  // Focus the close button for keyboard accessibility
+  modalRefs.closeBtn?.focus();
 
   // Show loading state
   modalRefs.loadingEl.classList.remove('hidden');
@@ -110,7 +117,14 @@ export function closeModal(): void {
 
   isOpen = false;
 
-  // Hide modal
+  // Restore focus to the element that opened the modal BEFORE hiding
+  // This prevents the aria-hidden violation when focus is inside the modal
+  if (previouslyFocusedElement && typeof previouslyFocusedElement.focus === 'function') {
+    previouslyFocusedElement.focus();
+  }
+  previouslyFocusedElement = null;
+
+  // Hide modal (now safe since focus has moved out)
   modalRefs.modal.setAttribute('aria-hidden', 'true');
   document.body.style.overflow = '';
 
