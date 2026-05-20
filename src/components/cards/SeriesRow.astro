@@ -35,7 +35,7 @@ const sortedEntries = [...entries].sort(
   </summary>
   <div class="series-entries">
     {sortedEntries.map((entry) => (
-      <JournalEntry entry={entry} />
+      <JournalEntry entry={entry} slug={entry.id.replace(/\/index$/, '')} />
     ))}
   </div>
 </details>

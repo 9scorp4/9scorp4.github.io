@@ -4,7 +4,7 @@
  * Handles both regular articles and diptych entries.
  */
 
-import { getCollection, getEntry } from 'astro:content';
+import { getCollection, getEntry, render } from 'astro:content';
 import type { CollectionEntry } from 'astro:content';
 import DiptychPage from '../../components/diptych/DiptychPage.astro';
 import Garden from '../../layouts/Garden.astro';
@@ -12,17 +12,22 @@ import Garden from '../../layouts/Garden.astro';
 export async function getStaticPaths() {
   const entries = await getCollection('journal', ({ data }) => !data.draft);
 
-  return entries.map((entry) => ({
-    params: { slug: entry.slug },
-    props: { entry },
-  }));
+  return entries.map((entry) => {
+    // Astro v6 glob loader uses "folder/index" as id - extract the slug
+    const slug = entry.id.replace(/\/index$/, '');
+    return {
+      params: { slug },
+      props: { entry, slug },
+    };
+  });
 }
 
 interface Props {
   entry: CollectionEntry<'journal'>;
+  slug: string;
 }
 
-const { entry } = Astro.props;
+const { entry, slug } = Astro.props;
 
 // Compute series context if entry belongs to a series
 interface SeriesContext {
@@ -46,7 +51,7 @@ if (entry.data.series && entry.data.seriesIndex) {
       .filter(e => e.data.series === entry.data.series)
       .sort((a, b) => (a.data.seriesIndex ?? 0) - (b.data.seriesIndex ?? 0));
 
-    const currentIndex = seriesEntries.findIndex(e => e.slug === entry.slug);
+    const currentIndex = seriesEntries.findIndex(e => e.id.replace(/\/index$/, '') === slug);
 
     const prevEntry = currentIndex > 0 ? seriesEntries[currentIndex - 1] : undefined;
     const nextEntry = currentIndex < seriesEntries.length - 1 ? seriesEntries[currentIndex + 1] : undefined;
@@ -56,12 +61,12 @@ if (entry.data.series && entry.data.seriesIndex) {
       totalParts: seriesManifest.data.totalParts,
       partIndex: entry.data.seriesIndex,
       prev: prevEntry ? {
-        slug: prevEntry.slug,
+        slug: prevEntry.id.replace(/\/index$/, ''),
         title: prevEntry.data.title,
         partIndex: prevEntry.data.seriesIndex!,
       } : undefined,
       next: nextEntry ? {
-        slug: nextEntry.slug,
+        slug: nextEntry.id.replace(/\/index$/, ''),
         title: nextEntry.data.title,
         partIndex: nextEntry.data.seriesIndex!,
       } : undefined,
@@ -88,8 +93,8 @@ if (type === 'diptych') {
   );
 
   // Find the files for this entry's slug
-  const articlePath = `/src/content/journal/${entry.slug}/_article.md`;
-  const metaloguePath = `/src/content/journal/${entry.slug}/_metalogue.md`;
+  const articlePath = `/src/content/journal/${slug}/_article.md`;
+  const metaloguePath = `/src/content/journal/${slug}/_metalogue.md`;
 
   const articleModule = articleModules[articlePath];
   const metalogueModule = metalogueModules[metaloguePath];
@@ -103,10 +108,10 @@ if (type === 'diptych') {
 }
 
 // For regular articles, render the content directly
-const { Content } = await entry.render();
+const { Content } = await render(entry);
 
 const pageTitle = `${entry.data.title} — un jardín cibernético`;
-const canonicalUrl = `/cuaderno/${entry.slug}/`;
+const canonicalUrl = `/cuaderno/${slug}/`;
 
 // JSON-LD structured data for regular articles
 const jsonLd = JSON.stringify({
@@ -138,7 +143,7 @@ const jsonLd = JSON.stringify({
     title={pageTitle}
     description={entry.data.summary}
     ogType="article"
-    ogImageSlug={entry.slug}
+    ogImageSlug={slug}
     canonicalUrl={canonicalUrl}
   >
     <script type="application/ld+json" set:html={jsonLd} />
@@ -179,7 +184,7 @@ const jsonLd = JSON.stringify({
 </style>
 
 {type !== 'diptych' && (
-  <script define:vars={{ workerUrl, slug: entry.slug }}>
+  <script define:vars={{ workerUrl, slug }}>
     // Article read tracking - only for regular articles (diptych has its own)
     (function() {
       if (!workerUrl || navigator.doNotTrack === '1') return;

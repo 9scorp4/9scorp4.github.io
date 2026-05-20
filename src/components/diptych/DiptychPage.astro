@@ -33,10 +33,11 @@ interface Props {
 const { entry, articleHtml, metalogueHtml, seriesContext } = Astro.props;
 const { title, title_secondary, date, entry: entryNumber, preamble, metalogue_title, metalogue_epigraph, colophon, summary } = entry.data;
 const workerUrl = import.meta.env.PUBLIC_VISITORS_WORKER_URL || '';
-const slug = entry.slug;
+// Astro v6: extract slug from entry id
+const slug = entry.id.replace(/\/index$/, '');
 
 const pageTitle = `${title}${title_secondary ? ` · ${title_secondary}` : ''} — un jardín cibernético`;
-const canonicalUrl = `/cuaderno/${entry.slug}/`;
+const canonicalUrl = `/cuaderno/${slug}/`;
 
 // JSON-LD structured data
 const jsonLd = JSON.stringify({
@@ -60,7 +61,7 @@ const jsonLd = JSON.stringify({
   title={pageTitle}
   description={summary}
   ogType="article"
-  ogImageSlug={entry.slug}
+  ogImageSlug={slug}
   canonicalUrl={canonicalUrl}
 >
   <script type="application/ld+json" set:html={jsonLd} />

@@ -123,8 +123,11 @@ export async function GET(context: APIContext) {
   const specimens = await getCollection('specimens');
   const cultivations = await getCollection('cultivations');
 
+  // Helper to extract slug from entry id (Astro v6)
+  const getSlug = (e: { id: string }) => e.id.replace(/\/index$/, '');
+
   // Lookup maps for ahora content enrichment
-  const journalBySlug = new Map(journal.map((e) => [e.slug, e]));
+  const journalBySlug = new Map(journal.map((e) => [getSlug(e), e]));
   const specimensById = new Map(specimens.map((s) => [s.data.id, s]));
   const cultivationsBySlug = new Map(cultivations.map((c) => [c.data.slug, c]));
 
@@ -148,11 +151,12 @@ export async function GET(context: APIContext) {
   };
 
   const journalItems: FeedItem[] = journal.map((entry) => {
+    const slug = getSlug(entry);
     let rawContent: string;
 
     if (entry.data.type === 'diptych') {
-      const articlePath = `/src/content/journal/${entry.slug}/_article.md`;
-      const metaloguePath = `/src/content/journal/${entry.slug}/_metalogue.md`;
+      const articlePath = `/src/content/journal/${slug}/_article.md`;
+      const metaloguePath = `/src/content/journal/${slug}/_metalogue.md`;
       const article = articleModules[articlePath]?.rawContent?.() ?? '';
       const metalogue = metalogueModules[metaloguePath]?.rawContent?.() ?? '';
       rawContent = article + '\n\n---\n\n## metalogue\n\n' + metalogue;
@@ -167,7 +171,7 @@ export async function GET(context: APIContext) {
       title: entry.data.title,
       pubDate: entry.data.date,
       description: entry.data.summary,
-      link: `/cuaderno/${entry.slug}/`,
+      link: `/cuaderno/${slug}/`,
       content: sanitizeHtml(md.render(processedContent), {
         allowedTags: sanitizeHtml.defaults.allowedTags.concat(['img']),
       }),
