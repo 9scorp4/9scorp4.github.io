@@ -22,15 +22,18 @@ import {
   type CultivandoLink,
   type SpecimenLink,
   type DispatchData,
+  type ExternalArticleData,
   type WikilinkData,
   type CitationType,
 } from '../lib/mycelium-graph.ts';
+import { isArticleDomain } from '../lib/mycelium-graph/external-articles.ts';
 
 // Pattern for extracting wikilinks: [[collection:slug#fragment|display]]
 const WIKILINK_PATTERN = /\[\[(\w+):([^\]#|]+)(?:#([^\]|]+))?(?:\|([^\]]+))?\]\]/g;
 
 // Pattern for extracting markdown external links: [text](url)
-const EXTERNAL_LINK_PATTERN = /\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g;
+// Handles parentheses in URLs by matching balanced parens or non-paren characters
+const EXTERNAL_LINK_PATTERN = /\[([^\]]+)\]\((https?:\/\/(?:[^()]+|\([^)]*\))+)\)/g;
 
 interface AhoraFrontmatter {
   date: string;
@@ -165,6 +168,7 @@ export default function myceliumDataIntegration(): AstroIntegration {
           const allCultivandoLinks: CultivandoLink[] = [];
           const allSpecimenLinks: SpecimenLink[] = [];
           const allDispatches: DispatchData[] = [];
+          const allExternalArticles: ExternalArticleData[] = [];
 
           // === Read ahora dispatches ===
           const ahoraFiles = await readdir(ahoraDir);
@@ -273,24 +277,28 @@ export default function myceliumDataIntegration(): AstroIntegration {
               const frontmatter = parseYaml(frontmatterMatch[1]) as JournalFrontmatter;
               if (frontmatter.draft) continue; // Skip drafts
 
-              // Collect all markdown bodies for wikilink extraction
+              // Collect all markdown bodies for wikilink and external link extraction
               const wikilinks: WikilinkData[] = [];
+              const articleExternalLinks: string[] = [];
 
               // Read _article.md if exists
               try {
                 const articlePath = join(entryPath, '_article.md');
                 const articleBody = await readMarkdownBody(articlePath);
                 wikilinks.push(...extractWikilinks(articleBody));
+                articleExternalLinks.push(...extractExternalLinks(articleBody));
               } catch {
                 // No _article.md, try reading from index.md body
                 const indexBody = await readMarkdownBody(indexPath);
                 wikilinks.push(...extractWikilinks(indexBody));
+                articleExternalLinks.push(...extractExternalLinks(indexBody));
               }
 
               // Read _metalogue.md if exists
               try {
                 const metalogueBody = await readMarkdownBody(join(entryPath, '_metalogue.md'));
                 wikilinks.push(...extractWikilinks(metalogueBody));
+                articleExternalLinks.push(...extractExternalLinks(metalogueBody));
               } catch {
                 // No metalogue, that's fine
               }
@@ -331,6 +339,17 @@ export default function myceliumDataIntegration(): AstroIntegration {
                 excerpt,
                 wikilinks: Array.from(wikilinkMap.values()),
               });
+
+              // Extract external article links (filter for article-like domains)
+              for (const url of articleExternalLinks) {
+                if (isArticleDomain(url)) {
+                  allExternalArticles.push({
+                    url,
+                    sourceSlug: entry,
+                    sourceDate: dateStr,
+                  });
+                }
+              }
             } catch {
               // Skip entries without valid index.md
             }
@@ -385,6 +404,7 @@ export default function myceliumDataIntegration(): AstroIntegration {
             cultivandoLinks: allCultivandoLinks,
             specimenLinks: allSpecimenLinks,
             dispatches: allDispatches,
+            externalArticles: allExternalArticles,
           });
 
           // Ensure public dir exists
@@ -400,7 +420,8 @@ export default function myceliumDataIntegration(): AstroIntegration {
           const specCount = graph.nodes.filter(n => n.type === 'specimen').length;
           const dispatchCount = graph.nodes.filter(n => n.type === 'dispatch').length;
           const exitCount = graph.nodes.filter(n => n.type === 'exit').length;
-          console.log(`[mycelium] Generated ${graph.nodes.length} nodes (${trackCount} tracks, ${articleCount} articles, ${cultCount} cultivations, ${specCount} specimens, ${dispatchCount} dispatches, ${exitCount} exits), ${graph.edges.length} edges`);
+          const extArticleCount = graph.nodes.filter(n => n.type === 'externalArticle').length;
+          console.log(`[mycelium] Generated ${graph.nodes.length} nodes (${trackCount} tracks, ${articleCount} articles, ${cultCount} cultivations, ${specCount} specimens, ${dispatchCount} dispatches, ${exitCount} exits, ${extArticleCount} external articles), ${graph.edges.length} edges`);
         } catch (error) {
           console.error('[mycelium] Error building graph:', error);
           // Don't fail the build, just write empty data
