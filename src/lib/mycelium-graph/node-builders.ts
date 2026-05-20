@@ -2,8 +2,9 @@
  * Node building functions for the Mycelium graph system.
  */
 
-import type { MyceliumNode, TrackData, ArticleData, CultivationData, DispatchData, SpecimenData } from './types.ts';
+import type { MyceliumNode, TrackData, ArticleData, CultivationData, DispatchData, SpecimenData, ExternalArticleData } from './types.ts';
 import { createNodeId, createExitNodeId, detectPlatform, getPlatformLabel } from './utilities.ts';
+import { createExternalArticleId, extractDomain, extractTitleFromUrl } from './external-articles.ts';
 
 /**
  * Build track nodes from track data
@@ -172,6 +173,46 @@ export function buildSpecimenNodes(
       specimenSeries: specimen.series,
       firstSeen: specimen.grown,
       appearances: 1,
+    });
+  }
+}
+
+/**
+ * Build external article nodes from external article data
+ */
+export function buildExternalArticleNodes(
+  externalArticles: ExternalArticleData[],
+  nodeMap: Map<string, MyceliumNode>
+): void {
+  // Group by URL to aggregate citations
+  const byUrl = new Map<string, { data: ExternalArticleData; appearances: number; firstSeen: string }>();
+
+  for (const ext of externalArticles) {
+    const existing = byUrl.get(ext.url);
+    if (existing) {
+      existing.appearances++;
+      if (ext.sourceDate < existing.firstSeen) {
+        existing.firstSeen = ext.sourceDate;
+      }
+    } else {
+      byUrl.set(ext.url, { data: ext, appearances: 1, firstSeen: ext.sourceDate });
+    }
+  }
+
+  for (const [url, { data, appearances, firstSeen }] of byUrl) {
+    const id = createExternalArticleId(url);
+    const domain = extractDomain(url);
+    const inferredTitle = extractTitleFromUrl(url);
+
+    nodeMap.set(id, {
+      id,
+      type: 'externalArticle',
+      url,
+      externalTitle: data.title || inferredTitle || undefined,
+      externalAuthor: data.author,
+      externalDomain: domain,
+      firstSeen,
+      appearances,
     });
   }
 }

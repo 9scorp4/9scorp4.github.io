@@ -25,6 +25,7 @@ export type {
   CultivandoLink,
   SpecimenLink,
   DispatchData,
+  ExternalArticleData,
   GraphInput,
 } from './mycelium-graph/index.ts';
 
@@ -47,6 +48,7 @@ import {
   buildExitNodesFromTracks,
   buildDispatchNodes,
   buildSpecimenNodes,
+  buildExternalArticleNodes,
 } from './mycelium-graph/node-builders.ts';
 import {
   buildMusicalEdges,
@@ -55,6 +57,7 @@ import {
   buildAnnouncedEdges,
   buildTrackExitEdges,
   buildDispatchEdges,
+  buildExternalArticleCitationEdges,
   finalizeEdges,
 } from './mycelium-graph/edge-builders.ts';
 
@@ -74,6 +77,7 @@ export function buildGraph(input: GraphInput): MyceliumGraph {
     cultivandoLinks = [],
     specimenLinks = [],
     dispatches = [],
+    externalArticles = [],
   } = input;
 
   // Build all nodes
@@ -83,6 +87,7 @@ export function buildGraph(input: GraphInput): MyceliumGraph {
   buildSpecimenNodes(specimens, nodeMap);
   buildExitNodesFromTracks(tracks, nodeMap);
   buildDispatchNodes(dispatches, nodeMap);
+  buildExternalArticleNodes(externalArticles, nodeMap);
 
   // Build all edges
   buildMusicalEdges(tracks, edgeMap);
@@ -91,6 +96,7 @@ export function buildGraph(input: GraphInput): MyceliumGraph {
   const tracksByDate = buildAnnouncedEdges(tracks, ahoraLinks, cultivandoLinks, nodeMap, edgeMap);
   buildTrackExitEdges(tracks, nodeMap, edgeMap);
   buildDispatchEdges(dispatches, ahoraLinks, cultivandoLinks, specimenLinks, tracksByDate, nodeMap, edgeMap);
+  buildExternalArticleCitationEdges(externalArticles, nodeMap, edgeMap);
 
   // Finalize
   const edges = finalizeEdges(edgeMap);
@@ -100,6 +106,7 @@ export function buildGraph(input: GraphInput): MyceliumGraph {
   const dispatchCount = nodesArray.filter(n => n.type === 'dispatch').length;
   const exitCount = nodesArray.filter(n => n.type === 'exit').length;
   const specimenCount = nodesArray.filter(n => n.type === 'specimen').length;
+  const externalArticleCount = nodesArray.filter(n => n.type === 'externalArticle').length;
 
   return {
     nodes: nodesArray,
@@ -112,6 +119,7 @@ export function buildGraph(input: GraphInput): MyceliumGraph {
       specimenCount,
       dispatchCount,
       exitCount,
+      externalArticleCount,
     },
   };
 }

@@ -20,6 +20,7 @@ export type {
   CultivandoLink,
   SpecimenLink,
   DispatchData,
+  ExternalArticleData,
   GraphInput,
   EdgeData,
 } from './types.ts';
@@ -37,6 +38,14 @@ export {
   sharedGenre,
 } from './utilities.ts';
 
+// External article utilities
+export {
+  isArticleDomain,
+  extractDomain,
+  createExternalArticleId,
+  extractTitleFromUrl,
+} from './external-articles.ts';
+
 // Node builders
 export {
   buildTrackNodes,
@@ -45,6 +54,7 @@ export {
   buildExitNodesFromTracks,
   buildDispatchNodes,
   buildSpecimenNodes,
+  buildExternalArticleNodes,
 } from './node-builders.ts';
 
 // Edge builders
@@ -55,5 +65,6 @@ export {
   buildAnnouncedEdges,
   buildTrackExitEdges,
   buildDispatchEdges,
+  buildExternalArticleCitationEdges,
   finalizeEdges,
 } from './edge-builders.ts';
