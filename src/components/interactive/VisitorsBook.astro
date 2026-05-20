@@ -26,7 +26,7 @@ const contentData = {
     series: s.data.series,
   })),
   journal: journalEntries.map(e => ({
-    slug: e.slug,
+    slug: e.id.replace(/\/index$/, ''), // Astro v6: extract slug from id
     title: e.data.title,
     date: e.data.date.toISOString(),
     summary: e.data.summary,

@@ -1,6 +1,6 @@
 ---
 import type { CollectionEntry } from 'astro:content';
-import { getCollection } from 'astro:content';
+import { getCollection, render } from 'astro:content';
 import { getSeason } from '../../lib/season';
 
 // Fetch collections for lookups
@@ -8,8 +8,8 @@ const journalEntries = await getCollection('journal');
 const specimensData = await getCollection('specimens');
 const cultivationsData = await getCollection('cultivations');
 
-// Create lookup maps
-const journalBySlug = new Map(journalEntries.map(e => [e.slug, e]));
+// Create lookup maps (Astro v6: use id with folder/index pattern, extract slug)
+const journalBySlug = new Map(journalEntries.map(e => [e.id.replace(/\/index$/, ''), e]));
 const specimensById = new Map(specimensData.map(s => [s.data.id, s]));
 const cultivationsBySlug = new Map(cultivationsData.map(c => [c.data.slug, c]));
 
@@ -60,7 +60,7 @@ const stale = latestEntry ? isStale(latestEntry.data.date) : false;
 // Render content for entries
 const renderedEntries = await Promise.all(
   displayEntries.map(async (entry) => {
-    const { Content } = await entry.render();
+    const { Content } = await render(entry);
     return { entry, Content };
   })
 );

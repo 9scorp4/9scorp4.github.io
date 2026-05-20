@@ -3,10 +3,11 @@ import type { CollectionEntry } from 'astro:content';
 
 interface Props {
   entry: CollectionEntry<'journal'>;
+  slug: string;
   full?: boolean;
 }
 
-const { entry, full = false } = Astro.props;
+const { entry, slug, full = false } = Astro.props;
 const { title, date, entry: entryNumber, language, summary, type } = entry.data;
 
 // French month names
@@ -24,12 +25,12 @@ const formattedDate = `${day} ${month}`;
 const isDiptych = type === 'diptych';
 ---
 
-<article class="journal-entry" id={entry.slug} lang={language}>
+<article class="journal-entry" id={slug} lang={language}>
   <p class="meta">
     {isDiptych && <span class="diptych-marker" title="diptych">⁂</span>}
     <time datetime={date.toISOString().slice(0, 10)}>{formattedDate}</time> · entry {entryNumber}
   </p>
-  <h3><a href={`/cuaderno/${entry.slug}`}>{title}</a></h3>
+  <h3><a href={`/cuaderno/${slug}`}>{title}</a></h3>
   <p class="summary">{summary}</p>
 </article>
 
