@@ -200,9 +200,9 @@ export async function createPost(
             shouldShareToFeed: true
           }
         },
-        assets: {
-          images: [{ url: ${JSON.stringify(input.imageUrl)} }]
-        }
+        assets: [
+          { image: { url: ${JSON.stringify(input.imageUrl)} } }
+        ]
       }) {
         ... on PostActionSuccess {
           post {
@@ -260,8 +260,8 @@ export async function createCarouselPost(
     ? `${input.text}\n\n${input.firstComment}`
     : input.text;
 
-  // Build images array
-  const imagesJson = input.imageUrls.map(url => `{ url: ${JSON.stringify(url)} }`).join(', ');
+  // Build assets array (new format: array of { image: { url } } objects)
+  const assetsJson = input.imageUrls.map(url => `{ image: { url: ${JSON.stringify(url)} } }`).join(', ');
 
   // Build mutation with inline enum values
   const dueAt = input.scheduledAt?.toISOString();
@@ -278,13 +278,11 @@ export async function createCarouselPost(
         ${dueAtClause}
         metadata: {
           instagram: {
-            type: carousel,
+            type: post,
             shouldShareToFeed: true
           }
         },
-        assets: {
-          images: [${imagesJson}]
-        }
+        assets: [${assetsJson}]
       }) {
         ... on PostActionSuccess {
           post {
