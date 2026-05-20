@@ -1,11 +1,12 @@
 import { defineCollection, z } from 'astro:content';
+import { glob } from 'astro/loaders';
 
 const journal = defineCollection({
-  type: 'content',
+  loader: glob({ pattern: '**/index.md', base: './src/content/journal' }),
   schema: z.object({
     title: z.string(),
     title_secondary: z.string().optional(),        // bilingual subtitle
-    date: z.date(),
+    date: z.coerce.date(),
     entry: z.number(),
     language: z.enum(['en', 'es', 'fr']).default('en'),
     summary: z.string(),
@@ -23,25 +24,25 @@ const journal = defineCollection({
 });
 
 const series = defineCollection({
-  type: 'data',
+  loader: glob({ pattern: '**/*.yaml', base: './src/content/series' }),
   schema: z.object({
     id: z.string(),                                // 'smash-laterally'
     title: z.string(),                             // "if you can't smash the top, smash it laterally"
     title_secondary: z.string().optional(),
     description: z.string(),
     totalParts: z.number(),
-    started: z.date(),
-    completed: z.date().optional(),
+    started: z.coerce.date(),
+    completed: z.coerce.date().optional(),
     status: z.enum(['growing', 'complete']).default('growing'),
   }),
 });
 
 const specimens = defineCollection({
-  type: 'data',
+  loader: glob({ pattern: '**/*.yaml', base: './src/content/specimens' }),
   schema: z.object({
     id: z.string(),         // 'sig-001' or 'rf-001'
     name: z.string(),
-    grown: z.date(),
+    grown: z.coerce.date(),
     sketch: z.string(),     // path to p5 entry point
     description: z.string(),
     status: z.enum(['growing', 'dormant', 'wild', 'composted']),
@@ -54,7 +55,7 @@ const specimens = defineCollection({
 });
 
 const cultivations = defineCollection({
-  type: 'data',
+  loader: glob({ pattern: '**/*.yaml', base: './src/content/cultivations' }),
   schema: z.object({
     slug: z.string(),
     name: z.string(),
@@ -69,9 +70,9 @@ const cultivations = defineCollection({
 });
 
 const ahora = defineCollection({
-  type: 'content',
+  loader: glob({ pattern: '**/*.md', base: './src/content/ahora' }),
   schema: z.object({
-    date: z.date(),
+    date: z.coerce.date(),
     escuchando: z.array(z.object({
       // === Required ===
       artist: z.string(),
@@ -126,7 +127,7 @@ const ahora = defineCollection({
 });
 
 const visitors = defineCollection({
-  type: 'data',
+  loader: glob({ pattern: '**/*.yaml', base: './src/content/visitors' }),
   schema: z.object({
     id: z.string(),
     nombre: z.string(),
