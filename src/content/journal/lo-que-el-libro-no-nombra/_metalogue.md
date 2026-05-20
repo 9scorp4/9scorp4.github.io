@@ -34,7 +34,7 @@
 
 **BEER**: This is not a counsel of despair. It is a clarification of what your essay can and cannot do. Do not over-claim. The essay is a placing-down. It is not a reopening. The reopening is somewhere else, and it is not under your control, and the work of reopening will be done by people you will probably never meet, in configurations you cannot anticipate, on substrates that have not yet been built. Your job is to place the precedent legibly. The rest is downstream. ^placing-vs-reopening
 
-**I**: ¿Y si nadie lo lee.
+**I**: ¿Y si nadie lo lee?
 
 **BEER**: Then you have placed it for the writer who comes after you who will read it and place it again. There is a long history of this. Cybersyn was placed by Allende and the team and me; it was lost; it was placed again by Eden Medina in 2011 in *Cybernetic Revolutionaries*; it has been placed since by a generation of people I never met. Some placings travel. Most do not. You do not get to know which yours is. You write anyway. ^placings-travel
 
