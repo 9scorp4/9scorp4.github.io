@@ -2,8 +2,8 @@
  * Type definitions for the Mycelium graph system.
  */
 
-export type NodeType = 'track' | 'article' | 'cultivation' | 'dispatch' | 'exit' | 'specimen';
-export type EdgeType = 'musical' | 'wikilink' | 'announced' | 'context' | 'exit';
+export type NodeType = 'track' | 'article' | 'cultivation' | 'dispatch' | 'exit' | 'specimen' | 'externalArticle';
+export type EdgeType = 'musical' | 'wikilink' | 'announced' | 'context' | 'exit' | 'citation';
 export type CitationType = 'section' | 'text' | 'block' | 'heading';
 
 export interface MyceliumNode {
@@ -43,6 +43,10 @@ export interface MyceliumNode {
   specimenName?: string;
   specimenStatus?: 'wild' | 'growing' | 'dormant' | 'composted';
   specimenSeries?: string;
+  // ExternalArticle-specific
+  externalTitle?: string;
+  externalAuthor?: string;
+  externalDomain?: string;
 }
 
 export interface MyceliumEdge {
@@ -66,6 +70,7 @@ export interface MyceliumGraph {
     specimenCount?: number;
     dispatchCount?: number;
     exitCount?: number;
+    externalArticleCount?: number;
   };
 }
 
@@ -138,6 +143,14 @@ export interface DispatchData {
   proseExternalLinks: string[];    // external URLs in prose
 }
 
+export interface ExternalArticleData {
+  url: string;
+  title?: string;         // optional override title
+  author?: string;        // optional author
+  sourceSlug: string;     // which internal article cites this
+  sourceDate: string;     // date of the citing article
+}
+
 export interface GraphInput {
   tracks: TrackData[];
   articles: ArticleData[];
@@ -147,6 +160,7 @@ export interface GraphInput {
   cultivandoLinks?: CultivandoLink[]; // cultivando announcements
   specimenLinks?: SpecimenLink[]; // specimenNuevo announcements
   dispatches?: DispatchData[]; // notable dispatches
+  externalArticles?: ExternalArticleData[]; // external article citations
 }
 
 /** Internal edge data structure during graph building */

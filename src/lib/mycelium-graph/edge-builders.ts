@@ -12,10 +12,12 @@ import type {
   CultivandoLink,
   SpecimenLink,
   DispatchData,
+  ExternalArticleData,
   EdgeData,
   EdgeType,
   CitationType,
 } from './types.ts';
+import { createExternalArticleId } from './external-articles.ts';
 import {
   createNodeId,
   createExitNodeId,
@@ -397,6 +399,36 @@ export function buildDispatchEdges(
       if (!edgeMap.has(edgeKey)) {
         edgeMap.set(edgeKey, { weight: 0.6, reasons: new Set(['links to']), edgeType: 'exit' });
       }
+    }
+  }
+}
+
+/**
+ * Build article→externalArticle edges (citations)
+ */
+export function buildExternalArticleCitationEdges(
+  externalArticles: ExternalArticleData[],
+  nodeMap: Map<string, MyceliumNode>,
+  edgeMap: Map<string, EdgeData>
+): void {
+  for (const ext of externalArticles) {
+    const sourceId = `a:${ext.sourceSlug}`;
+    const targetId = createExternalArticleId(ext.url);
+
+    if (!nodeMap.has(sourceId) || !nodeMap.has(targetId)) continue;
+
+    const edgeKey = [sourceId, targetId].sort().join('|');
+    const existing = edgeMap.get(edgeKey);
+
+    if (existing) {
+      existing.citationCount = (existing.citationCount || 1) + 1;
+    } else {
+      edgeMap.set(edgeKey, {
+        weight: 0.8,
+        reasons: new Set(['cites external']),
+        edgeType: 'citation',
+        citationCount: 1,
+      });
     }
   }
 }
