@@ -155,7 +155,7 @@ Voice wins. The cybernetic-garden frame is a setting for the voice; if the metap
 
 Cross-references between articles, metalogues, and dispatches are mycelial. As the corpus grows, motifs and questions may resurface across pieces — let connections form incidentally, in body text, in passing. Never "see also" footers. The garden rewards looking around; it doesn't announce its connective tissue.
 
-*I* in metalogues is indexical — always Nico, accumulating across pieces. Figures (DOG, GIÁP, ALI…) stay sealed within their encounters and don't reference each other.
+*I* in metalogues is indexical — always Nico, accumulating across pieces. Figures (GIÁP, NAVEGANTE, TRADUCTORA…) stay sealed as *named entities*: they never reference each other by name and the text never asserts the connections between them. They may, however, share roles, situations, or historical texture; these resonances are for the reader to assemble, not for the text to announce. The principle is *patterns recur*, not *the world is small*. A figure-chain enacted on the page becomes a billboard. A figure-chain assembled by an attentive reader stays mycelial.
 
 ### Three levels of cross-reference
 
