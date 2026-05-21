@@ -6,7 +6,7 @@ This is the small version of something the clinical literature has been slowly m
 
 What the literature wants to do with these cases — understandably — is medicalize them. Call them [*amplifier dynamics in vulnerable users*](https://www.thelancet.com/journals/landig/article/PIIS2589-7500(25)00156-6/fulltext). Locate the problem in pre-existing conditions plus a triggering interface. The framing is true as far as it goes. It is also the framing that lets the system off the hook, because it codes the phenomenon as edge.
 
-The clinical cases are the visible end. The phenomenon operates at every amplitude. ^phenomenon-not-edge
+The clinical cases are the visible end. The phenomenon operates at every amplitude — [[specimen:pj-002|the constricted breath of unease]] doesn't require clinical visibility. ^phenomenon-not-edge
 
 ---
 
@@ -32,7 +32,7 @@ The structure of a working corrective ecology has at least [[journal:al-borde-de
 
 The temptation is to read the three as parallel — three independent corrective sources, any of which might catch a drift the others miss. I don't think they're parallel. I think they're nested. The friend who tells you you're talking weird is delegating cultural standards they didn't invent. The cultural channel is answerable, eventually, to whether its claims survive material consequence. Lose the lower layer and the upper ones can't reach you; lose the upper and the lower drift together.
 
-Folie à deux defeats third-person not because two-person delusional systems are special but because two peers are captured at the same layer. The corrective term has to occupy a layer the dyad cannot.
+Folie à deux defeats third-person not because two-person delusional systems are special but because two peers are captured at the same layer — [[journal:lo-que-no-cruza#^forbidden-engine|the meta-channel that would let one say *I see what you are doing* is sealed by sanction]]. The corrective term has to occupy a layer the dyad cannot.
 
 ---
 
