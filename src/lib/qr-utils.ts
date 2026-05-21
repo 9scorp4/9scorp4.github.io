@@ -52,13 +52,20 @@ export async function generateQRDataUrl(
 /**
  * Extended metadata that includes slug/id for URL generation.
  * The insta-gen.ts script adds these when creating metadata.
+ *
+ * - slug: Clean slug for matching (e.g., "lo-que-cruza")
+ * - folderName: Full folder name for URL generation (e.g., "01_lo-que-cruza")
+ *
+ * If folderName is not provided, falls back to slug for backwards compatibility.
  */
 export interface ExtendedQuoteMetadata extends QuoteMetadata {
   slug: string;
+  folderName?: string;
 }
 
 export interface ExtendedTitleMetadata extends TitleMetadata {
   slug: string;
+  folderName?: string;
 }
 
 export interface ExtendedSpecimenMetadata extends SpecimenMetadata {
@@ -67,6 +74,7 @@ export interface ExtendedSpecimenMetadata extends SpecimenMetadata {
 
 export interface ExtendedMetalogueMetadata extends MetalogueMetadata {
   slug: string;
+  folderName?: string;
 }
 
 export type ExtendedContentMetadata =
@@ -101,12 +109,14 @@ export function getContentUrl(
   switch (templateType) {
     case 'quote':
     case 'title': {
-      const slug = (metadata as ExtendedQuoteMetadata | ExtendedTitleMetadata).slug;
-      if (!slug) {
+      const meta = metadata as ExtendedQuoteMetadata | ExtendedTitleMetadata;
+      // Use folderName for URL if available, fall back to slug
+      const urlPath = meta.folderName ?? meta.slug;
+      if (!urlPath) {
         console.warn(`No slug provided for ${templateType} template, defaulting to /#journal`);
         return `${base}/#journal`;
       }
-      return `${base}/cuaderno/${slug}`;
+      return `${base}/cuaderno/${urlPath}`;
     }
 
     case 'status':
@@ -122,12 +132,14 @@ export function getContentUrl(
     }
 
     case 'metalogue': {
-      const slug = (metadata as ExtendedMetalogueMetadata).slug;
-      if (!slug) {
+      const meta = metadata as ExtendedMetalogueMetadata;
+      // Use folderName for URL if available, fall back to slug
+      const urlPath = meta.folderName ?? meta.slug;
+      if (!urlPath) {
         console.warn('No slug provided for metalogue template, defaulting to /#journal');
         return `${base}/#journal`;
       }
-      return `${base}/cuaderno/${slug}#metalogue`;
+      return `${base}/cuaderno/${urlPath}#metalogue`;
     }
 
     default:

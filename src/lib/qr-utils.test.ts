@@ -25,6 +25,11 @@ describe('getContentUrl', () => {
       expect(url).toBe('https://9scorp4.github.io/cuaderno/my-article');
     });
 
+    it('uses folderName for URL when provided', () => {
+      const url = getContentUrl('quote', { slug: 'my-article', folderName: '01_my-article' } as any);
+      expect(url).toBe('https://9scorp4.github.io/cuaderno/01_my-article');
+    });
+
     it('falls back to #journal when no slug', () => {
       const url = getContentUrl('quote', {} as any);
       expect(url).toBe('https://9scorp4.github.io/#journal');
@@ -36,6 +41,11 @@ describe('getContentUrl', () => {
     it('returns journal article URL with slug', () => {
       const url = getContentUrl('title', { slug: 'another-article' } as any);
       expect(url).toBe('https://9scorp4.github.io/cuaderno/another-article');
+    });
+
+    it('uses folderName for URL when provided', () => {
+      const url = getContentUrl('title', { slug: 'another-article', folderName: '02_another-article' } as any);
+      expect(url).toBe('https://9scorp4.github.io/cuaderno/02_another-article');
     });
 
     it('falls back to #journal when no slug', () => {
@@ -69,6 +79,11 @@ describe('getContentUrl', () => {
     it('returns article URL with #metalogue fragment', () => {
       const url = getContentUrl('metalogue', { slug: 'diptych-entry' } as any);
       expect(url).toBe('https://9scorp4.github.io/cuaderno/diptych-entry#metalogue');
+    });
+
+    it('uses folderName for URL when provided', () => {
+      const url = getContentUrl('metalogue', { slug: 'diptych-entry', folderName: '03_diptych-entry' } as any);
+      expect(url).toBe('https://9scorp4.github.io/cuaderno/03_diptych-entry#metalogue');
     });
 
     it('falls back to #journal when no slug', () => {

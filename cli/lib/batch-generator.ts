@@ -121,12 +121,13 @@ export async function generateBatch(
 
   // 2. Title card (if journal exists)
   if (batch.journal) {
-    const titleMeta: TitleMetadata & { slug: string } = {
+    const titleMeta: TitleMetadata & { slug: string; folderName: string } = {
       title: batch.journal.title,
       titleSecondary: batch.journal.titleSecondary,
       date: batch.journal.date,
       isDiptych: batch.journal.type === 'diptych',
       slug: batch.journal.slug,
+      folderName: batch.journal.folderName,
     };
     const titleQrUrl = await generateQRDataUrl(getContentUrl('title', titleMeta));
     const titleElement = TitleTemplate({
@@ -155,11 +156,12 @@ export async function generateBatch(
 
     // 3. Quote carousel (if quotes exist)
     if (batch.quotes && batch.quotes.length > 0) {
-      const quoteMeta: QuoteMetadata & { slug: string } = {
+      const quoteMeta: QuoteMetadata & { slug: string; folderName: string } = {
         quote: batch.quotes.join(' '),
         sourceTitle: batch.journal.title,
         date: batch.journal.date,
         slug: batch.journal.slug,
+        folderName: batch.journal.folderName,
       };
       const quoteQrUrl = await generateQRDataUrl(getContentUrl('quote', quoteMeta));
       const carouselImages: GeneratedImage[] = [];
@@ -205,11 +207,12 @@ export async function generateBatch(
     // 4. Metalogue carousel (if metalogue fragments exist and journal is diptych)
     if (batch.metalogue && batch.metalogue.length > 0 && batch.journal.type === 'diptych') {
       const metalogueFragments = batch.metalogue as MetalogueFragment[];
-      const metalogueMeta: MetalogueMetadata = {
+      const metalogueMeta: MetalogueMetadata & { folderName: string } = {
         fragments: metalogueFragments,
         sourceTitle: batch.journal.title,
         date: batch.journal.date,
         slug: batch.journal.slug,
+        folderName: batch.journal.folderName,
       };
       const metalogueQrUrl = await generateQRDataUrl(getContentUrl('metalogue', metalogueMeta));
 

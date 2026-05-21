@@ -92,7 +92,7 @@ export async function run(_args: string[], publishMode = false): Promise<void> {
 
   // Load metalogue
   print('parsing metalogue...');
-  const allFragments = await loadMetalogueContent(entry.slug);
+  const allFragments = await loadMetalogueContent(entry.folderName);
   success(`${allFragments.length} dialogue exchanges found`);
   blank();
 
@@ -142,11 +142,12 @@ export async function run(_args: string[], publishMode = false): Promise<void> {
   await mkdir(OUTPUT_DIR, { recursive: true });
 
   // Generate metadata
-  const metalogueMeta: MetalogueMetadata = {
+  const metalogueMeta: MetalogueMetadata & { folderName: string } = {
     fragments: selectedFragments,
     sourceTitle: entry.title,
     date: entry.date,
     slug: entry.slug,
+    folderName: entry.folderName,
   };
   const metalogueQrUrl = await generateQRDataUrl(getContentUrl('metalogue', metalogueMeta));
 

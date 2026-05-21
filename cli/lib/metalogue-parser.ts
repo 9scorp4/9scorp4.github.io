@@ -9,6 +9,7 @@ import { readFile, readdir, stat } from 'node:fs/promises';
 import { join } from 'node:path';
 import type { MetalogueFragment } from '../../src/lib/insta-templates.tsx';
 import { parseFrontmatter, parseLocalDate, getContentDir } from './cli-utils.ts';
+import { extractSlug } from '../../src/lib/journal-slug.ts';
 
 const CONTENT_DIR = getContentDir();
 
@@ -20,7 +21,8 @@ export const FRAGMENTS_PER_SLIDE = 3;
 // ─────────────────────────────────────────────────────────────
 
 export interface DiptychEntry {
-  slug: string;
+  slug: string;           // Clean slug (lo-que-cruza)
+  folderName: string;     // Full folder name (01_lo-que-cruza)
   title: string;
   titleSecondary?: string;
   date: Date;
@@ -66,7 +68,8 @@ export async function loadDiptychEntries(): Promise<DiptychEntry[]> {
           }
 
           entries.push({
-            slug: item,
+            slug: extractSlug(item),
+            folderName: item,
             title: fm.title as string,
             titleSecondary: fm.title_secondary as string | undefined,
             date: parseLocalDate(fm.date as string),
@@ -124,8 +127,12 @@ export function parseMetalogueContent(content: string): MetalogueFragment[] {
   return fragments;
 }
 
-export async function loadMetalogueContent(slug: string): Promise<MetalogueFragment[]> {
-  const metaloguePath = join(CONTENT_DIR, 'journal', slug, '_metalogue.md');
+/**
+ * Load metalogue content from a journal entry folder.
+ * @param folderName - The full folder name (e.g., "01_lo-que-cruza")
+ */
+export async function loadMetalogueContent(folderName: string): Promise<MetalogueFragment[]> {
+  const metaloguePath = join(CONTENT_DIR, 'journal', folderName, '_metalogue.md');
   const content = await readFile(metaloguePath, 'utf-8');
   return parseMetalogueContent(content);
 }

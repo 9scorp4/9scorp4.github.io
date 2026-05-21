@@ -71,7 +71,7 @@ export async function handleQuoteCard(ctx: HandlerContext): Promise<HandlerResul
   if (entryOrBack === BACK) return { status: 'back' };
   const entry = entryOrBack;
 
-  const body = await loadJournalBody(entry.slug);
+  const body = await loadJournalBody(entry.folderName);
   const paragraphs = extractParagraphs(body);
 
   if (paragraphs.length === 0) {
@@ -116,6 +116,7 @@ async function generateSingleQuote(
     sourceTitle: entry.title,
     date: entry.date,
     slug: entry.slug,
+    folderName: entry.folderName,
   };
   const contentUrl = getContentUrl('quote', extendedMeta);
   const qrDataUrl = await generateQRDataUrl(contentUrl);
@@ -182,6 +183,7 @@ async function generateQuoteCarousel(
     sourceTitle: entry.title,
     date: entry.date,
     slug: entry.slug,
+    folderName: entry.folderName,
   };
   const contentUrl = getContentUrl('quote', extendedMeta);
   const qrDataUrl = await generateQRDataUrl(contentUrl);
@@ -228,6 +230,7 @@ export async function handleTitleCard(ctx: HandlerContext): Promise<HandlerResul
     date: entry.date,
     isDiptych: entry.type === 'diptych',
     slug: entry.slug,
+    folderName: entry.folderName,
   };
   const contentUrl = getContentUrl('title', extendedMeta);
   const qrDataUrl = await generateQRDataUrl(contentUrl);

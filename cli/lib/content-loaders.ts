@@ -9,6 +9,7 @@ import { readFile, readdir, stat } from 'node:fs/promises';
 import { join } from 'node:path';
 import * as yaml from 'yaml';
 import { parseLocalDate, parseFrontmatter, extractBody, getContentDir } from './cli-utils.ts';
+import { extractSlug } from '../../src/lib/journal-slug.ts';
 
 const CONTENT_DIR = getContentDir();
 
@@ -20,7 +21,8 @@ const MIN_PARAGRAPH_LENGTH = 50;
 // ─────────────────────────────────────────────────────────────
 
 export interface JournalEntry {
-  slug: string;
+  slug: string;           // Clean slug (lo-que-cruza)
+  folderName: string;     // Full folder name (01_lo-que-cruza)
   title: string;
   titleSecondary?: string;
   date: Date;
@@ -130,7 +132,8 @@ export async function loadJournalEntries(): Promise<JournalEntry[]> {
 
         if (!fm.draft) {
           entries.push({
-            slug: item,
+            slug: extractSlug(item),
+            folderName: item,
             title: fm.title as string,
             titleSecondary: fm.title_secondary as string | undefined,
             date: parseLocalDate(fm.date as string),
@@ -164,14 +167,16 @@ export async function loadJournalEntriesMap(): Promise<Map<string, JournalEntry>
 /**
  * Load the body content of a journal entry.
  * Tries _article.md first (for diptychs), falls back to index.md.
+ *
+ * @param folderName - The full folder name (e.g., "01_lo-que-cruza")
  */
-export async function loadJournalBody(slug: string): Promise<string> {
-  const articlePath = join(CONTENT_DIR, 'journal', slug, '_article.md');
+export async function loadJournalBody(folderName: string): Promise<string> {
+  const articlePath = join(CONTENT_DIR, 'journal', folderName, '_article.md');
   try {
     return await readFile(articlePath, 'utf-8');
   } catch (err) {
     if ((err as NodeJS.ErrnoException).code === 'ENOENT') {
-      const indexPath = join(CONTENT_DIR, 'journal', slug, 'index.md');
+      const indexPath = join(CONTENT_DIR, 'journal', folderName, 'index.md');
       const content = await readFile(indexPath, 'utf-8');
       return extractBody(content);
     }
