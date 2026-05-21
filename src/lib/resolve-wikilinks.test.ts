@@ -91,8 +91,9 @@ describe('resolveWikilinks', () => {
   });
 
   it('handles special characters in slugs', () => {
+    // Uses actual journal entry slug - lookup maps to folder name with numeric prefix
     const result = resolveWikilinks('See [[journal:lo-que-corrige-el-mapa]].');
-    expect(result).toBe('See <a href="/cuaderno/lo-que-corrige-el-mapa/">lo-que-corrige-el-mapa</a>.');
+    expect(result).toBe('See <a href="/cuaderno/01_lo-que-corrige-el-mapa/">lo-que-corrige-el-mapa</a>.');
   });
 });
 

@@ -5,19 +5,44 @@
  * Mirrors the logic in remark-wikilink.ts but outputs HTML strings.
  *
  * Syntax:
- *   [[journal:slug]]                    → /cuaderno/slug/
- *   [[journal:slug#heading-id]]         → /cuaderno/slug/#heading-id
- *   [[journal:slug#^anchor]]            → /cuaderno/slug/#anchor
- *   [[journal:slug#^anchor|text]]       → /cuaderno/slug/#anchor (with custom display text)
+ *   [[journal:slug]]                    → /cuaderno/01_slug/
+ *   [[journal:slug#heading-id]]         → /cuaderno/01_slug/#heading-id
+ *   [[journal:slug#^anchor]]            → /cuaderno/01_slug/#anchor
+ *   [[journal:slug#^anchor|text]]       → /cuaderno/01_slug/#anchor (with custom display text)
  */
+
+import { readdirSync } from 'node:fs';
+import { join } from 'node:path';
+import { extractSlug } from './journal-slug.ts';
 
 // Pattern: [[collection:slug]] or [[collection:slug#fragment]] or [[collection:slug#fragment|display]]
 const WIKILINK_PATTERN = /\[\[(\w+):([^\]#|]+)(?:#([^\]|]+))?(?:\|([^\]]+))?\]\]/g;
 
+/**
+ * Build a lookup map from clean slugs to folder names.
+ * Scans the journal directory once at module load.
+ */
+function buildJournalLookup(): Map<string, string> {
+  const map = new Map<string, string>();
+  try {
+    const journalDir = join(process.cwd(), 'src', 'content', 'journal');
+    for (const entry of readdirSync(journalDir, { withFileTypes: true })) {
+      if (entry.isDirectory()) {
+        map.set(extractSlug(entry.name), entry.name);
+      }
+    }
+  } catch {
+    // Directory doesn't exist or can't be read — return empty map
+  }
+  return map;
+}
+
+const journalFolders = buildJournalLookup();
+
 // Resolution maps for each collection
 // These mirror the paths in wikilink-resolver.ts
 const COLLECTION_PATHS: Record<string, (slug: string) => string> = {
-  journal: (slug) => `/cuaderno/${slug}/`,
+  journal: (slug) => `/cuaderno/${journalFolders.get(slug) ?? slug}/`,
   specimen: (id) => `/#${id}`,
   library: (name) => `/#library-${name}`,
 };

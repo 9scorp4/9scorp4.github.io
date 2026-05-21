@@ -3,11 +3,13 @@ import { getCollection, type CollectionEntry } from 'astro:content';
 import type { APIContext } from 'astro';
 import MarkdownIt from 'markdown-it';
 import sanitizeHtml from 'sanitize-html';
+import { extractSlug } from '../lib/journal-slug.ts';
 
 type AhoraLookups = {
   journal: Map<string, CollectionEntry<'journal'>>;
   specimens: Map<string, CollectionEntry<'specimens'>>;
   cultivations: Map<string, CollectionEntry<'cultivations'>>;
+  slugToFolder: Map<string, string>;
 };
 
 const md = new MarkdownIt();
@@ -16,8 +18,10 @@ const md = new MarkdownIt();
  * Transform wikilink syntax to standard markdown links for RSS.
  * Supports: [[collection:slug]], [[collection:slug#fragment]], [[collection:slug#fragment|display]]
  * Non-strict mode: just removes unresolved wikilinks.
+ *
+ * @param slugToFolder - Map from clean slugs to folder names (for numeric prefix resolution)
  */
-function transformWikilinks(content: string): string {
+function transformWikilinks(content: string, slugToFolder: Map<string, string>): string {
   // Pattern: [[collection:slug]] or [[collection:slug#fragment]] or [[collection:slug#fragment|display]]
   const pattern = /\[\[(\w+):([^\]#|]+)(?:#([^\]|]+))?(?:\|([^\]]+))?\]\]/g;
 
@@ -25,9 +29,11 @@ function transformWikilinks(content: string): string {
     let path: string;
 
     switch (collection) {
-      case 'journal':
-        path = `/cuaderno/${slug}/`;
+      case 'journal': {
+        const folderName = slugToFolder.get(slug) ?? slug;
+        path = `/cuaderno/${folderName}/`;
         break;
+      }
       case 'specimen':
         path = `/#${slug}`;
         break;
@@ -91,8 +97,9 @@ function buildAhoraContent(entry: CollectionEntry<'ahora'>, lookups: AhoraLookup
   for (const item of entry.data.articuloNuevo ?? []) {
     const journalEntry = lookups.journal.get(item.article);
     if (journalEntry) {
+      const folderName = lookups.slugToFolder.get(item.article) ?? item.article;
       const note = item.note ? ` — ${item.note}` : '';
-      parts.push(`*artículo nuevo:* [${journalEntry.data.title}](/cuaderno/${item.article}/)${note}`);
+      parts.push(`*artículo nuevo:* [${journalEntry.data.title}](/cuaderno/${folderName}/)${note}`);
     }
   }
 
@@ -123,11 +130,18 @@ export async function GET(context: APIContext) {
   const specimens = await getCollection('specimens');
   const cultivations = await getCollection('cultivations');
 
-  // Helper to extract slug from entry id (Astro v6)
-  const getSlug = (e: { id: string }) => e.id.replace(/\/index$/, '');
+  // Helper to extract folder name from entry id (Astro v6: "01_lo-que-cruza/index" → "01_lo-que-cruza")
+  const getFolderName = (e: { id: string }) => e.id.replace(/\/index$/, '');
 
-  // Lookup maps for ahora content enrichment
-  const journalBySlug = new Map(journal.map((e) => [getSlug(e), e]));
+  // Build slug-to-folder lookup for wikilink resolution (e.g., "lo-que-cruza" → "01_lo-que-cruza")
+  const slugToFolder = new Map(journal.map((e) => {
+    const folderName = getFolderName(e);
+    const slug = extractSlug(folderName);
+    return [slug, folderName];
+  }));
+
+  // Lookup maps for ahora content enrichment (keyed by clean slug)
+  const journalBySlug = new Map(journal.map((e) => [extractSlug(getFolderName(e)), e]));
   const specimensById = new Map(specimens.map((s) => [s.data.id, s]));
   const cultivationsBySlug = new Map(cultivations.map((c) => [c.data.slug, c]));
 
@@ -151,12 +165,12 @@ export async function GET(context: APIContext) {
   };
 
   const journalItems: FeedItem[] = journal.map((entry) => {
-    const slug = getSlug(entry);
+    const folderName = getFolderName(entry);
     let rawContent: string;
 
     if (entry.data.type === 'diptych') {
-      const articlePath = `/src/content/journal/${slug}/_article.md`;
-      const metaloguePath = `/src/content/journal/${slug}/_metalogue.md`;
+      const articlePath = `/src/content/journal/${folderName}/_article.md`;
+      const metaloguePath = `/src/content/journal/${folderName}/_metalogue.md`;
       const article = articleModules[articlePath]?.rawContent?.() ?? '';
       const metalogue = metalogueModules[metaloguePath]?.rawContent?.() ?? '';
       rawContent = article + '\n\n---\n\n## metalogue\n\n' + metalogue;
@@ -165,13 +179,13 @@ export async function GET(context: APIContext) {
     }
 
     // Transform wikilinks and strip anchors for RSS
-    const processedContent = stripBlockAnchors(transformWikilinks(rawContent));
+    const processedContent = stripBlockAnchors(transformWikilinks(rawContent, slugToFolder));
 
     return {
       title: entry.data.title,
       pubDate: entry.data.date,
       description: entry.data.summary,
-      link: `/cuaderno/${slug}/`,
+      link: `/cuaderno/${folderName}/`,
       content: sanitizeHtml(md.render(processedContent), {
         allowedTags: sanitizeHtml.defaults.allowedTags.concat(['img']),
       }),
@@ -182,6 +196,7 @@ export async function GET(context: APIContext) {
     journal: journalBySlug,
     specimens: specimensById,
     cultivations: cultivationsBySlug,
+    slugToFolder,
   };
 
   const ahoraItems: FeedItem[] = ahora.map((entry) => ({
