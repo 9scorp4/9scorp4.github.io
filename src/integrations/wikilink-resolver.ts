@@ -8,6 +8,7 @@
 import type { AstroIntegration } from 'astro';
 import { remarkWikilink } from '../lib/remark-wikilink.ts';
 import { rehypeBlockAnchors } from '../lib/rehype-block-anchors.ts';
+import { extractSlug } from '../lib/journal-slug.ts';
 import fs from 'node:fs';
 import path from 'node:path';
 import { parse as parseYaml } from 'yaml';
@@ -22,11 +23,14 @@ interface WikilinkResolverOptions {
 
 /**
  * Scans a content directory and builds a map of slugs to paths.
+ *
+ * For journal entries, folder names may have a numeric prefix (e.g., `01_lo-que-cruza`).
+ * The map key is the clean slug, but the path uses the full folder name.
  */
 function buildCollectionMap(
   contentDir: string,
   collectionName: string,
-  pathPattern: (slug: string) => string
+  pathPattern: (folderName: string) => string
 ): Map<string, string> {
   const collectionPath = path.join(contentDir, collectionName);
   const map = new Map<string, string>();
@@ -39,9 +43,10 @@ function buildCollectionMap(
 
   for (const entry of entries) {
     if (entry.isDirectory()) {
-      // Directory-based entry (like diptychs)
-      const slug = entry.name;
-      map.set(slug, pathPattern(slug));
+      // Directory-based entry (like diptychs or journal entries)
+      const folderName = entry.name;
+      const slug = extractSlug(folderName);  // Extract clean slug for map key
+      map.set(slug, pathPattern(folderName)); // Path uses full folder name
     } else if (entry.isFile() && (entry.name.endsWith('.md') || entry.name.endsWith('.mdx'))) {
       // File-based entry
       const slug = entry.name.replace(/\.(mdx?|yaml)$/, '');
@@ -97,11 +102,12 @@ export default function wikilinkResolver(options: WikilinkResolverOptions = {}):
         // Build resolution maps for each collection
         const resolvedLinks = new Map<string, Map<string, string>>();
 
-        // Journal entries → /cuaderno/[slug]/
+        // Journal entries → /cuaderno/[folderName]/
+        // Folder names may have numeric prefix (01_slug), paths use full name
         resolvedLinks.set('journal', buildCollectionMap(
           contentDir,
           'journal',
-          (slug) => `/cuaderno/${slug}/`
+          (folderName) => `/cuaderno/${folderName}/`
         ));
 
         // Specimens → /#[id]
