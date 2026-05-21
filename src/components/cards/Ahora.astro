@@ -2,14 +2,23 @@
 import type { CollectionEntry } from 'astro:content';
 import { getCollection, render } from 'astro:content';
 import { getSeason } from '../../lib/season';
+import { extractSlug } from '../../lib/journal-slug';
 
 // Fetch collections for lookups
 const journalEntries = await getCollection('journal');
 const specimensData = await getCollection('specimens');
 const cultivationsData = await getCollection('cultivations');
 
-// Create lookup maps (Astro v6: use id with folder/index pattern, extract slug)
-const journalBySlug = new Map(journalEntries.map(e => [e.id.replace(/\/index$/, ''), e]));
+// Helper to get folder name from entry id (Astro v6: "01_lo-que-cruza/index" → "01_lo-que-cruza")
+const getFolderName = (e: { id: string }) => e.id.replace(/\/index$/, '');
+
+// Create lookup maps keyed by clean slug (for matching articuloNuevo)
+const journalBySlug = new Map(journalEntries.map(e => [extractSlug(getFolderName(e)), e]));
+// Also build slug→folder lookup for URL construction
+const slugToFolder = new Map(journalEntries.map(e => {
+  const folder = getFolderName(e);
+  return [extractSlug(folder), folder];
+}));
 const specimensById = new Map(specimensData.map(s => [s.data.id, s]));
 const cultivationsBySlug = new Map(cultivationsData.map(c => [c.data.slug, c]));
 
@@ -97,7 +106,7 @@ const olderRendered = renderedEntries.slice(1);
                 return journal && (
                   <p>
                     <em>articulo nuevo:</em>{' '}
-                    <a href={`/cuaderno/${item.article}`}>{journal.data.title}</a>
+                    <a href={`/cuaderno/${slugToFolder.get(item.article) ?? item.article}`}>{journal.data.title}</a>
                     {item.note && ` — ${item.note}`}
                   </p>
                 );
@@ -150,7 +159,7 @@ const olderRendered = renderedEntries.slice(1);
             return journal && (
               <p>
                 <em>articulo nuevo:</em>{' '}
-                <a href={`/cuaderno/${item.article}`}>{journal.data.title}</a>
+                <a href={`/cuaderno/${slugToFolder.get(item.article) ?? item.article}`}>{journal.data.title}</a>
                 {item.note && ` — ${item.note}`}
               </p>
             );
@@ -200,7 +209,7 @@ const olderRendered = renderedEntries.slice(1);
                   return journal && (
                     <p>
                       <em>articulo nuevo:</em>{' '}
-                      <a href={`/cuaderno/${item.article}`}>{journal.data.title}</a>
+                      <a href={`/cuaderno/${slugToFolder.get(item.article) ?? item.article}`}>{journal.data.title}</a>
                       {item.note && ` — ${item.note}`}
                     </p>
                   );
