@@ -27,6 +27,7 @@ import {
   type CitationType,
 } from '../lib/mycelium-graph.ts';
 import { isArticleDomain } from '../lib/mycelium-graph/external-articles.ts';
+import { extractSlug } from '../lib/journal-slug.ts';
 
 // Pattern for extracting wikilinks: [[collection:slug#fragment|display]]
 const WIKILINK_PATTERN = /\[\[(\w+):([^\]#|]+)(?:#([^\]|]+))?(?:\|([^\]]+))?\]\]/g;
@@ -332,8 +333,11 @@ export default function myceliumDataIntegration(): AstroIntegration {
                 }
               }
 
+              // Use clean slug for graph IDs (matches articuloNuevo references)
+              const cleanSlug = extractSlug(entry);
+
               allArticles.push({
-                slug: entry,
+                slug: cleanSlug,
                 title: frontmatter.title,
                 date: dateStr,
                 excerpt,
@@ -345,7 +349,7 @@ export default function myceliumDataIntegration(): AstroIntegration {
                 if (isArticleDomain(url)) {
                   allExternalArticles.push({
                     url,
-                    sourceSlug: entry,
+                    sourceSlug: cleanSlug,
                     sourceDate: dateStr,
                   });
                 }
