@@ -27,7 +27,7 @@ interface Props {
   maxEntries?: number;
 }
 
-const { entries, maxEntries = 5 } = Astro.props;
+const { entries, maxEntries = 50 } = Astro.props;
 
 // French month names (reuse pattern from JournalEntry)
 const frenchMonths = [
@@ -76,6 +76,10 @@ const renderedEntries = await Promise.all(
 
 const latestRendered = renderedEntries[0];
 const olderRendered = renderedEntries.slice(1);
+
+// Split older entries: first 3 visible, rest in collapsible archive
+const visibleOlder = olderRendered.slice(0, 3);
+const hiddenOlder = olderRendered.slice(3);
 ---
 
 <div class="ahora">
@@ -186,9 +190,9 @@ const olderRendered = renderedEntries.slice(1);
           })}
         </div>
       </div>
-      {olderRendered.length > 0 && (
+      {visibleOlder.length > 0 && (
         <div class="older-entries">
-          {olderRendered.map(({ entry, Content }) => (
+          {visibleOlder.map(({ entry, Content }) => (
             <div class="ahora-entry older">
               <time class="date" datetime={entry.data.date.toISOString().slice(0, 10)}>{formatDate(entry.data.date)}</time>
               <div class="body">
@@ -237,6 +241,62 @@ const olderRendered = renderedEntries.slice(1);
               </div>
             </div>
           ))}
+          {hiddenOlder.length > 0 && (
+            <details class="ahora-archive">
+              <summary class="archive-toggle">antes...</summary>
+              <div class="archive-entries">
+                {hiddenOlder.map(({ entry, Content }) => (
+                  <div class="ahora-entry older">
+                    <time class="date" datetime={entry.data.date.toISOString().slice(0, 10)}>{formatDate(entry.data.date)}</time>
+                    <div class="body">
+                      <Content />
+                      {entry.data.escuchando && entry.data.escuchando.length > 0 && (
+                        <p>
+                          <em>escuchando:</em>{' '}
+                          {entry.data.escuchando.map((track, i) => (
+                            <>
+                              <a href={track.url}>{track.artist} — {track.title}</a>
+                              {i < entry.data.escuchando!.length - 1 && ', '}
+                            </>
+                          ))}
+                        </p>
+                      )}
+                      {entry.data.articuloNuevo?.map(item => {
+                        const journal = journalBySlug.get(item.article);
+                        return journal && (
+                          <p>
+                            <em>articulo nuevo:</em>{' '}
+                            <a href={`/cuaderno/${slugToFolder.get(item.article) ?? item.article}`}>{journal.data.title}</a>
+                            {item.note && ` — ${item.note}`}
+                          </p>
+                        );
+                      })}
+                      {entry.data.specimenNuevo?.map(item => {
+                        const specimen = specimensById.get(item.specimen);
+                        return specimen && (
+                          <p>
+                            <em>specimen nuevo:</em>{' '}
+                            <a href={`/#${item.specimen}`}>{specimen.data.name}</a>
+                            {item.note && ` — ${item.note}`}
+                          </p>
+                        );
+                      })}
+                      {entry.data.cultivando?.map(item => {
+                        const cultivation = cultivationsBySlug.get(item.cultivation);
+                        return cultivation && (
+                          <p>
+                            <em>cultivando:</em>{' '}
+                            <a href="/#cultivos">{cultivation.data.name}</a>
+                            {item.note && ` — ${item.note}`}
+                          </p>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </details>
+          )}
         </div>
       )}
     </>
@@ -246,7 +306,6 @@ const olderRendered = renderedEntries.slice(1);
 <style>
   .ahora {
     text-align: center;
-    padding: var(--rhythm) 0;
   }
 
   .empty-state,
@@ -267,7 +326,7 @@ const olderRendered = renderedEntries.slice(1);
   }
 
   .ahora-entry {
-    margin-bottom: var(--rhythm);
+    margin-bottom: var(--rhythm-sm);
   }
 
   .ahora-entry:last-child {
@@ -290,19 +349,12 @@ const olderRendered = renderedEntries.slice(1);
     white-space: pre-line;
   }
 
-  .ahora-entry.older {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5em;
-    justify-content: center;
-    align-items: baseline;
-  }
-
   .ahora-entry.older .date {
     font-family: var(--font-serif);
     font-size: 14px;
     font-style: italic;
     color: var(--ink-faint);
+    margin: 0 0 var(--rhythm-sm) 0;
   }
 
   .ahora-entry.older .body {
@@ -314,9 +366,39 @@ const olderRendered = renderedEntries.slice(1);
   }
 
   .older-entries {
-    margin-top: var(--rhythm-lg);
-    padding-top: var(--rhythm);
+    margin-top: var(--rhythm);
+    padding-top: var(--rhythm-sm);
     border-top: 1px solid var(--ink-faint);
+  }
+
+  .ahora-archive {
+    margin-top: var(--rhythm-sm);
+  }
+
+  .archive-toggle {
+    font-family: var(--font-serif);
+    font-size: 14px;
+    font-style: italic;
+    color: var(--ink-faint);
+    cursor: pointer;
+    list-style: none;
+  }
+
+  .archive-toggle::-webkit-details-marker {
+    display: none;
+  }
+
+  .archive-toggle::marker {
+    display: none;
+    content: '';
+  }
+
+  .archive-toggle:hover {
+    color: var(--ink-soft);
+  }
+
+  .archive-entries {
+    margin-top: var(--rhythm-sm);
   }
 
   /* Markdown content styling */
