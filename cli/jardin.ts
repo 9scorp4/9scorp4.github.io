@@ -60,6 +60,12 @@ async function runCommand(command: string, args: string[]): Promise<void> {
       break;
     }
 
+    case 'refs': {
+      const { run } = await import('./commands/refs/index.ts');
+      await run(args);
+      break;
+    }
+
     case 'help':
     case '-h':
     case '--help':
@@ -103,6 +109,10 @@ function showHelp(): void {
 
   print(`  ${style.command('stats')}      Garden analytics`);
   muted('             --days=N');
+  blank();
+
+  print(`  ${style.command('refs')}       Cross-reference scanner`);
+  muted('             scan, --json, --entry=SLUG');
   blank();
 
   divider();
