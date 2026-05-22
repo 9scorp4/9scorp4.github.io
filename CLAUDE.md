@@ -121,6 +121,20 @@ jardin stats                  # Last 7 days
 jardin stats --days=30        # Custom range
 ```
 
+#### refs — Cross-reference scanner
+
+```bash
+jardin refs                   # Scan all content for wikilink opportunities
+jardin refs --json            # Output JSON for agent consumption
+jardin refs --entry=journal:lo-que-no-cruza  # Focus on single entry
+jardin refs --min-confidence=80              # Higher confidence threshold
+jardin refs --no-anchors      # Exclude anchor-level suggestions
+```
+
+Match types: `exact-title` (95%), `secondary-title` (90%), `anchor` (75%).
+
+Use the `wikilink-weaver` agent to review opportunities and insert links with editorial judgment.
+
 ### Legacy aliases
 
 These still work, pointing to the new CLI:
@@ -254,6 +268,7 @@ This applies to the main agent and all subagents. When spawning agents for tasks
 ## Custom Agents
 
 - **loc-analyzer**: Analyzes codebase for LoC threshold compliance (300-500 lines). Suggests concrete modularization opportunities for oversized files. Invoke with `@loc-analyzer` or let Claude delegate automatically when discussing code quality/refactoring.
+- **wikilink-weaver**: Scans content for cross-reference opportunities using `jardin refs`, then inserts wikilinks with editorial judgment. Handles journal entries, ahora dispatches, specimens, and cultivations. Bilingual-aware (Spanish/English). Use when creating new entries or reviewing citation density.
 
 ## LoC Policy
 
