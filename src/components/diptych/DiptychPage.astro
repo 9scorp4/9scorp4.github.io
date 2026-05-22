@@ -203,6 +203,26 @@ const jsonLd = JSON.stringify({
   }
 </style>
 
+<script>
+  // Strip block anchor syntax from rendered content
+  // Glob imports don't apply rehype-block-anchors, so we clean up client-side
+  // Pattern matches ^anchor-id including accented characters (e.g., ^couture-coût)
+  const anchorPattern = /\s*\^[\w\u00C0-\u017F-]+/gi;
+  document.querySelectorAll('.article-body, .metalogue-content').forEach(el => {
+    const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+    const nodesToClean = [];
+    while (walker.nextNode()) {
+      if (anchorPattern.test(walker.currentNode.textContent || '')) {
+        anchorPattern.lastIndex = 0; // Reset regex state
+        nodesToClean.push(walker.currentNode);
+      }
+    }
+    nodesToClean.forEach(node => {
+      node.textContent = (node.textContent || '').replace(anchorPattern, '');
+    });
+  });
+</script>
+
 <script define:vars={{ workerUrl, slug }}>
   // Article read tracking for diptych entries
   (function() {
