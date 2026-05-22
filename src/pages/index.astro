@@ -105,8 +105,16 @@ const journalItems: JournalItem[] = [
   ...standaloneEntries,
 ].sort((a, b) => b.latestDate.getTime() - a.latestDate.getTime());
 
+// Split journal items: first 4 visible, rest in collapsible
+const visibleJournalItems = journalItems.slice(0, 4);
+const hiddenJournalItems = journalItems.slice(4);
+
 const specimens = (await getCollection('specimens'))
   .sort((a, b) => b.data.grown.getTime() - a.data.grown.getTime());
+
+// Split specimens: first 6 visible, rest in collapsible
+const visibleSpecimens = specimens.slice(0, 6);
+const hiddenSpecimens = specimens.slice(6);
 
 const cultivations = await getCollection('cultivations');
 
@@ -136,11 +144,23 @@ const libraryAuthors = [
       <SectionHeader slug="conservatory" />
       <div class="section-content">
         {specimens.length > 0 ? (
-          <div class="specimens-grid">
-            {specimens.map((specimen, index) => (
-              <Specimen specimen={specimen} index={index} />
-            ))}
-          </div>
+          <>
+            <div class="specimens-grid">
+              {visibleSpecimens.map((specimen, index) => (
+                <Specimen specimen={specimen} index={index} />
+              ))}
+            </div>
+            {hiddenSpecimens.length > 0 && (
+              <details class="section-archive">
+                <summary class="archive-toggle">más especímenes...</summary>
+                <div class="specimens-grid archive-grid">
+                  {hiddenSpecimens.map((specimen, index) => (
+                    <Specimen specimen={specimen} index={visibleSpecimens.length + index} />
+                  ))}
+                </div>
+              </details>
+            )}
+          </>
         ) : (
           <p class="empty-state">the conservatory is quiet for now.</p>
         )}
@@ -152,7 +172,7 @@ const libraryAuthors = [
       <div class="section-content">
         {journalItems.length > 0 ? (
           <div class="journal-entries">
-            {journalItems.map((item) =>
+            {visibleJournalItems.map((item) =>
               item.type === 'series' ? (
                 <SeriesRow
                   series={item.seriesData}
@@ -161,6 +181,23 @@ const libraryAuthors = [
               ) : (
                 <JournalEntry entry={item.entry} slug={item.slug} />
               )
+            )}
+            {hiddenJournalItems.length > 0 && (
+              <details class="section-archive">
+                <summary class="archive-toggle">más entradas...</summary>
+                <div class="archive-entries">
+                  {hiddenJournalItems.map((item) =>
+                    item.type === 'series' ? (
+                      <SeriesRow
+                        series={item.seriesData}
+                        entries={item.entries}
+                      />
+                    ) : (
+                      <JournalEntry entry={item.entry} slug={item.slug} />
+                    )
+                  )}
+                </div>
+              </details>
             )}
           </div>
         ) : (
@@ -254,5 +291,40 @@ const libraryAuthors = [
   .journal-entries {
     max-width: 600px;
     margin: 0 auto;
+  }
+
+  .section-archive {
+    margin-top: var(--rhythm);
+  }
+
+  .archive-toggle {
+    font-family: var(--font-serif);
+    font-size: 14px;
+    font-style: italic;
+    color: var(--ink-faint);
+    cursor: pointer;
+    list-style: none;
+    text-align: center;
+  }
+
+  .archive-toggle::-webkit-details-marker {
+    display: none;
+  }
+
+  .archive-toggle::marker {
+    display: none;
+    content: '';
+  }
+
+  .archive-toggle:hover {
+    color: var(--ink-soft);
+  }
+
+  .archive-grid {
+    margin-top: var(--rhythm);
+  }
+
+  .archive-entries {
+    margin-top: var(--rhythm);
   }
 </style>
