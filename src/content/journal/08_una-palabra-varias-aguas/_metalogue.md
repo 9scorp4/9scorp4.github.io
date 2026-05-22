@@ -150,7 +150,7 @@ NAVEGANTE: The word. *Multipolaridad.* You will not be able to use it cleanly be
 
 I: Which is.
 
-NAVEGANTE: Which is what makes you understand that the two readings cannot be added. *No suman. No se cancelan. Conviven mal.*
+NAVEGANTE: Which is what makes you understand that [[journal:lo-que-el-libro-no-nombra#^the-two-readings|the two readings]] cannot be added. *No suman. No se cancelan. Conviven mal.*
 
 I: ...
 
