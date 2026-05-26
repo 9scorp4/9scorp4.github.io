@@ -87,6 +87,36 @@ function buildSpecimenMap(contentDir: string): Map<string, string> {
   return map;
 }
 
+/**
+ * Builds resolution maps for cultivations (by slug from YAML files).
+ */
+function buildCultivationMap(contentDir: string): Map<string, string> {
+  const collectionPath = path.join(contentDir, 'cultivations');
+  const map = new Map<string, string>();
+
+  if (!fs.existsSync(collectionPath)) {
+    return map;
+  }
+
+  const files = fs.readdirSync(collectionPath).filter(f => f.endsWith('.yaml'));
+
+  for (const file of files) {
+    const filePath = path.join(collectionPath, file);
+    const content = fs.readFileSync(filePath, 'utf-8');
+    try {
+      const data = parseYaml(content);
+      if (data && data.slug) {
+        // Cultivations link to their anchor on the index page
+        map.set(data.slug, `/#${data.slug}`);
+      }
+    } catch {
+      // Skip invalid YAML
+    }
+  }
+
+  return map;
+}
+
 export default function wikilinkResolver(options: WikilinkResolverOptions = {}): AstroIntegration {
   return {
     name: 'wikilink-resolver',
@@ -112,6 +142,9 @@ export default function wikilinkResolver(options: WikilinkResolverOptions = {}):
 
         // Specimens → /#[id]
         resolvedLinks.set('specimen', buildSpecimenMap(contentDir));
+
+        // Cultivations → /#[slug]
+        resolvedLinks.set('cultivation', buildCultivationMap(contentDir));
 
         // Library authors → /#library-[slug]
         // These are hardcoded for now since they're in code, not content

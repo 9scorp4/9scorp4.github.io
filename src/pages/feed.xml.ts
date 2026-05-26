@@ -37,6 +37,9 @@ function transformWikilinks(content: string, slugToFolder: Map<string, string>):
       case 'specimen':
         path = `/#${slug}`;
         break;
+      case 'cultivation':
+        path = `/#${slug}`;
+        break;
       case 'library':
         path = `/#library-${slug}`;
         break;
