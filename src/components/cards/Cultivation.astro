@@ -7,7 +7,7 @@ interface Props {
 }
 
 const { cultivation } = Astro.props;
-const { name, status, description, repo, links } = cultivation.data;
+const { slug, name, status, description, repo, links } = cultivation.data;
 const descriptionHtml = resolveWikilinks(description);
 
 const statusSymbols: Record<typeof status, string> = {
@@ -20,7 +20,7 @@ const statusSymbols: Record<typeof status, string> = {
 const symbol = statusSymbols[status];
 ---
 
-<article class="cultivation" data-status={status}>
+<article class="cultivation" id={slug} data-status={status}>
   <p class="status">{symbol} {status}</p>
   <h3>{name}</h3>
   <p class="description" set:html={descriptionHtml} />
