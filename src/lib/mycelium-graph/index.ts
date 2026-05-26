@@ -67,4 +67,4 @@ export {
   buildDispatchEdges,
   buildExternalArticleCitationEdges,
   finalizeEdges,
-} from './edge-builders.ts';
+} from './edge-builders/index.ts';

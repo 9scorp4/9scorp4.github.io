@@ -59,7 +59,7 @@ import {
   buildDispatchEdges,
   buildExternalArticleCitationEdges,
   finalizeEdges,
-} from './mycelium-graph/edge-builders.ts';
+} from './mycelium-graph/edge-builders/index.ts';
 
 /**
  * Build the unified mycelium graph from tracks, articles, and cultivations
