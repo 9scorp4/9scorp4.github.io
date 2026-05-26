@@ -1,0 +1,50 @@
+---
+/**
+ * AhoraEntryMeta — renders metadata block for an ahora dispatch
+ *
+ * Extracted from Ahora.astro to eliminate 4 copies of identical rendering logic.
+ */
+interface Props {
+  escuchando?: { url: string; artist: string; title: string }[];
+  articulosNuevos?: { href: string; title: string; note?: string }[];
+  specimensNuevos?: { href: string; name: string; note?: string }[];
+  cultivando?: { href: string; name: string; note?: string }[];
+  showMyceliumLink?: boolean;
+}
+
+const { escuchando, articulosNuevos, specimensNuevos, cultivando, showMyceliumLink = false } = Astro.props;
+---
+
+{escuchando && escuchando.length > 0 && (
+  <p>
+    <em>escuchando:</em>{' '}
+    {escuchando.map((track, i) => (
+      <>
+        <a href={track.url}>{track.artist} — {track.title}</a>
+        {i < escuchando.length - 1 && ', '}
+      </>
+    ))}
+    {showMyceliumLink && <>{' '}<a href="/micelio" class="mycelium-link" title="el micelio">◉</a></>}
+  </p>
+)}
+{articulosNuevos?.map(item => (
+  <p>
+    <em>articulo nuevo:</em>{' '}
+    <a href={item.href}>{item.title}</a>
+    {item.note && ` — ${item.note}`}
+  </p>
+))}
+{specimensNuevos?.map(item => (
+  <p>
+    <em>specimen nuevo:</em>{' '}
+    <a href={item.href}>{item.name}</a>
+    {item.note && ` — ${item.note}`}
+  </p>
+))}
+{cultivando?.map(item => (
+  <p>
+    <em>cultivando:</em>{' '}
+    <a href={item.href}>{item.name}</a>
+    {item.note && ` — ${item.note}`}
+  </p>
+))}
