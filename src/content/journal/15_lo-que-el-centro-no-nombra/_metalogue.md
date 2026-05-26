@@ -42,7 +42,7 @@ I: Like what.
 
 AMIGA: Like you're outside it.
 
-I: I'm not outside it. That's what I keep trying to say. There is no outside. The thing I'm describing isn't a position next to the line; it's a position about the line.
+I: I'm not outside it. That's what I keep trying to say. There is [[journal:smash-laterally-iii#^no-outside|no outside]]. The thing I'm describing isn't a position next to the line; it's a position about the line.
 
 AMIGA: That's still outside.
 
