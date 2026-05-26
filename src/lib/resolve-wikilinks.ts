@@ -44,6 +44,7 @@ const journalFolders = buildJournalLookup();
 const COLLECTION_PATHS: Record<string, (slug: string) => string> = {
   journal: (slug) => `/cuaderno/${journalFolders.get(slug) ?? slug}/`,
   specimen: (id) => `/#${id}`,
+  cultivation: (slug) => `/#${slug}`,
   library: (name) => `/#library-${name}`,
 };
 
