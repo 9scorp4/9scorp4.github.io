@@ -45,6 +45,9 @@ coverage/
 # claude
 .claude/
 
+# pi
+.pi/
+
 # private notes (never pushed)
 _private/
 
