@@ -3,6 +3,7 @@ import type { CollectionEntry } from 'astro:content';
 import { getCollection, render } from 'astro:content';
 import { getSeason } from '../../lib/season';
 import { extractSlug } from '../../lib/journal-slug';
+import AhoraEntryMeta from './AhoraEntryMeta.astro';
 
 // Fetch collections for lookups
 const journalEntries = await getCollection('journal');
@@ -21,6 +22,37 @@ const slugToFolder = new Map(journalEntries.map(e => {
 }));
 const specimensById = new Map(specimensData.map(s => [s.data.id, s]));
 const cultivationsBySlug = new Map(cultivationsData.map(c => [c.data.slug, c]));
+
+// Resolve entry metadata into props for AhoraEntryMeta component
+function resolveEntryMeta(entry: CollectionEntry<'ahora'>) {
+  return {
+    escuchando: entry.data.escuchando,
+    articulosNuevos: entry.data.articuloNuevo?.map(item => {
+      const journal = journalBySlug.get(item.article);
+      return journal ? {
+        href: `/cuaderno/${slugToFolder.get(item.article) ?? item.article}`,
+        title: journal.data.title,
+        note: item.note
+      } : null;
+    }).filter((x): x is NonNullable<typeof x> => x !== null),
+    specimensNuevos: entry.data.specimenNuevo?.map(item => {
+      const specimen = specimensById.get(item.specimen);
+      return specimen ? {
+        href: `/#${item.specimen}`,
+        name: specimen.data.name,
+        note: item.note
+      } : null;
+    }).filter((x): x is NonNullable<typeof x> => x !== null),
+    cultivando: entry.data.cultivando?.map(item => {
+      const cultivation = cultivationsBySlug.get(item.cultivation);
+      return cultivation ? {
+        href: '/#cultivos',
+        name: cultivation.data.name,
+        note: item.note
+      } : null;
+    }).filter((x): x is NonNullable<typeof x> => x !== null)
+  };
+}
 
 interface Props {
   entries: CollectionEntry<'ahora'>[];
@@ -94,47 +126,7 @@ const hiddenOlder = olderRendered.slice(3);
             <time class="date" datetime={entry.data.date.toISOString().slice(0, 10)}>{formatDate(entry.data.date)}</time>
             <div class="body">
               <Content />
-              {entry.data.escuchando && entry.data.escuchando.length > 0 && (
-                <p>
-                  <em>escuchando:</em>{' '}
-                  {entry.data.escuchando.map((track, i) => (
-                    <>
-                      <a href={track.url}>{track.artist} — {track.title}</a>
-                      {i < entry.data.escuchando!.length - 1 && ', '}
-                    </>
-                  ))}
-                </p>
-              )}
-              {entry.data.articuloNuevo?.map(item => {
-                const journal = journalBySlug.get(item.article);
-                return journal && (
-                  <p>
-                    <em>articulo nuevo:</em>{' '}
-                    <a href={`/cuaderno/${slugToFolder.get(item.article) ?? item.article}`}>{journal.data.title}</a>
-                    {item.note && ` — ${item.note}`}
-                  </p>
-                );
-              })}
-              {entry.data.specimenNuevo?.map(item => {
-                const specimen = specimensById.get(item.specimen);
-                return specimen && (
-                  <p>
-                    <em>specimen nuevo:</em>{' '}
-                    <a href={`/#${item.specimen}`}>{specimen.data.name}</a>
-                    {item.note && ` — ${item.note}`}
-                  </p>
-                );
-              })}
-              {entry.data.cultivando?.map(item => {
-                const cultivation = cultivationsBySlug.get(item.cultivation);
-                return cultivation && (
-                  <p>
-                    <em>cultivando:</em>{' '}
-                    <a href="/#cultivos">{cultivation.data.name}</a>
-                    {item.note && ` — ${item.note}`}
-                  </p>
-                );
-              })}
+              <AhoraEntryMeta {...resolveEntryMeta(entry)} />
             </div>
           </div>
         ))}
@@ -146,48 +138,7 @@ const hiddenOlder = olderRendered.slice(3);
         <p class="date"><time datetime={latestRendered.entry.data.date.toISOString().slice(0, 10)}>{formatDate(latestRendered.entry.data.date)}</time></p>
         <div class="body">
           <latestRendered.Content />
-          {latestRendered.entry.data.escuchando && latestRendered.entry.data.escuchando.length > 0 && (
-            <p>
-              <em>escuchando:</em>{' '}
-              {latestRendered.entry.data.escuchando.map((track, i) => (
-                <>
-                  <a href={track.url}>{track.artist} — {track.title}</a>
-                  {i < latestRendered.entry.data.escuchando!.length - 1 && ', '}
-                </>
-              ))}
-              {' '}<a href="/micelio" class="mycelium-link" title="el micelio">◉</a>
-            </p>
-          )}
-          {latestRendered.entry.data.articuloNuevo?.map(item => {
-            const journal = journalBySlug.get(item.article);
-            return journal && (
-              <p>
-                <em>articulo nuevo:</em>{' '}
-                <a href={`/cuaderno/${slugToFolder.get(item.article) ?? item.article}`}>{journal.data.title}</a>
-                {item.note && ` — ${item.note}`}
-              </p>
-            );
-          })}
-          {latestRendered.entry.data.specimenNuevo?.map(item => {
-            const specimen = specimensById.get(item.specimen);
-            return specimen && (
-              <p>
-                <em>specimen nuevo:</em>{' '}
-                <a href={`/#${item.specimen}`}>{specimen.data.name}</a>
-                {item.note && ` — ${item.note}`}
-              </p>
-            );
-          })}
-          {latestRendered.entry.data.cultivando?.map(item => {
-            const cultivation = cultivationsBySlug.get(item.cultivation);
-            return cultivation && (
-              <p>
-                <em>cultivando:</em>{' '}
-                <a href="/#cultivos">{cultivation.data.name}</a>
-                {item.note && ` — ${item.note}`}
-              </p>
-            );
-          })}
+          <AhoraEntryMeta {...resolveEntryMeta(latestRendered.entry)} showMyceliumLink />
         </div>
       </div>
       {visibleOlder.length > 0 && (
@@ -197,47 +148,7 @@ const hiddenOlder = olderRendered.slice(3);
               <time class="date" datetime={entry.data.date.toISOString().slice(0, 10)}>{formatDate(entry.data.date)}</time>
               <div class="body">
                 <Content />
-                {entry.data.escuchando && entry.data.escuchando.length > 0 && (
-                  <p>
-                    <em>escuchando:</em>{' '}
-                    {entry.data.escuchando.map((track, i) => (
-                      <>
-                        <a href={track.url}>{track.artist} — {track.title}</a>
-                        {i < entry.data.escuchando!.length - 1 && ', '}
-                      </>
-                    ))}
-                  </p>
-                )}
-                {entry.data.articuloNuevo?.map(item => {
-                  const journal = journalBySlug.get(item.article);
-                  return journal && (
-                    <p>
-                      <em>articulo nuevo:</em>{' '}
-                      <a href={`/cuaderno/${slugToFolder.get(item.article) ?? item.article}`}>{journal.data.title}</a>
-                      {item.note && ` — ${item.note}`}
-                    </p>
-                  );
-                })}
-                {entry.data.specimenNuevo?.map(item => {
-                  const specimen = specimensById.get(item.specimen);
-                  return specimen && (
-                    <p>
-                      <em>specimen nuevo:</em>{' '}
-                      <a href={`/#${item.specimen}`}>{specimen.data.name}</a>
-                      {item.note && ` — ${item.note}`}
-                    </p>
-                  );
-                })}
-                {entry.data.cultivando?.map(item => {
-                  const cultivation = cultivationsBySlug.get(item.cultivation);
-                  return cultivation && (
-                    <p>
-                      <em>cultivando:</em>{' '}
-                      <a href="/#cultivos">{cultivation.data.name}</a>
-                      {item.note && ` — ${item.note}`}
-                    </p>
-                  );
-                })}
+                <AhoraEntryMeta {...resolveEntryMeta(entry)} />
               </div>
             </div>
           ))}
@@ -250,47 +161,7 @@ const hiddenOlder = olderRendered.slice(3);
                     <time class="date" datetime={entry.data.date.toISOString().slice(0, 10)}>{formatDate(entry.data.date)}</time>
                     <div class="body">
                       <Content />
-                      {entry.data.escuchando && entry.data.escuchando.length > 0 && (
-                        <p>
-                          <em>escuchando:</em>{' '}
-                          {entry.data.escuchando.map((track, i) => (
-                            <>
-                              <a href={track.url}>{track.artist} — {track.title}</a>
-                              {i < entry.data.escuchando!.length - 1 && ', '}
-                            </>
-                          ))}
-                        </p>
-                      )}
-                      {entry.data.articuloNuevo?.map(item => {
-                        const journal = journalBySlug.get(item.article);
-                        return journal && (
-                          <p>
-                            <em>articulo nuevo:</em>{' '}
-                            <a href={`/cuaderno/${slugToFolder.get(item.article) ?? item.article}`}>{journal.data.title}</a>
-                            {item.note && ` — ${item.note}`}
-                          </p>
-                        );
-                      })}
-                      {entry.data.specimenNuevo?.map(item => {
-                        const specimen = specimensById.get(item.specimen);
-                        return specimen && (
-                          <p>
-                            <em>specimen nuevo:</em>{' '}
-                            <a href={`/#${item.specimen}`}>{specimen.data.name}</a>
-                            {item.note && ` — ${item.note}`}
-                          </p>
-                        );
-                      })}
-                      {entry.data.cultivando?.map(item => {
-                        const cultivation = cultivationsBySlug.get(item.cultivation);
-                        return cultivation && (
-                          <p>
-                            <em>cultivando:</em>{' '}
-                            <a href="/#cultivos">{cultivation.data.name}</a>
-                            {item.note && ` — ${item.note}`}
-                          </p>
-                        );
-                      })}
+                      <AhoraEntryMeta {...resolveEntryMeta(entry)} />
                     </div>
                   </div>
                 ))}
