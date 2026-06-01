@@ -80,6 +80,8 @@ The structural color. Most colored UI uses these.
 | Captions | 15–16px |
 | Quiet text | 13px |
 
+**Base typography** uses fluid scaling: `clamp(125%, 100% + 0.5vw, 150%)`. The `%` unit on `html` is relative to the browser's default font-size, so user preferences are respected. The `vw` component adds viewport scaling (~20px mobile, ~23px desktop, ~24px wide at default 16px browser setting).
+
 Line-height **1.75** for body. The type wants room to breathe.
 
 ## CSS variables
