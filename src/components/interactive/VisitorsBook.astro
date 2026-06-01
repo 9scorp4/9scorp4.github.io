@@ -141,7 +141,7 @@ const batesonQuotes = [
 
   .visitor-message {
     font-family: var(--font-serif);
-    font-size: 14px;
+    font-size: 0.778rem;
     line-height: 1.5;
     color: var(--ink-soft);
   }
@@ -159,7 +159,7 @@ const batesonQuotes = [
   }
 
   .visitor-date {
-    font-size: 12px;
+    font-size: 0.667rem;
     color: var(--ink-faint);
   }
 
@@ -188,7 +188,7 @@ const batesonQuotes = [
 
   .prompt {
     font-family: var(--font-serif);
-    font-size: 16px;
+    font-size: 0.889rem;
     font-style: italic;
     color: var(--fern);
     flex-shrink: 0;
@@ -196,7 +196,7 @@ const batesonQuotes = [
 
   .prompt-arrow {
     font-family: var(--font-serif);
-    font-size: 16px;
+    font-size: 0.889rem;
     color: var(--ink-faint);
     flex-shrink: 0;
   }
@@ -205,7 +205,7 @@ const batesonQuotes = [
     flex: 1;
     min-width: 0;
     font-family: var(--font-mono);
-    font-size: 16px; /* ≥16px prevents iOS zoom */
+    font-size: 16px; /* Keep 16px: iOS auto-zooms inputs <16px */
     color: var(--ink);
     background: transparent;
     border: none;
@@ -214,13 +214,13 @@ const batesonQuotes = [
     caret-color: transparent; /* hide native caret, use custom cursor */
   }
 
-  /* Hidden span to measure text width */
+  /* Hidden span to measure text width — must match .console-input font-size */
   .text-measurer {
     position: absolute;
     visibility: hidden;
     white-space: pre;
     font-family: var(--font-mono);
-    font-size: 16px;
+    font-size: 16px; /* Must match .console-input */
     pointer-events: none;
   }
 
@@ -233,7 +233,7 @@ const batesonQuotes = [
     position: absolute;
     left: 0;
     font-family: var(--font-mono);
-    font-size: 16px;
+    font-size: 16px; /* Must match .console-input */
     color: var(--fern);
     animation: blink 1s step-end infinite;
     pointer-events: none;
@@ -243,13 +243,13 @@ const batesonQuotes = [
     color: var(--sun);
   }
 
-  /* Ghost text typing guide */
+  /* Ghost text typing guide — must match .console-input font-size */
   .ghost-text {
     position: absolute;
     left: 0;
     top: 0;
     font-family: var(--font-mono);
-    font-size: 16px;
+    font-size: 16px; /* Must match .console-input */
     color: var(--ink-faint);
     pointer-events: none;
     white-space: pre;
@@ -270,7 +270,7 @@ const batesonQuotes = [
 
   .help {
     font-family: var(--font-serif);
-    font-size: 14px;
+    font-size: 0.778rem;
     font-style: italic;
     color: var(--ink-faint);
     margin: 0;
@@ -279,7 +279,7 @@ const batesonQuotes = [
   .console-output {
     display: none;
     font-family: var(--font-serif);
-    font-size: 15px;
+    font-size: 0.833rem;
     color: var(--ink);
     line-height: 1.6;
     padding-top: 8px;

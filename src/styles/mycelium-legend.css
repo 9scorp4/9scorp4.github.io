@@ -10,7 +10,7 @@
   background: var(--paper-deep);
   border: 1px solid var(--paper-line);
   font-family: var(--font-serif);
-  font-size: 12px;
+  font-size: 0.667rem;
   color: var(--ink-soft);
   opacity: 0.9;
 }
@@ -31,7 +31,7 @@
 .mycelium-container .legend-toggle::before {
   content: '\25b8 ';
   font-style: normal;
-  font-size: 10px;
+  font-size: 0.556rem;
 }
 
 .mycelium-container .legend[open] .legend-toggle::before {
@@ -192,7 +192,7 @@
 
 @media (max-width: 500px) {
   .mycelium-container .legend {
-    font-size: 11px;
+    font-size: 0.611rem;
   }
 
   .mycelium-container .legend-toggle {
