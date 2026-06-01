@@ -41,7 +41,7 @@
 
 .visitors-book .console-output .output-mono {
   font-family: var(--font-mono);
-  font-size: 13px;
+  font-size: 0.722rem;
 }
 
 /* Season collapsibles */
@@ -61,7 +61,7 @@
 .visitors-book .console-output .season-chevron {
   display: inline-block;
   font-family: var(--font-mono);
-  font-size: 14px;
+  font-size: 0.778rem;
   color: var(--ink-faint);
   min-width: 1ch;
 }
@@ -124,7 +124,7 @@
 }
 
 .visitors-book .console-output .search-result .result-meta {
-  font-size: 13px;
+  font-size: 0.722rem;
   color: var(--ink-faint);
   margin-top: 2px;
 }
@@ -138,7 +138,7 @@
 
 .visitors-book .console-output .dismiss-btn {
   font-family: var(--font-serif);
-  font-size: 13px;
+  font-size: 0.722rem;
   font-style: italic;
   color: var(--ink-faint);
   background: none;
@@ -159,7 +159,7 @@
 /* Engagement counts */
 .visitors-book .console-output .engagement-line {
   margin-top: 10px;
-  font-size: 13px;
+  font-size: 0.722rem;
   font-family: var(--font-mono);
 }
 
@@ -173,7 +173,7 @@
 
 .visitors-book .console-output .rating-btn {
   font-family: var(--font-serif);
-  font-size: 13px;
+  font-size: 0.722rem;
   font-style: italic;
   color: var(--ink-faint);
   background: none;
@@ -196,12 +196,12 @@
 
 .visitors-book .console-output .rating-sep {
   color: var(--ink-faint);
-  font-size: 13px;
+  font-size: 0.722rem;
 }
 
 .visitors-book .console-output .rating-confirmed {
   font-family: var(--font-serif);
-  font-size: 13px;
+  font-size: 0.722rem;
   font-style: italic;
   color: var(--ink-faint);
 }
@@ -242,7 +242,7 @@
 
 .jardin-modal-title {
   font-family: var(--font-serif);
-  font-size: 18px;
+  font-size: 1rem;
   font-style: italic;
   color: var(--fern);
   margin: 0 0 8px 0;
@@ -250,7 +250,7 @@
 
 .jardin-modal-body {
   font-family: var(--font-serif);
-  font-size: 15px;
+  font-size: 0.833rem;
   color: var(--ink-soft);
   margin: 0 0 16px 0;
   line-height: 1.5;
@@ -258,7 +258,7 @@
 
 .jardin-modal-dismiss {
   font-family: var(--font-serif);
-  font-size: 14px;
+  font-size: 0.778rem;
   font-style: italic;
   color: var(--ink-faint);
   background: none;
