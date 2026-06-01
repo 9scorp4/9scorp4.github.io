@@ -31,7 +31,10 @@
 }
 
 html {
-  font-size: 18px;
+  /* Fluid base: scales with viewport, respects browser font-size settings
+     % on html = relative to browser default; vw adds viewport scaling
+     At default 16px: mobile ~20px, desktop ~23px, wide ~24px */
+  font-size: clamp(125%, 100% + 0.5vw, 150%);
   line-height: 1.75;
   scroll-behavior: smooth;
   -webkit-font-smoothing: antialiased;
@@ -80,17 +83,17 @@ img {
 /* Skip link for keyboard navigation */
 .skip-link {
   position: absolute;
-  top: -40px;
   left: 0;
   padding: 8px 16px;
   background: var(--paper);
   color: var(--ink);
   z-index: 1000;
-  transition: top 0.2s;
+  transform: translateY(-100%);
+  transition: transform 0.2s;
 }
 
 .skip-link:focus {
-  top: 0;
+  transform: translateY(0);
 }
 
 @media (prefers-reduced-motion: reduce) {
