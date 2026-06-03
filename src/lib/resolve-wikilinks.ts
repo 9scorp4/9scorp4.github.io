@@ -89,9 +89,11 @@ export function resolveWikilinks(text: string): string {
     }
 
     // Display text defaults to slug
-    const linkText = displayText || slug;
+    // Don't escape linkText - it may contain inline HTML from markdown processing
+    // (e.g., <em> from *emphasis*). This is safe since content is author-controlled.
+    const linkText = displayText || escapeHtml(slug);
 
-    return `<a href="${escapeHtml(url)}">${escapeHtml(linkText)}</a>`;
+    return `<a href="${escapeHtml(url)}">${linkText}</a>`;
   });
 }
 
