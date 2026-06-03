@@ -66,11 +66,14 @@ describe('resolveWikilinks', () => {
     expect(warnSpy).toHaveBeenCalledWith('[resolve-wikilinks] Unknown collection: unknown');
   });
 
-  // HTML escaping
-  it('escapes HTML in display text', () => {
-    const result = resolveWikilinks('See [[journal:my-article|<script>alert("xss")</script>]].');
+  // HTML in display text (preserved for markdown-compiled inline formatting)
+  // Note: Display text is NOT escaped because it may contain inline HTML from
+  // markdown compilation (e.g., *emphasis* → <em>emphasis</em>). This is safe
+  // since wikilinks only appear in author-controlled content files.
+  it('preserves HTML in display text (for markdown inline formatting)', () => {
+    const result = resolveWikilinks('See [[journal:my-article|text with <em>emphasis</em>]].');
     expect(result).toBe(
-      'See <a href="/cuaderno/my-article/">&lt;script&gt;alert(&quot;xss&quot;)&lt;/script&gt;</a>.'
+      'See <a href="/cuaderno/my-article/">text with <em>emphasis</em></a>.'
     );
   });
 
