@@ -8,6 +8,7 @@ import { getCollection, getEntry, render } from 'astro:content';
 import type { CollectionEntry } from 'astro:content';
 import DiptychPage from '../../components/diptych/DiptychPage.astro';
 import Garden from '../../layouts/Garden.astro';
+import { resolveWikilinks } from '../../lib/resolve-wikilinks.ts';
 
 export async function getStaticPaths() {
   const entries = await getCollection('journal', ({ data }) => !data.draft);
@@ -99,11 +100,13 @@ if (type === 'diptych') {
   const articleModule = articleModules[articlePath];
   const metalogueModule = metalogueModules[metaloguePath];
 
-  if (articleModule) {
-    articleHtml = articleModule.compiledContent();
+  if (articleModule?.compiledContent) {
+    const raw = await articleModule.compiledContent();
+    articleHtml = typeof raw === 'string' ? resolveWikilinks(raw) : '';
   }
-  if (metalogueModule) {
-    metalogueHtml = metalogueModule.compiledContent();
+  if (metalogueModule?.compiledContent) {
+    const raw = await metalogueModule.compiledContent();
+    metalogueHtml = typeof raw === 'string' ? resolveWikilinks(raw) : '';
   }
 }
 
