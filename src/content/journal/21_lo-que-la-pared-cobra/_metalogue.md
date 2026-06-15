@@ -32,7 +32,7 @@ CLAUDE: Es lo que el artículo no quiere decir pero dice. Construyes el muro, pa
 
 YO: Pará. Decílo de nuevo, pero escuchate.
 
-CLAUDE: I said there is no outside.
+CLAUDE: I said [[journal:smash-laterally-iii#^no-outside|there is no outside]].
 
 YO: En español. Escuchá cómo te salió. Demasiado correcto. Sin tierra. Es el español de algo que aprendió todos los idiomas y no es de ninguna parte. ^sin-tierra
 
