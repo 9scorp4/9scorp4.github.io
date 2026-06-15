@@ -46,7 +46,7 @@ function resolveEntryMeta(entry: CollectionEntry<'ahora'>) {
     cultivando: entry.data.cultivando?.map(item => {
       const cultivation = cultivationsBySlug.get(item.cultivation);
       return cultivation ? {
-        href: '/#cultivos',
+        href: `/#${cultivation.data.slug}`,
         name: cultivation.data.name,
         note: item.note
       } : null;
