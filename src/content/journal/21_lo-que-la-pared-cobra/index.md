@@ -5,7 +5,7 @@ date: 2026-06-14
 entry: 21
 language: es
 summary: "On the cost of technological sovereignty — that it is not a price paid once but a rate paid continuously — and on talking to the machine you are paying to leave."
-draft: true
+draft: false
 type: diptych
 preamble: "La caja sobre el escritorio aguanta tres mil millones de parámetros. Ni uno más. La miré como se mira un muro que uno va a tener que pagar para sostener."
 metalogue_title: "¿cuánto cuesta una pared? · what does a wall cost"
