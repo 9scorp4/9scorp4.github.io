@@ -26,7 +26,7 @@ This is the thing the hardware question hides. Sovereignty never subtracts cost;
 
 And it relocates dependency rather than abolishing it. Own the inference, you rent the lineage. Own the weights, you rent the GPU. Own the GPU, you depend on the foundry, the grid, the continued willingness of open labs to release at all. There is no terminal sovereignty. There is only a residual — and the residual is where the next switch hides.
 
-Which is why the exit keeps getting billed in the currency of the thing you are leaving. To build the off-ramp you pay tolls to the road. *No hay salida que no pase por lo que dejás* — and that is not a trap so much as the plain topology of leaving an infrastructure you are inside of. The cost of refusal is real, and it is denominated, every time, in the units of what you refuse.
+Which is why the exit keeps getting billed in the currency of the thing you are leaving. To build the off-ramp you pay tolls to the road. *No hay salida que no pase por lo que dejás* — and that is not a trap so much as the plain topology of leaving an infrastructure you are inside of. [[journal:lo-que-el-espejo-no-corrige#^cost-of-refusal|The cost of refusal]] is real, and it is denominated, every time, in the units of what you refuse.
 
 ---
 
