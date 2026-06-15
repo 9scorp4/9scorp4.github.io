@@ -48,6 +48,9 @@ coverage/
 # pi
 .pi/
 
+# crisol (local source declarations)
+.crisol/
+
 # private notes (never pushed)
 _private/
 
