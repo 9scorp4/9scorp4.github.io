@@ -1,0 +1,4 @@
+slug: crisol
+name: crisol
+status: growing
+description: Dataset forge for fine-tuning small language models. Transforms code, prose, and sessions into curated training pairs — the crucible where the [[journal:lo-que-la-pared-cobra#^membrane-not-fortress|membrane]] gets metabolised.
