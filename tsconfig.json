@@ -1,7 +1,12 @@
 {
   "extends": "astro/tsconfigs/strict",
   "compilerOptions": {
-    "strictNullChecks": true
+    "strictNullChecks": true,
+    // Astro's preset sets jsx: preserve for .astro files. Vite 8 honours that
+    // for standalone .tsx too, leaving the Satori templates untransformed.
+    // These are build-time only; there is no framework integration.
+    "jsx": "react-jsx",
+    "jsxImportSource": "react"
   },
   "exclude": ["workers"]
 }

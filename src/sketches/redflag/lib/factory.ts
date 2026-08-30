@@ -39,11 +39,10 @@ export function createRedflagSketch(dialogImage: string) {
       let loopFrame = 1;
       let isRunning = true;
 
-      p.preload = () => {
-        dialogImg = p.loadImage(dialogImage);
-      };
+      p.setup = async () => {
+        // p5 2.0 removed preload(); assets load in setup via await instead.
+        dialogImg = await p.loadImage(dialogImage);
 
-      p.setup = () => {
         // Use a fixed internal resolution for consistent rendering
         // Scale based on container height to fill the space
         const baseHeight = 640;

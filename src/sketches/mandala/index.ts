@@ -90,18 +90,16 @@ function mandalaSketch(p: p5) {
     const bulgeRightX = p.cos(angle) * bulgeR - perpX * petalWidth;
     const bulgeRightY = p.sin(angle) * bulgeR - perpY * petalWidth;
 
+    // p5 2.0 takes one control point per bezierVertex() call, three per cubic
+    // segment (bezierOrder defaults to 3), rather than all six coordinates at once.
     p.beginShape();
     p.vertex(innerX, innerY);
-    p.bezierVertex(
-      innerX + perpX * 1.5, innerY + perpY * 1.5,
-      bulgeLeftX, bulgeLeftY,
-      outerX, outerY
-    );
-    p.bezierVertex(
-      bulgeRightX, bulgeRightY,
-      innerX - perpX * 1.5, innerY - perpY * 1.5,
-      innerX, innerY
-    );
+    p.bezierVertex(innerX + perpX * 1.5, innerY + perpY * 1.5);
+    p.bezierVertex(bulgeLeftX, bulgeLeftY);
+    p.bezierVertex(outerX, outerY);
+    p.bezierVertex(bulgeRightX, bulgeRightY);
+    p.bezierVertex(innerX - perpX * 1.5, innerY - perpY * 1.5);
+    p.bezierVertex(innerX, innerY);
     p.endShape();
   };
 
