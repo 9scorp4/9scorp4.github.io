@@ -30,7 +30,7 @@ export async function handleSubmit(request: Request, env: Env): Promise<Response
 
   const parsed = SubmissionSchema.safeParse(body);
   if (!parsed.success) {
-    const firstError = parsed.error.errors[0];
+    const firstError = parsed.error.issues[0];
     if (firstError?.path[0] === 'nombre' && firstError.code === 'too_big') {
       return json({ error: 'nombre: 40 chars max.' }, 400);
     }
