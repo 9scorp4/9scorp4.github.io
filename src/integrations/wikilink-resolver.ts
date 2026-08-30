@@ -6,6 +6,7 @@
  */
 
 import type { AstroIntegration } from 'astro';
+import { unified } from '@astrojs/markdown-remark';
 import { remarkWikilink } from '../lib/remark-wikilink.ts';
 import { rehypeBlockAnchors } from '../lib/rehype-block-anchors.ts';
 import { extractSlug } from '../lib/journal-slug.ts';
@@ -162,15 +163,20 @@ export default function wikilinkResolver(options: WikilinkResolverOptions = {}):
         }
         resolvedLinks.set('library', libraryMap);
 
-        // Update markdown config with our plugins
+        // Astro 7 defaults to the Sätteri processor, which ignores
+        // markdown.remarkPlugins/rehypePlugins — it only warns, so the build
+        // still passes while every block anchor silently disappears. Select the
+        // unified processor explicitly and hand it the plugins directly.
         updateConfig({
           markdown: {
-            remarkPlugins: [
-              [remarkWikilink, { resolvedLinks, strict }],
-            ],
-            rehypePlugins: [
-              rehypeBlockAnchors,
-            ],
+            processor: unified({
+              remarkPlugins: [
+                [remarkWikilink, { resolvedLinks, strict }],
+              ],
+              rehypePlugins: [
+                rehypeBlockAnchors,
+              ],
+            }),
           },
         });
       },
